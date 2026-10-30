@@ -6,7 +6,7 @@ Eles se comunicam **pelas planilhas**, não por código compartilhado.
 | Pasta / repositório | Projeto Apps Script | Planilha a que está ligado | Arquivos |
 |---|---|---|---|
 | Formulario-Zayda-Construtora | ZAYDA CONSTRUTORA \| FORMULÁRIO (script 1TjrLZ…) | ZAYDA CONSTRUTORA \| CATÁLOGO E SOLICITAÇÕES (OFICIAL) | `Código.js`, `Index.html`, `appsscript.json` |
-| Controle-Zayda-Construtora | Zayda Controle | ZAYDA CONSTRUTORA \| CONTROLE DE MATERIAIS POR OBRA (OFICIAL) | `Controle.js`, `Painel.html`, `appsscript.json` |
+| ZAYDA-CONSTRUTORA-PAINEL | Zayda Controle | ZAYDA CONSTRUTORA \| CONTROLE DE MATERIAIS POR OBRA (OFICIAL) | `Controle.js`, `Painel.html`, `appsscript.json` |
 
 ## Regras que não podem ser quebradas
 - **Nunca renomear nem criar arquivos de código.** Os nomes são exatamente `Index.html`, `Código.js`, `Painel.html` e `Controle.js`. Nunca pode existir `INDEX.html` (o Git no Windows não distingue maiúsculas e isso já derrubou o formulário).

@@ -11,18 +11,18 @@
   --amber:#946000; --amber-soft:#FFF3DC; --blue:#2F5584; --blue-soft:#E8EEF7; --red:#B42318; --red-soft:#FDECEA;
   --shadow:0 1px 2px rgba(19,36,26,.04),0 8px 24px rgba(19,36,26,.05);
   --f-ui:"Manrope",system-ui,-apple-system,"Segoe UI",Arial,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
-  --r:16px;
+  --r:16px; --vivo:#D3EEDB;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0D1410; --surface:#141E18; --surface-2:#19251E; --line:#24332A; --ink:#E5EEE8; --ink-2:#A6B5AB; --ink-3:#6E7F74;
   --brand:#3DAE68; --brand-2:#2F8550; --brand-soft:#173324; --lime:#B6DA62; --hatch:#33443A; --hatch-bg:#1A251F;
   --amber:#E7AC4C; --amber-soft:#36290F; --blue:#90B4E6; --blue-soft:#1A2638; --red:#F28B7F; --red-soft:#3A1C19;
-  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}}
+  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0D1410; --surface:#141E18; --surface-2:#19251E; --line:#24332A; --ink:#E5EEE8; --ink-2:#A6B5AB; --ink-3:#6E7F74;
   --brand:#3DAE68; --brand-2:#2F8550; --brand-soft:#173324; --lime:#B6DA62; --hatch:#33443A; --hatch-bg:#1A251F;
   --amber:#E7AC4C; --amber-soft:#36290F; --blue:#90B4E6; --blue-soft:#1A2638; --red:#F28B7F; --red-soft:#3A1C19;
-  --shadow:0 1px 2px rgba(0,0,0,.3); color-scheme:dark}
+  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
@@ -263,6 +263,21 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
   .ped summary .hide-s{display:none}
 }
 @media (prefers-reduced-motion:no-preference){.track span,.bar .t span{transition:width .4s ease}}
+/* Animações: cards entrando, colunas crescendo, linhas se desenhando e destaque ao vivo.
+   Só valem sem "reduzir movimento"; os números dos cards do topo são animados no script (animarNumeros). */
+@media (prefers-reduced-motion:no-preference){
+  .entra{animation:entra .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms)}
+  @keyframes entra{from{opacity:0;transform:translateY(12px)}}
+  svg.cresce .col{animation:cresce .6s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms)}
+  @keyframes cresce{from{transform:scaleY(0)}}
+  svg.cresce .fade{animation:aparece .3s ease-out both;animation-delay:calc(var(--d,0ms) + .45s)}
+  @keyframes aparece{from{opacity:0}}
+  svg.desenha .ln{stroke-dasharray:1 2;animation:desenha .9s cubic-bezier(.3,.6,.3,1) both}
+  @keyframes desenha{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+  svg.desenha .fim{animation:aparece .3s ease-out .8s both}
+  .novo{animation:novo 2.5s ease-out}
+  @keyframes novo{0%,55%{background-color:var(--vivo)}}
+}
 /* Valor dos pedidos: entregue x falta entregar */
 .vbar{display:flex;height:12px;border-radius:99px;overflow:hidden;background:var(--hatch-bg);margin-top:16px;gap:3px}
 .vbar span{display:block;min-width:0}
@@ -329,6 +344,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
   @page{size:A4;margin:0}
   html,body{background:#fff!important;color:#111!important}
   .app,.acesso,.aviso{display:none!important}
+  *{animation:none!important;transition:none!important}
   #printArea{display:block;font:500 10.5px/1.4 var(--f-ui);color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 #printArea .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #00632B;padding-bottom:10px}
@@ -534,28 +550,28 @@ function vPainel(){
   <section class="grid kpis">
     <article class="card kpi">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
-      <div class="val" style="color:var(--brand)">${brl(s.custo)}</div>
-      <div class="foot"><b>${s.conf.length}</b> ${s.conf.length===1?"entrega":"entregas"} com custo real · quantidade entregue × custo unitário real</div>
+      <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
+      <div class="foot"><b ${nA("conf",s.conf.length)}>${s.conf.length}</b> ${s.conf.length===1?"entrega":"entregas"} com custo real · quantidade entregue × custo unitário real</div>
       <div class="segbar" aria-hidden="true">${seg}</div>
       <div class="legend">${s.custo>0?leg:'<span>Nenhum custo confirmado neste período.</span>'}</div>
     </article>
     <article class="card kpi">
       <div class="lbl">${ico("doc")}Valor dos pedidos</div>
-      <div class="val ref">${brl(s.ref)}</div>
-      <div class="foot"><b>${s.pedidos}</b> ${s.pedidos===1?"pedido":"pedidos"} no período, pelo preço de cada item no pedido</div>
+      <div class="val ref" ${nA("ref",s.ref,"brl")}>${brl(s.ref)}</div>
+      <div class="foot"><b ${nA("pedidos",s.pedidos)}>${s.pedidos}</b> ${s.pedidos===1?"pedido":"pedidos"} no período, pelo preço de cada item no pedido</div>
       <div class="vbar" aria-hidden="true">${s.ref>0?`<span class="e" style="flex:${s.entRef}"></span><span class="f" style="flex:${s.faltaRef}"></span>`:""}</div>
       <div class="pend">
-        <div><span><i class="dt" style="background:var(--brand-2)"></i>Já entregue (virou custo)</span><b>${brl(s.entRef)}</b></div>
-        <a ${irPara("solicitacoes","FALTA")}><span><i class="dt" style="background:var(--amber)"></i>Falta entregar</span><b class="${s.faltaRef?"warn":""}">${brl(s.faltaRef)}</b></a>
-        ${s.p.semPreco?`<a ${irPara("solicitacoes","")}><span>Itens sem preço (fora da soma)</span><b class="warn">${s.p.semPreco}</b></a>`:""}
+        <div><span><i class="dt" style="background:var(--brand-2)"></i>Já entregue (virou custo)</span><b ${nA("entRef",s.entRef,"brl")}>${brl(s.entRef)}</b></div>
+        <a ${irPara("solicitacoes","FALTA")}><span><i class="dt" style="background:var(--amber)"></i>Falta entregar</span><b class="${s.faltaRef?"warn":""}" ${nA("faltaRef",s.faltaRef,"brl")}>${brl(s.faltaRef)}</b></a>
+        ${s.p.semPreco?`<a ${irPara("solicitacoes","")}><span>Itens sem preço (fora da soma)</span><b class="warn" ${nA("semPreco",s.p.semPreco)}>${s.p.semPreco}</b></a>`:""}
       </div>
     </article>
     <article class="card kpi">
       <div class="lbl">${ico("alert")}Pendências</div>
-      <div class="val" style="color:${s.pendTotal?"var(--amber)":"var(--ink)"}">${s.pendTotal}</div>
+      <div class="val" style="color:${s.pendTotal?"var(--amber)":"var(--ink)"}" ${nA("pendTotal",s.pendTotal)}>${s.pendTotal}</div>
       <div class="foot">${s.pendTotal?"Toque em um item para ver a lista":"Tudo em dia neste período"}</div>
       <div class="pend">
-        ${pendencias(s).slice(0,4).map(x=>`<a ${irPara(x.v,x.f)} title="${esc(x.d)}"><span>${x.c}</span><b class="${x.n?"warn":""}">${x.n}</b></a>`).join("")}
+        ${pendencias(s).slice(0,4).map((x,i)=>`<a ${irPara(x.v,x.f)} title="${esc(x.d)}"><span>${x.c}</span><b class="${x.n?"warn":""}" ${nA("pend"+i,x.n)}>${x.n}</b></a>`).join("")}
       </div>
     </article>
   </section>
@@ -621,7 +637,7 @@ function pedidosObra(s){
   const list=Object.entries(ped).map(([id,its])=>{const ent=its.filter(i=>i.entregue>0).length;
     return {id,its,f:its[0],sit:ent===0?"A ENTREGAR":its.every(i=>i.saldo<=0)?"ENTREGUE":"PARCIAL"}}).sort(ordemPedido);
   if(!list.length) return `<div class="empty"><b>Nenhuma solicitação no período</b>Os pedidos aparecem aqui quando o formulário usa o código desta obra.</div>`;
-  return `<div class="plist2">${list.slice(0,8).map(p=>`<a href="#solicitacoes"><span class="pid">${esc(p.id)}</span><b>${brl(sum(p.its,i=>i.valorRef))}</b>${sitPill(p.sit)}
+  return `<div class="plist2">${list.slice(0,8).map(p=>`<a href="#solicitacoes" data-id="${esc(p.id)}"><span class="pid">${esc(p.id)}</span><b>${brl(sum(p.its,i=>i.valorRef))}</b>${sitPill(p.sit)}
     <small>${dbr(p.f.data)} · ${p.its.length} ${p.its.length===1?"item":"itens"} · ${esc(p.f.atendente)}</small></a>`).join("")}</div>`;
 }
 function obraHead(id){
@@ -677,7 +693,7 @@ function sitPill(s){
 function lancTable(rows, full){
   if(!rows.length) return `<div class="empty"><b>Nenhum lançamento neste período</b>Ajuste o período ou a obra nos filtros acima.</div>`;
   return `<div class="tw"><table><thead><tr><th>Data</th><th>Material</th><th class="n">Qtd</th><th class="n">Custo unit.</th><th class="n">Valor</th><th>Situação</th><th>Obra</th><th>Pedido</th><th>Lançamento</th>${full?"<th>Responsável</th>":""}</tr></thead><tbody>
-  ${rows.map(l=>`<tr><td style="white-space:nowrap">${dbr(l.data)}</td><td class="mat">${esc(l.material)}<small>${esc(l.sku)}</small>${l.alertas?`<span class="alert">${esc(l.alertas)}</span>`:""}${full&&l.obs?`<small style="font-family:var(--f-ui)">${esc(l.obs)}</small>`:""}</td>
+  ${rows.map(l=>`<tr data-lanc="${esc(l.id)}"><td style="white-space:nowrap">${dbr(l.data)}</td><td class="mat">${esc(l.material)}<small>${esc(l.sku)}</small>${l.alertas?`<span class="alert">${esc(l.alertas)}</span>`:""}${full&&l.obs?`<small style="font-family:var(--f-ui)">${esc(l.obs)}</small>`:""}</td>
   <td class="n">${qtd(l.qtd)} <span class="muted">${esc(l.un)}</span></td><td class="n">${l.custo==null?'<span class="muted">—</span>':brl(l.custo)}</td><td class="n"><b>${l.valor==null?'<span class="muted">—</span>':brl(l.valor)}</b></td>
   <td>${sitPill(l.situacao)}</td><td>${obraCel(l.obra)}</td><td class="mono">${l.pedido?esc(l.pedido):'<span class="pill info">Excepcional</span>'}</td><td class="mono">${esc(l.id)}</td>${full?`<td>${esc(l.resp)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
 }
@@ -775,15 +791,17 @@ function drawChart(){
   if(S.mes==null||!ms.includes(S.mes)) S.mes=[...data].reverse().find(d=>d.t)?.k||ms[ms.length-1];
   let g="";
   for(let i=0;i<=4;i++){const v=ymax/4*i,y=yv(v);g+=`<line class="grid-l" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="axis" x="${L-10}" y="${y+4}" text-anchor="end">${brlK(v)}</text>`}
-  data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes; let base=0;
+  data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes, dl=`--d:${i*50}ms`; let base=0, col="";
     keys.forEach((k,ki)=>{const v=d.v[k]; if(!v) return; const y0=yv(base+v), h=yv(base)-y0; base+=v;
-      g+=`<rect x="${cx-bw/2}" y="${y0}" width="${bw}" height="${Math.max(h-1.5,1)}" rx="3" style="fill:${cor(k,ki)};opacity:${on?1:.8}"/>`});
-    if(d.t) g+=`<text class="tot" x="${cx}" y="${yv(d.t)-6}" text-anchor="middle">${brlK(d.t)}</text>`;
-    if(on) g+=`<rect x="${cx-bw/2-3}" y="${yv(d.t)-3}" width="${bw+6}" height="${Math.max(ih-(yv(d.t)-T)+3,4)}" rx="5" fill="none" style="stroke:var(--ink-3);stroke-width:1"/>`;
+      col+=`<rect x="${cx-bw/2}" y="${y0}" width="${bw}" height="${Math.max(h-1.5,1)}" rx="3" style="fill:${cor(k,ki)};opacity:${on?1:.8}"/>`});
+    // Cada coluna num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
+    g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
+    if(d.t) g+=`<text class="tot fade" style="${dl}" x="${cx}" y="${yv(d.t)-6}" text-anchor="middle">${brlK(d.t)}</text>`;
+    if(on) g+=`<rect class="fade" x="${cx-bw/2-3}" y="${yv(d.t)-3}" width="${bw+6}" height="${Math.max(ih-(yv(d.t)-T)+3,4)}" rx="5" fill="none" style="${dl};stroke:var(--ink-3);stroke-width:1"/>`;
     g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`;
     g+=`<rect class="hit" data-m="${d.k}" x="${L+slot*i}" y="${T}" width="${slot}" height="${ih+B}" aria-label="${MESES[+d.k.slice(5,7)-1]} ${d.k.slice(0,4)}"/>`;
   });
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg>`;
+  el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg>`;
   lg.innerHTML=keys.map((k,ki)=>`<span title="${esc(rot(k))}"><i style="background:${cor(k,ki)}"></i>${esc(rot(k))}</span>`).join("");
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
@@ -820,10 +838,10 @@ function drawLines(){
   ends.forEach((e,i)=>{const ult=i===ends.length-1; if((i%cada===0&&!(ends.length-1-i<cada/2&&!ult))||ult)g+=`<text class="axis" x="${x(i)}" y="${H-8}" text-anchor="${ult&&ends.length>1?"end":"middle"}">${fmtX(e)}</text>`});
   g+=`<line class="xh" id="xh" x1="0" x2="0" y1="${T}" y2="${T+ih}" visibility="hidden"/>`;
   series.forEach((k,si)=>{const pts=val[k].slice(0,nVis).map((v,i)=>x(i).toFixed(1)+","+y(v).toFixed(1));
-    g+=`<polyline class="ln" data-k="${esc(k)}" points="${pts.join(" ")}" style="stroke:${cor(k,si)}"/>`;
-    const li=nVis-1; g+=`<circle cx="${x(li)}" cy="${y(val[k][li])}" r="3.5" style="fill:${cor(k,si)}"/>`});
+    g+=`<polyline class="ln" data-k="${esc(k)}" pathLength="1" points="${pts.join(" ")}" style="stroke:${cor(k,si)}"/>`;
+    const li=nVis-1; g+=`<circle class="fim" cx="${x(li)}" cy="${y(val[k][li])}" r="3.5" style="fill:${cor(k,si)}"/>`});
   g+=`<rect id="lhit" x="${Lm}" y="${T}" width="${iw}" height="${ih}" fill="transparent"/>`;
-  el.innerHTML=`<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}">${g}</svg><div class="tip" id="ltip" hidden></div>`;
+  el.innerHTML=`<svg ${GRAF_ANIM?'class="desenha" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}">${g}</svg><div class="tip" id="ltip" hidden></div>`;
   lg.innerHTML=series.map((k,si)=>`<button type="button" data-lk="${esc(k)}" title="${esc(rot(k))}"><i style="background:${cor(k,si)}"></i><span>${esc(rot(k))}</span><b>${brl(val[k][nVis-1])}</b></button>`).join("");
   const tip=$("ltip"), xh=$("xh"), svg=el.querySelector("svg");
   const mostra=i=>{xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.setAttribute("visibility","visible");
@@ -838,10 +856,63 @@ function drawLines(){
     b.addEventListener("click",()=>{if(k==="__OUTROS")return; if(S.obra){S.sku=S.sku===k?"":k}else{S.obra=k} S.mes=null; render()});});
 }
 
+/* ---------- animações ----------
+   MODO diz ao render por que ele foi chamado: "aba" (abrir o painel ou trocar de aba), "novo" (dado novo
+   na atualização automática), "auto" (atualização sem mudança) ou null (filtros, busca e cliques). */
+let MODO=null, GRAF_ANIM=false; const NUM_ANT={};
+const semMov = () => !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: reduce)").matches);
+const nA = (k,v,f) => `data-n="${k}" data-nv="${v||0}" data-nf="${f||"int"}"`;
+const fBRL = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}), fINT = new Intl.NumberFormat("pt-BR",{maximumFractionDigits:0});
+/* Números dos cards do topo: sobem do valor anterior até o novo em 0,7 s, só quando o valor muda. */
+function animarNumeros(mov){
+  document.querySelectorAll("#view [data-n]").forEach(el=>{
+    const k=el.dataset.n, novo=+el.dataset.nv||0, ant=NUM_ANT[k], ini=ant===undefined?0:ant; NUM_ANT[k]=novo;
+    if(!mov||ini===novo) return;
+    const fmt=el.dataset.nf==="brl"?n=>fBRL.format(n):n=>fINT.format(Math.round(n)), fim=el.textContent, t0=performance.now();
+    el.textContent=fmt(ini);
+    const passo=t=>{ if(!el.isConnected) return; const p=Math.min(1,(t-t0)/700), e=1-Math.pow(1-p,3);
+      el.textContent=p<1?fmt(ini+(novo-ini)*e):fim; if(p<1) requestAnimationFrame(passo); };
+    requestAnimationFrame(passo);
+  });
+}
+/* Cards e linhas da lista entrando um depois do outro (no máximo 12). */
+function entrada(){
+  const v=$("view"); let els=[...v.querySelectorAll(".card, details.ped")];
+  if(S.view==="lancamentos") els=els.concat([...v.querySelectorAll("tbody tr")]);
+  els.slice(0,12).forEach((el,i)=>{ el.style.setProperty("--d",i*45+"ms"); el.classList.add("entra");
+    el.addEventListener("animationend",function f(e){ if(e.target!==el) return; el.classList.remove("entra"); el.style.removeProperty("--d"); el.removeEventListener("animationend",f); }); });
+}
+/* Situação de cada pedido e de cada lançamento, para achar o que mudou na atualização automática. */
+function fotoVivo(d){
+  const ped={}, por={}; d.itens.forEach(i=>{(por[i.pedido]=por[i.pedido]||[]).push(i)});
+  Object.entries(por).forEach(([id,its])=>{const ent=its.filter(i=>i.entregue>0).length;
+    ped[id]={obra:its[0].obra, sit:its[0].obra==="SEM VÍNCULO"?"OBRA NÃO IDENTIFICADA":ent===0?"A ENTREGAR":its.every(i=>i.saldo<=0)?"ENTREGUE":"PARCIAL"}});
+  const lanc={}; d.lanc.forEach(l=>{lanc[l.id]={obra:l.obra, sit:l.situacao}});
+  return {ped,lanc};
+}
+function novidades(a,b){
+  const ped=[], lanc=[], obras=new Set();
+  Object.entries(b.ped).forEach(([id,p])=>{ if(!a.ped[id]||a.ped[id].sit!==p.sit){ ped.push(id); if(p.obra) obras.add(p.obra); } });
+  Object.entries(b.lanc).forEach(([id,l])=>{ if(!a.lanc[id]||a.lanc[id].sit!==l.sit){ lanc.push(id); if(l.obra) obras.add(l.obra); } });
+  return {ped,lanc,obras:[...obras]};
+}
+/* Fundo verde-claro por 2,5 s no card ou na linha que mudou. */
+function destacar(n){
+  if(!n||semMov()) return;
+  const q=CSS.escape, sel=[];
+  n.ped.forEach(id=>sel.push(`details.ped[data-id="${q(id)}"]`,`.plist2 a[data-id="${q(id)}"]`));
+  n.lanc.forEach(id=>sel.push(`tr[data-lanc="${q(id)}"]`));
+  n.obras.forEach(id=>sel.push(`.card.ob[data-obra="${q(id)}"]`));
+  if(!sel.length) return;
+  $("view").querySelectorAll(sel.join(",")).forEach(el=>{ el.classList.add("novo");
+    el.addEventListener("animationend",function f(e){ if(e.target!==el) return; el.classList.remove("novo"); el.removeEventListener("animationend",f); }); });
+}
+
 /* ---------- shell ---------- */
 function ico(n){const p={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',print:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'}[n];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`}
 const TITLES={painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."]};
 function render(){
+  const modo=MODO, mov=!semMov(); MODO=null;
   const v=S.view; $("title").textContent=TITLES[v][0]; $("subtitle").textContent=TITLES[v][1];
   document.querySelectorAll("#nav a").forEach(a=>a.setAttribute("aria-current",a.dataset.v===v?"page":"false"));
   document.querySelectorAll("#fPreset button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===S.preset));
@@ -851,7 +922,11 @@ function render(){
   const html={painel:vPainel,obras:vObras,solicitacoes:vSol,lancamentos:vLanc}[v]();
   $("view").innerHTML=html;
   const st=stats(); const np=$("navPend"); np.hidden=!(st.p.semCusto+st.p.conferir); np.textContent=st.p.semCusto+st.p.conferir;
+  GRAF_ANIM=mov&&modo!=="auto"; // gráficos crescem ao abrir, trocar filtros ou chegar dado novo
   if(v==="painel"){ drawChart(); drawLines(); }
+  GRAF_ANIM=false;
+  animarNumeros(mov);
+  if(mov&&modo==="aba") entrada();
   document.querySelectorAll("[data-obra]").forEach(b=>b.addEventListener("click",()=>{S.obra=(S.obra===b.dataset.obra&&v==="painel")?"":b.dataset.obra;S.mes=null;if(v==="obras")location.hash="painel";else render()}));
   document.querySelectorAll("[data-clear]").forEach(b=>b.addEventListener("click",()=>{S.obra="";S.mes=null;render()}));
   const bs=$("busca"); if(bs){bs.addEventListener("input",()=>{S.busca=bs.value;const p=bs.selectionStart;render();const n=$("busca");n.focus();n.setSelectionRange(p,p)})}
@@ -892,7 +967,8 @@ function atualizarAgora(manual){
   buscarDados(CODIGO).then(d=>{buscando=false;
       if(!d||d.acesso===false){ if(d&&d.motivo==="ERRO") return; esquecerCodigo(); telaAcesso(motivoTxt(d&&d.motivo)); return; }
       const nova=JSON.stringify([d.lanc,d.itens,d.obras]); const mudou=nova!==assinatura; assinatura=nova;
-      const y=window.scrollY; carregar(d); if(mudou||manual){renderMantendo(); window.scrollTo(0,y);} })
+      const n=mudou?novidades(fotoVivo(D),fotoVivo(d)):null;
+      const y=window.scrollY; carregar(d); if(mudou||manual){renderMantendo(n); window.scrollTo(0,y);} })
     .catch(()=>{buscando=false;$("live").classList.add("off");$("updated").textContent="Sem conexão com a planilha · tentando de novo";});
 }
 function iniciarAoVivo(){
@@ -906,14 +982,14 @@ function iniciarAoVivo(){
   window.addEventListener("focus",()=>{if(Date.now()-LIDO>5000)atualizarAgora(false)});
 }
 /* Redesenha com os dados novos sem atrapalhar quem está usando: mantém pedidos abertos, o foco e o cursor da busca. */
-function renderMantendo(){
+function renderMantendo(n){
   const abertos=[...document.querySelectorAll("details.ped[open]")].map(d=>d.dataset.id);
   const a=document.activeElement, foco=a&&a.id, ini=a&&a.selectionStart, fim=a&&a.selectionEnd;
-  render();
+  MODO=n?"novo":"auto"; render(); destacar(n);
   abertos.forEach(id=>{const d=document.querySelector(`details.ped[data-id="${CSS.escape(id)}"]`);if(d)d.open=true;});
   if(foco==="busca"){const n=$("busca");if(n){n.focus();try{n.setSelectionRange(ini,fim)}catch(e){}}}
 }
-function route(){const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.busca="";S.sit=S.irSit||"";S.irSit="";if(D)render()}
+function route(){const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.busca="";S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render()}}
 window.addEventListener("hashchange",route);
 /* Campo de busca com lista própria (obra e material) */
 function combo(inputId,listId,clrId,todos,get,set){
