@@ -209,6 +209,11 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .toolbar .limpar{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
 .toolbar .limpar:hover{border-color:var(--brand);color:var(--brand)}
 .toolbar .limpar svg{width:14px;height:14px}
+/* Limpar filtros: no fim da barra de cima, no estilo dos campos */
+.limparf{display:inline-flex;align-items:center;justify-content:center;gap:6px;margin-left:auto;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);border-radius:10px;padding:9px 12px;font-weight:700;font-size:13px;cursor:pointer;white-space:nowrap}
+.limparf:hover{border-color:var(--brand);color:var(--brand)}
+.limparf svg{width:14px;height:14px}
+@media (max-width:700px){.limparf{flex:1 1 100%;margin-left:0}}
 @media (max-width:700px){.toolbar.obtool{flex-direction:column;align-items:stretch}.toolbar.obtool>*,.toolbar.obtool input[type=search]{width:100%;max-width:none;min-width:0}}
 .toolbar select option,select option{background:var(--surface);color:var(--ink)}
 /* Busca de obra e de material (substitui a lista nativa, ilegível no tema escuro) */
@@ -472,6 +477,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
       <div class="field"><label for="fIni">DE</label><input type="date" id="fIni"></div>
       <div class="field"><label for="fFim">ATÉ</label><input type="date" id="fFim"></div>
       <div class="field combo mat" id="cSku"><label for="fSku">MATERIAL</label><input id="fSku" type="text" autocomplete="off" spellcheck="false" placeholder="Todos · buscar nome ou código" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lSku"><button type="button" class="clr" id="xSku" aria-label="Mostrar todos os materiais" hidden>×</button><ul class="pop" id="lSku" role="listbox" hidden></ul></div>
+      <button type="button" class="limparf" id="limparFiltros" title="Voltar para todas as obras, todos os materiais e 6 meses" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar filtros</button>
     </div>
     <div class="context" id="context"></div>
     <div id="err" class="err" hidden></div>
@@ -1026,6 +1032,7 @@ function render(){
   document.querySelectorAll("#fPreset button").forEach(b=>b.setAttribute("aria-pressed",b.dataset.p===S.preset));
   CO.sync(); CS.sync(); $("fIni").value=S.ini; $("fFim").value=S.fim;
   $("cObra").hidden=v==="obras"; // na tela Obras a busca da própria tela substitui o campo OBRA
+  $("limparFiltros").hidden=!(S.obra||S.sku||S.preset!=="6m"); // padrão: todas as obras, todos os materiais, 6 meses
   $("context").innerHTML=`Exibindo ${v==="obras"?"":`<b>${S.obra?esc(obraNome(S.obra))+" ("+esc(S.obra)+")":"todas as obras"}</b> · `}<b>${dbr(S.ini)}</b> a <b>${dbr(S.fim)}</b> · <b>${S.sku?esc(D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku):"todos os materiais"}</b>`;
   definirCores();
   const html={painel:vPainel,obras:vObras,solicitacoes:vSol,lancamentos:vLanc}[v]();
@@ -1136,6 +1143,7 @@ const CS=combo("fSku","lSku","xSku","Todos os materiais",()=>S.sku,v=>{S.sku=v;S
 $("fIni").addEventListener("change",e=>{if(e.target.value){S.ini=e.target.value;S.preset="";S.mes=null;render()}});
 $("fFim").addEventListener("change",e=>{if(e.target.value){S.fim=e.target.value;S.preset="";S.mes=null;render()}});
 document.querySelectorAll("#fPreset button").forEach(b=>b.addEventListener("click",()=>{setPreset(b.dataset.p);render()}));
+$("limparFiltros").addEventListener("click",()=>{S.obra="";S.sku="";setPreset("6m");render()});
 let rt; window.addEventListener("resize",()=>{clearTimeout(rt);rt=setTimeout(()=>{if(S.view==="painel"){drawChart();drawLines()}},120)});
 function fail(e){$("err").hidden=false;$("err").textContent="Não foi possível ler a planilha: "+(e&&e.message?e.message:e)+". Tente atualizar a página em instantes.";$("view").innerHTML=""}
 /* ---------- canal de dados ----------
