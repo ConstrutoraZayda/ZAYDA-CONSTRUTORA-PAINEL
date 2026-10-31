@@ -109,6 +109,8 @@ button,select,input{font:inherit;color:inherit}
 .chartwrap .month.on{fill:var(--ink);font-weight:800}
 .chartwrap .grid-l{stroke:var(--line);stroke-dasharray:3 4}
 .chartwrap .hit{fill:transparent;cursor:pointer}
+.chartwrap .seg.hov{opacity:1!important;stroke:var(--ink);stroke-width:1.5}
+#ctip{min-width:0;transform:none;z-index:5}
 /* Gráfico de linhas: gasto acumulado */
 .lw{position:relative;min-height:300px}
 .lw svg{display:block;width:100%;height:300px;overflow:visible}
@@ -307,10 +309,11 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mtable i.sw{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px}
 .mdet{margin-top:10px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .mdet>b{display:flex;justify-content:space-between;gap:10px;font-size:13px;margin-bottom:6px}
-.mdet>div{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px}
-.mdet span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);min-width:0}
+.mdet>div{display:flex;flex-direction:column}
+.mdet span{display:flex;align-items:center;gap:7px;font-size:12px;color:var(--ink-2);min-width:0;padding:6px 0}
+.mdet span+span{border-top:1px solid var(--line)}
 .mdet span i{width:9px;height:9px;border-radius:3px;flex:none}
-.mdet em{font-style:normal;min-width:0;flex:1}
+.mdet em{font-style:normal;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mdet strong{color:var(--ink);font-weight:800;white-space:nowrap}
 .chartwrap .tot{font-size:11px;font-weight:800;fill:var(--ink-2)}
 /* Impressão do pedido */
@@ -611,7 +614,6 @@ function vPainel(){
       <div class="cardhead"><div><h2>${S.obra?"Gasto mensal desta obra":"Gasto mensal por obra"}</h2><div class="sub">${S.obra?"Custo dos materiais entregues em cada mês, por categoria.":"Custo dos materiais entregues em cada mês, separado por obra."} Toque num mês para ver o detalhe.</div></div></div>
       <div class="chartwrap" id="chart"></div>
       <div class="mdet" id="chartDet"></div>
-      <div class="legend" id="chartLeg"></div>
     </article>
     ${S.obra?`<article class="card">
       <div class="cardhead"><div><h2>Solicitações desta obra</h2><div class="sub">Pedidos do período na revisão vigente</div></div><a class="btn" href="#solicitacoes">Ver detalhes</a></div>
@@ -802,7 +804,7 @@ function months(){
   return list;
 }
 function drawChart(){
-  const el=$("chart"), lg=$("chartLeg"); if(!el) return;
+  const el=$("chart"); if(!el) return;
   const ms=months(); const W=Math.max(320,el.clientWidth), H=280, L=58, R=8, T=22, B=34;
   const conf=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&okO(l.obra)&&okS(l.sku)&&ms.includes(ym(l.data)));
   const chave=l=>S.obra?(l.cat||"Outros"):l.obra;
@@ -814,16 +816,17 @@ function drawChart(){
   const rot=k=>k==="__OUTROS"?(S.obra?"Outras categorias":"Outras obras")+" ("+resto.length+")":S.obra?k:obraCurta(k);
   const data=ms.map(m=>{const v={}; keys.forEach(k=>v[k]=0); conf.filter(l=>ym(l.data)===m).forEach(l=>{v[grp(chave(l))]+=l.valor}); return {k:m,v,t:sum(keys,k=>v[k])}});
   const max=Math.max(...data.map(d=>d.t),0);
-  if(!max){el.innerHTML=`<div class="empty" style="padding-top:90px"><b>Nenhum gasto neste período</b>As colunas aparecem quando as entregas são confirmadas no formulário.</div>`;lg.innerHTML="";return}
+  if(!max){el.innerHTML=`<div class="empty" style="padding-top:90px"><b>Nenhum gasto neste período</b>As colunas aparecem quando as entregas são confirmadas no formulário.</div>`;return}
   const step=Math.pow(10,Math.floor(Math.log10(max))), ymax=Math.ceil(max/(step/2))*(step/2);
   const ih=H-T-B, iw=W-L-R, slot=iw/data.length, bw=Math.min(46,slot*0.56);
   const yv=v=>T+ih-(v/ymax*ih);
   if(S.mes==null||!ms.includes(S.mes)) S.mes=[...data].reverse().find(d=>d.t)?.k||ms[ms.length-1];
-  let g="";
+  let g=""; const pedacos=[]; // posição de cada pedaço colorido, para o balão ao passar o mouse
   for(let i=0;i<=4;i++){const v=ymax/4*i,y=yv(v);g+=`<line class="grid-l" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="axis" x="${L-10}" y="${y+4}" text-anchor="end">${brlK(v)}</text>`}
   data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes, dl=`--d:${i*50}ms`; let base=0, col="";
     keys.forEach((k,ki)=>{const v=d.v[k]; if(!v) return; const y0=yv(base+v), h=yv(base)-y0; base+=v;
-      col+=`<rect x="${cx-bw/2}" y="${y0}" width="${bw}" height="${Math.max(h-1.5,1)}" rx="3" style="fill:${cor(k,ki)};opacity:${on?1:.8}"/>`});
+      pedacos.push({x:cx-bw/2,y:y0,h,k,ki,v,m:d.k});
+      col+=`<rect class="seg" data-p="${pedacos.length-1}" x="${cx-bw/2}" y="${y0}" width="${bw}" height="${Math.max(h-1.5,1)}" rx="3" style="fill:${cor(k,ki)};opacity:${on?1:.8}"/>`});
     // Cada coluna num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
     if(d.t) g+=`<text class="tot fade" style="${dl}" x="${cx}" y="${yv(d.t)-6}" text-anchor="middle">${brlK(d.t)}</text>`;
@@ -831,12 +834,30 @@ function drawChart(){
     g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`;
     g+=`<rect class="hit" data-m="${d.k}" x="${L+slot*i}" y="${T}" width="${slot}" height="${ih+B}" aria-label="${MESES[+d.k.slice(5,7)-1]} ${d.k.slice(0,4)}"/>`;
   });
-  el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg>`;
-  lg.innerHTML=keys.map((k,ki)=>`<span title="${esc(rot(k))}"><i style="background:${cor(k,ki)}"></i>${esc(rot(k))}</span>`).join("");
+  el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<span><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><strong>${brl(r.v)}</strong></span>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<span title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><strong>${brl(r.v)}</strong></span>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",()=>{S.mes=h.dataset.m;drawChart()}));
+  // Balão com a obra ao passar o mouse: o pedaço é achado pela posição do cursor, porque o .hit do mês fica por cima
+  // (e continua recebendo o clique). Só com mouse; no celular, tocar no mês segue mostrando o detalhe embaixo.
+  const svg=el.querySelector("svg"), tip=$("ctip"); let atual=-1;
+  const solta=()=>{ if(atual<0) return; const r=svg.querySelector(`.seg[data-p="${atual}"]`); if(r) r.classList.remove("hov"); atual=-1; tip.hidden=true; };
+  svg.addEventListener("pointermove",e=>{
+    if(e.pointerType!=="mouse") return;
+    const r=svg.getBoundingClientRect(), px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height;
+    const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+bw&&py>=s.y&&py<=s.y+s.h);
+    if(p<0){solta();return;}
+    if(p!==atual){ solta(); atual=p; const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov");
+      tip.innerHTML=`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`;
+      tip.hidden=false; }
+    // Perto do cursor, sem sair da tela: vira para a esquerda na borda direita e desce quando falta espaço em cima.
+    const w=tip.offsetWidth, h=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
+    let x=e.clientX+14; if(x+w>vw-8) x=e.clientX-14-w; x=Math.max(8,x);
+    let y=e.clientY-h-12; if(y<8) y=e.clientY+18;
+    tip.style.left=(x-er.left)+"px"; tip.style.top=(y-er.top)+"px";
+  });
+  svg.addEventListener("pointerleave",solta);
 }
 
 /* ---------- gráfico de linhas: gasto acumulado ---------- */
