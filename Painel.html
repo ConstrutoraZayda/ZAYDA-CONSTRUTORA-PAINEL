@@ -316,6 +316,17 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mdet span i{width:9px;height:9px;border-radius:3px;flex:none}
 .mdet em{font-style:normal;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mdet strong{color:var(--ink);font-weight:800;white-space:nowrap}
+/* Ranking do mês: bolinha, nome, barra na cor da obra (proporcional ao maior valor), valor e % */
+.mdet .rk{display:grid;grid-template-columns:9px minmax(0,1.3fr) minmax(60px,1fr) 112px 46px;grid-template-areas:"sw nm rb v p";align-items:center;gap:4px 8px;padding:6px 4px;margin:0 -4px;border-radius:6px;font-size:12px;color:var(--ink-2)}
+.mdet .rk+.rk{border-top:1px solid var(--line)}
+.mdet .rk.hov{background:var(--surface)}
+.mdet .rk>i{grid-area:sw;width:9px;height:9px;border-radius:3px}
+.mdet .rk>em{grid-area:nm}
+.mdet .rk .rb{grid-area:rb;height:8px;border-radius:99px;background:var(--hatch-bg);overflow:hidden}
+.mdet .rk .rb i{display:block;height:100%;border-radius:99px;min-width:4px}
+.mdet .rk>strong{grid-area:v;text-align:right}
+.mdet .rk>small{grid-area:p;text-align:right;white-space:nowrap;color:var(--ink-3);font-weight:700}
+@media (max-width:700px){.mdet .rk{grid-template-columns:9px minmax(0,1fr) 112px 46px;grid-template-areas:"sw nm nm nm" ". rb v p"}}
 .chartwrap .tot{font-size:11px;font-weight:800;fill:var(--ink-2)}
 /* Impressão do pedido */
 .etapas{grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
@@ -850,7 +861,7 @@ function drawChart(){
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<span title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><strong>${brl(r.v)}</strong></span>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${pct(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
@@ -858,13 +869,20 @@ function drawChart(){
   // Balão com a obra ao passar o mouse: o pedaço é achado pela posição do cursor, porque o .hit do mês fica por cima
   // (e continua recebendo o clique). Só com mouse; no celular, tocar no mês segue mostrando o detalhe embaixo.
   const svg=el.querySelector("svg"), tip=$("ctip"); let atual=-1;
-  const solta=()=>{ if(atual<0) return; const r=svg.querySelector(`.seg[data-p="${atual}"]`); if(r) r.classList.remove("hov"); atual=-1; tip.hidden=true; };
+  // Ranking do mês <-> pedaço da barra: a linha acende o pedaço do mês selecionado e o pedaço acende a linha.
+  const linhaRk=s=>s&&s.m===S.mes?$("chartDet").querySelector(`.rk[data-ki="${s.ki}"]`):null;
+  $("chartDet").querySelectorAll(".rk").forEach(row=>{
+    const seg=()=>{const p=pedacos.findIndex(s=>s.m===S.mes&&s.ki===+row.dataset.ki);return p<0?null:svg.querySelector(`.seg[data-p="${p}"]`)};
+    row.addEventListener("mouseenter",()=>{row.classList.add("hov");const g=seg();if(g)g.classList.add("hov")});
+    row.addEventListener("mouseleave",()=>{row.classList.remove("hov");const g=seg();if(g)g.classList.remove("hov")});
+  });
+  const solta=()=>{ if(atual<0) return; const r=svg.querySelector(`.seg[data-p="${atual}"]`); if(r) r.classList.remove("hov"); const l=linhaRk(pedacos[atual]); if(l) l.classList.remove("hov"); atual=-1; tip.hidden=true; };
   svg.addEventListener("pointermove",e=>{
     if(e.pointerType!=="mouse") return;
     const r=svg.getBoundingClientRect(), px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height;
     const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+bw&&py>=s.y&&py<=s.y+s.h);
     if(p<0){solta();return;}
-    if(p!==atual){ solta(); atual=p; const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov");
+    if(p!==atual){ solta(); atual=p; const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov"); const l=linhaRk(s); if(l) l.classList.add("hov");
       tip.innerHTML=`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`;
       tip.hidden=false; }
     // Perto do cursor, sem sair da tela: vira para a esquerda na borda direita e desce quando falta espaço em cima.
