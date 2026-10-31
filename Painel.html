@@ -214,6 +214,15 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .limparf:hover{border-color:var(--brand);color:var(--brand)}
 .limparf svg{width:14px;height:14px}
 @media (max-width:700px){.limparf{flex:1 1 100%;margin-left:0}}
+/* Aviso de filtro de obra/material ligado, com x para limpar cada um */
+.field.combo.on{border-color:var(--brand)}
+.faviso{display:flex;flex-wrap:wrap;gap:8px;margin:-6px 0 14px}
+.faviso span{display:inline-flex;align-items:center;gap:8px;min-width:0;background:var(--brand-soft);color:var(--brand);border:1px solid var(--brand);border-radius:99px;padding:5px 6px 5px 12px;font-size:12.5px;font-weight:700}
+.faviso span b{font-weight:800;color:var(--ink);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.faviso button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:16px;line-height:1;padding:0 5px;border-radius:99px}
+.faviso button:hover{background:var(--surface)}
+.sub .somente{color:var(--brand);font-weight:700;margin-left:6px}
+@media (max-width:700px){.faviso span{flex:1 1 100%}.faviso span b{flex:1}}
 @media (max-width:700px){.toolbar.obtool{flex-direction:column;align-items:stretch}.toolbar.obtool>*,.toolbar.obtool input[type=search]{width:100%;max-width:none;min-width:0}}
 .toolbar select option,select option{background:var(--surface);color:var(--ink)}
 /* Busca de obra e de material (substitui a lista nativa, ilegível no tema escuro) */
@@ -325,7 +334,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mdet em{font-style:normal;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mdet strong{color:var(--ink);font-weight:800;white-space:nowrap}
 /* Ranking do mês: bolinha, nome, barra na cor da obra (proporcional ao maior valor), valor e % */
-.mdet .rk{display:grid;grid-template-columns:9px minmax(0,1.3fr) minmax(60px,1fr) 112px 78px;grid-template-areas:"sw nm rb v p";align-items:center;gap:4px 8px;padding:6px 4px;margin:0 -4px;border-radius:6px;font-size:12px;color:var(--ink-2)}
+.mdet .rk{display:grid;grid-template-columns:9px minmax(0,1.3fr) minmax(60px,1fr) 112px 118px;grid-template-areas:"sw nm rb v p";align-items:center;gap:4px 8px;padding:6px 4px;margin:0 -4px;border-radius:6px;font-size:12px;color:var(--ink-2)}
 .mdet .rk+.rk{border-top:1px solid var(--line)}
 .mdet .rk.hov{background:var(--surface)}
 .mdet .rk>i{grid-area:sw;width:9px;height:9px;border-radius:3px}
@@ -334,7 +343,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mdet .rk .rb i{display:block;height:100%;border-radius:99px;min-width:4px}
 .mdet .rk>strong{grid-area:v;text-align:right}
 .mdet .rk>small{grid-area:p;text-align:right;white-space:nowrap;color:var(--ink-3);font-weight:700}
-@media (max-width:700px){.mdet .rk{grid-template-columns:9px minmax(0,1fr) 112px 78px;grid-template-areas:"sw nm nm nm" ". rb v p"}}
+@media (max-width:700px){.mdet .rk{grid-template-columns:9px minmax(0,1fr) 112px 118px;grid-template-areas:"sw nm nm nm" ". rb v p"}}
 .chartwrap .tot{font-size:11px;font-weight:800;fill:var(--ink-2)}
 /* Impressão do pedido */
 .etapas{grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
@@ -479,6 +488,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
       <div class="field combo mat" id="cSku"><label for="fSku">MATERIAL</label><input id="fSku" type="text" autocomplete="off" spellcheck="false" placeholder="Todos · buscar nome ou código" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lSku"><button type="button" class="clr" id="xSku" aria-label="Mostrar todos os materiais" hidden>×</button><ul class="pop" id="lSku" role="listbox" hidden></ul></div>
       <button type="button" class="limparf" id="limparFiltros" title="Voltar para todas as obras, todos os materiais e 6 meses" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar filtros</button>
     </div>
+    <div class="faviso" id="faviso" hidden></div>
     <div class="context" id="context"></div>
     <div id="err" class="err" hidden></div>
     <div id="view"><div class="loading">Carregando dados da planilha…</div></div>
@@ -503,6 +513,9 @@ const pad = n => String(n).padStart(2,"0");
 const ym = s => s.slice(0,7);
 const lastDay = (y,m) => new Date(y,m,0).getDate();
 const obraNome = id => { const o = D.obras.find(x=>x.id===id); return o ? (o.endereco||o.casa) : (id==="SEM VÍNCULO" ? "Sem obra identificada" : id); };
+/* Filtro de material ligado: nome do material e o aviso "Somente: ..." no subtítulo dos cards com valores. */
+const nomeSku = () => D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku;
+const somente = () => S.sku ? `<span class="somente">Somente: ${esc(nomeSku())}</span>` : "";
 /* Hora em que o pedido foi feito (aaaa-mm-dd hh:mm:ss); sem ela, a data do pedido. Ordena do mais recente para o mais antigo. */
 const criadoEm = id => { const c=((D.pedidos||{})[id]||{}).criado||""; return /^\d{4}-\d{2}-\d{2}/.test(c)?c:""; };
 const ordemPedido = (a,b) => (criadoEm(b.id)||b.f.data).localeCompare(criadoEm(a.id)||a.f.data) || b.id.localeCompare(a.id);
@@ -632,15 +645,15 @@ function vPainel(){
 
   <section class="grid mid">
     <article class="card">
-      <div class="cardhead"><div><h2>${S.obra?"Gasto mensal desta obra":"Gasto mensal por obra"}</h2><div class="sub">${S.obra?"Custo dos materiais entregues em cada mês, por categoria.":"Custo dos materiais entregues em cada mês, separado por obra."} Toque num mês para ver o detalhe.</div></div></div>
+      <div class="cardhead"><div><h2>${S.obra?"Gasto mensal desta obra":"Gasto mensal por obra"}</h2><div class="sub">${S.obra?"Custo dos materiais entregues em cada mês, por categoria.":"Custo dos materiais entregues em cada mês, separado por obra."} Toque num mês para ver o detalhe.${somente()}</div></div></div>
       <div class="chartwrap" id="chart"></div>
       <div class="mdet" id="chartDet"></div>
     </article>
     ${S.obra?`<article class="card">
-      <div class="cardhead"><div><h2>Solicitações desta obra</h2><div class="sub">Pedidos do período na revisão vigente</div></div><a class="btn" href="#solicitacoes">Ver detalhes</a></div>
+      <div class="cardhead"><div><h2>Solicitações desta obra</h2><div class="sub">Pedidos do período na revisão vigente${somente()}</div></div><a class="btn" href="#solicitacoes">Ver detalhes</a></div>
       ${pedidosObra(s)}
     </article>`:`<article class="card">
-      <div class="cardhead"><div><h2>Comparativo entre obras</h2><div class="sub">Custo confirmado no período. Toque para ver só a obra.</div></div></div>
+      <div class="cardhead"><div><h2>Comparativo entre obras</h2><div class="sub">Custo confirmado no período. Toque para ver só a obra.${somente()}</div></div></div>
       <div class="rank" id="rank">${rankHtml()}</div>
     </article>`}
   </section>
@@ -648,7 +661,7 @@ function vPainel(){
   ${tabelaMensal(s)}
 
   <section class="card" style="margin-top:16px">
-    <div class="cardhead"><div><h2>${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}</h2><div class="sub">${S.obra?"Custo confirmado de cada material desta obra, somado ao longo do período":"Custo confirmado de materiais de cada obra, somado ao longo do período. Toque numa obra para ver só ela."}</div></div></div>
+    <div class="cardhead"><div><h2>${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}</h2><div class="sub">${S.obra?"Custo confirmado de cada material desta obra, somado ao longo do período":"Custo confirmado de materiais de cada obra, somado ao longo do período. Toque numa obra para ver só ela."}${somente()}</div></div></div>
     <div class="lw" id="lines"></div><div class="lleg" id="lleg"></div>
   </section>
 
@@ -660,13 +673,13 @@ function vPainel(){
       </div>
     </article>
     <article class="card">
-      <div class="cardhead"><div><h2>Materiais mais representativos</h2><div class="sub">Custo confirmado por material. Quantidades somadas só dentro do mesmo SKU.</div></div></div>
+      <div class="cardhead"><div><h2>Materiais mais representativos</h2><div class="sub">Custo confirmado por material. Quantidades somadas só dentro do mesmo SKU.${somente()}</div></div></div>
       ${matTable(s)}
     </article>
   </section>
 
   <section class="card" style="margin-top:16px">
-    <div class="cardhead"><div><h2>Lançamentos do período</h2><div class="sub">Entregas mais recentes, sem as canceladas</div></div><a class="btn" href="#lancamentos">Ver todos</a></div>
+    <div class="cardhead"><div><h2>Lançamentos do período</h2><div class="sub">Entregas mais recentes, sem as canceladas${somente()}</div></div><a class="btn" href="#lancamentos">Ver todos</a></div>
     ${lancTable(s.L.filter(l=>l.situacao!=="CANCELADO").sort((a,b)=>b.data.localeCompare(a.data)||b.id.localeCompare(a.id)).slice(0,10), false)}
   </section>`;
 }
@@ -676,7 +689,7 @@ function tabelaMensal(s){
   const chave=l=>porObra?l.obra:l.sku;
   const g={}; s.conf.filter(l=>ms.includes(ym(l.data))).forEach(l=>{const k=chave(l); g[k]=g[k]||{k,mat:l.material,m:{},t:0}; g[k].m[ym(l.data)]=(g[k].m[ym(l.data)]||0)+l.valor; g[k].t+=l.valor});
   const rows=Object.values(g).sort((a,b)=>b.t-a.t);
-  const head=`<div class="cardhead"><div><h2>${porObra?"Gasto de cada obra, mês a mês":"Gasto de cada material desta obra, mês a mês"}</h2><div class="sub">${porObra?"Valor dos materiais entregues em cada obra por mês. Toque numa obra para ver só ela.":"Valor de cada material entregue nesta obra por mês."}</div></div></div>`;
+  const head=`<div class="cardhead"><div><h2>${porObra?"Gasto de cada obra, mês a mês":"Gasto de cada material desta obra, mês a mês"}</h2><div class="sub">${porObra?"Valor dos materiais entregues em cada obra por mês. Toque numa obra para ver só ela.":"Valor de cada material entregue nesta obra por mês."}${somente()}</div></div></div>`;
   if(!rows.length) return `<section class="card" style="margin-top:16px">${head}<div class="empty"><b>Nenhum gasto neste período</b>A tabela é preenchida quando as entregas são confirmadas no formulário.</div></section>`;
   const mt=k=>MESES[+k.slice(5,7)-1]+"/"+k.slice(2,4);
   const tot=ms.map(k=>sum(rows,r=>r.m[k]||0));
@@ -823,7 +836,7 @@ function vLanc(){
   return `<div class="toolbar"><input type="search" id="busca" placeholder="Buscar lançamento, material ou pedido" value="${esc(S.busca)}" aria-label="Buscar lançamentos">
     <select id="sitSel" aria-label="Situação"><option value="">Todas as situações</option>${["CUSTO CONFIRMADO","PENDENTE DE CUSTO","AGUARDANDO CONFERÊNCIA","CANCELADO"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"CUSTO CONFIRMADO":"Custo confirmado","PENDENTE DE CUSTO":"Pendente de custo","AGUARDANDO CONFERÊNCIA":"A conferir","CANCELADO":"Cancelado"}[x]}</option>`).join("")}</select>
     <a class="btn" id="addLanc" href="#" target="_blank" rel="noopener">Abrir planilha</a></div>
-  <section class="card"><div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">Custo confirmado desta lista: <b>${brl(sum(conf,l=>l.valor))}</b>. As entregas confirmadas no formulário entram aqui sozinhas; as canceladas ficam visíveis e não somam.</div></div></div>
+  <section class="card"><div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">Custo confirmado desta lista: <b>${brl(sum(conf,l=>l.valor))}</b>. As entregas confirmadas no formulário entram aqui sozinhas; as canceladas ficam visíveis e não somam.${somente()}</div></div></div>
   ${lancTable(L,true)}</section>`;
 }
 
@@ -877,7 +890,7 @@ function drawChart(){
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${(f=>f<0.01?"&lt;1% do mês":Math.round(f*100)+"% do mês")(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${linhas.length===1?"":(f=>f<0.01?"menos de 1% do mês":Math.round(f*100)+"% do mês")(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
@@ -1033,6 +1046,13 @@ function render(){
   CO.sync(); CS.sync(); $("fIni").value=S.ini; $("fFim").value=S.fim;
   $("cObra").hidden=v==="obras"; // na tela Obras a busca da própria tela substitui o campo OBRA
   $("limparFiltros").hidden=!(S.obra||S.sku||S.preset!=="6m"); // padrão: todas as obras, todos os materiais, 6 meses
+  // Aviso de filtro ligado (material e/ou obra), cada um com x para limpar; borda verde no campo filtrado.
+  $("cObra").classList.toggle("on",!!S.obra); $("cSku").classList.toggle("on",!!S.sku);
+  const fa=$("faviso");
+  fa.innerHTML=(S.sku?`<span>Filtrando por material: <b title="${esc(nomeSku())}">${esc(nomeSku())}</b><button type="button" data-fx="sku" aria-label="Limpar filtro de material">×</button></span>`:"")+
+    (S.obra?`<span>Filtrando por obra: <b title="${esc(obraNome(S.obra))}">${esc(obraNome(S.obra))}</b><button type="button" data-fx="obra" aria-label="Limpar filtro de obra">×</button></span>`:"");
+  fa.hidden=!(S.sku||S.obra);
+  fa.querySelectorAll("[data-fx]").forEach(b=>b.addEventListener("click",()=>{S[b.dataset.fx]="";S.mes=null;render()}));
   $("context").innerHTML=`Exibindo ${v==="obras"?"":`<b>${S.obra?esc(obraNome(S.obra))+" ("+esc(S.obra)+")":"todas as obras"}</b> · `}<b>${dbr(S.ini)}</b> a <b>${dbr(S.fim)}</b> · <b>${S.sku?esc(D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku):"todos os materiais"}</b>`;
   definirCores();
   const html={painel:vPainel,obras:vObras,solicitacoes:vSol,lancamentos:vLanc}[v]();
