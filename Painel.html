@@ -317,7 +317,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mdet em{font-style:normal;min-width:0;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mdet strong{color:var(--ink);font-weight:800;white-space:nowrap}
 /* Ranking do mês: bolinha, nome, barra na cor da obra (proporcional ao maior valor), valor e % */
-.mdet .rk{display:grid;grid-template-columns:9px minmax(0,1.3fr) minmax(60px,1fr) 112px 46px;grid-template-areas:"sw nm rb v p";align-items:center;gap:4px 8px;padding:6px 4px;margin:0 -4px;border-radius:6px;font-size:12px;color:var(--ink-2)}
+.mdet .rk{display:grid;grid-template-columns:9px minmax(0,1.3fr) minmax(60px,1fr) 112px 78px;grid-template-areas:"sw nm rb v p";align-items:center;gap:4px 8px;padding:6px 4px;margin:0 -4px;border-radius:6px;font-size:12px;color:var(--ink-2)}
 .mdet .rk+.rk{border-top:1px solid var(--line)}
 .mdet .rk.hov{background:var(--surface)}
 .mdet .rk>i{grid-area:sw;width:9px;height:9px;border-radius:3px}
@@ -326,7 +326,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mdet .rk .rb i{display:block;height:100%;border-radius:99px;min-width:4px}
 .mdet .rk>strong{grid-area:v;text-align:right}
 .mdet .rk>small{grid-area:p;text-align:right;white-space:nowrap;color:var(--ink-3);font-weight:700}
-@media (max-width:700px){.mdet .rk{grid-template-columns:9px minmax(0,1fr) 112px 46px;grid-template-areas:"sw nm nm nm" ". rb v p"}}
+@media (max-width:700px){.mdet .rk{grid-template-columns:9px minmax(0,1fr) 112px 78px;grid-template-areas:"sw nm nm nm" ". rb v p"}}
 .chartwrap .tot{font-size:11px;font-weight:800;fill:var(--ink-2)}
 /* Impressão do pedido */
 .etapas{grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
@@ -841,27 +841,33 @@ function drawChart(){
   const data=ms.map(m=>{const v={}; keys.forEach(k=>v[k]=0); conf.filter(l=>ym(l.data)===m).forEach(l=>{v[grp(chave(l))]+=l.valor}); return {k:m,v,t:sum(keys,k=>v[k])}});
   const max=Math.max(...data.map(d=>d.t),0);
   if(!max){el.innerHTML=`<div class="empty" style="padding-top:90px"><b>Nenhum gasto neste período</b>As colunas aparecem quando as entregas são confirmadas no formulário.</div>`;return}
-  const step=Math.pow(10,Math.floor(Math.log10(max))), ymax=Math.ceil(max/(step/2))*(step/2);
-  const ih=H-T-B, iw=W-L-R, slot=iw/data.length, bw=Math.min(46,slot*0.56);
+  // Barras agrupadas: a escala vai até o maior valor de uma obra num mês.
+  const maxV=Math.max(...data.map(d=>Math.max(...keys.map(k=>d.v[k]))));
+  const step=Math.pow(10,Math.floor(Math.log10(maxV))), ymax=Math.ceil(maxV/(step/2))*(step/2);
+  const ih=H-T-B, iw=W-L-R, slot=iw/data.length, GAP=2;
   const yv=v=>T+ih-(v/ymax*ih);
   if(S.mes==null||!ms.includes(S.mes)) S.mes=[...data].reverse().find(d=>d.t)?.k||ms[ms.length-1];
-  let g=""; const pedacos=[]; // posição de cada pedaço colorido, para o balão ao passar o mouse
+  let g=""; const pedacos=[]; // posição de cada barra, para o balão ao passar o mouse ou tocar
   for(let i=0;i<=4;i++){const v=ymax/4*i,y=yv(v);g+=`<line class="grid-l" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="axis" x="${L-10}" y="${y+4}" text-anchor="end">${brlK(v)}</text>`}
-  data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes, dl=`--d:${i*50}ms`; let base=0, col="";
-    keys.forEach((k,ki)=>{const v=d.v[k]; if(!v) return; const y0=yv(base+v), h=yv(base)-y0; base+=v;
-      pedacos.push({x:cx-bw/2,y:y0,h,k,ki,v,m:d.k});
-      col+=`<rect class="seg" data-p="${pedacos.length-1}" x="${cx-bw/2}" y="${y0}" width="${bw}" height="${Math.max(h-1.5,1)}" rx="3" style="fill:${cor(k,ki)};opacity:${on?1:.8}"/>`});
-    // Cada coluna num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
+  data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes, dl=`--d:${i*50}ms`; let col="";
+    // Uma barra por obra, da maior para a menor, lado a lado com um pequeno espaço; mínimo de 6px de altura.
+    const bs=keys.map((k,ki)=>({k,ki,v:d.v[k]})).filter(b=>b.v>0).sort((a,b)=>b.v-a.v);
+    const bwi=bs.length?Math.max(2,Math.min(22,(slot*0.82-GAP*(bs.length-1))/bs.length)):0, gw=bs.length*bwi+GAP*Math.max(bs.length-1,0), x0=cx-gw/2;
+    let topo=T+ih;
+    bs.forEach((b,j)=>{const h=Math.max(6,b.v/ymax*ih), y0=T+ih-h, x=x0+j*(bwi+GAP); topo=Math.min(topo,y0);
+      pedacos.push({x,w:bwi,y:y0,h,k:b.k,ki:b.ki,v:b.v,m:d.k});
+      col+=`<rect class="seg" data-p="${pedacos.length-1}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
+    // Cada mês num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
-    if(d.t) g+=`<text class="tot fade" style="${dl}" x="${cx}" y="${yv(d.t)-6}" text-anchor="middle">${brlK(d.t)}</text>`;
-    if(on) g+=`<rect class="fade" x="${cx-bw/2-3}" y="${yv(d.t)-3}" width="${bw+6}" height="${Math.max(ih-(yv(d.t)-T)+3,4)}" rx="5" fill="none" style="${dl};stroke:var(--ink-3);stroke-width:1"/>`;
+    if(d.t) g+=`<text class="tot fade" style="${dl}" x="${cx}" y="${topo-6}" text-anchor="middle">${brlK(d.t)}</text>`;
+    if(on&&bs.length) g+=`<rect class="fade" x="${x0-3}" y="${topo-3}" width="${gw+6}" height="${T+ih-topo+3}" rx="5" fill="none" style="${dl};stroke:var(--ink-3);stroke-width:1"/>`;
     g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`;
     g+=`<rect class="hit" data-m="${d.k}" x="${L+slot*i}" y="${T}" width="${slot}" height="${ih+B}" aria-label="${MESES[+d.k.slice(5,7)-1]} ${d.k.slice(0,4)}"/>`;
   });
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${pct(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${(f=>f<0.01?"&lt;1% do mês":Math.round(f*100)+"% do mês")(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
@@ -880,7 +886,7 @@ function drawChart(){
   svg.addEventListener("pointermove",e=>{
     if(e.pointerType!=="mouse") return;
     const r=svg.getBoundingClientRect(), px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height;
-    const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+bw&&py>=s.y&&py<=s.y+s.h);
+    const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h);
     if(p<0){solta();return;}
     if(p!==atual){ solta(); atual=p; const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov"); const l=linhaRk(s); if(l) l.classList.add("hov");
       tip.innerHTML=`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`;
@@ -895,7 +901,7 @@ function drawChart(){
   // Toque: mesmo balão e destaque do pedaço tocado, acima do dedo e dentro da tela; some em 3 s, ao tocar fora ou em outro pedaço.
   if(toqueChart){ const t=toqueChart; toqueChart=null; clearTimeout(toqueTimer);
     const r=svg.getBoundingClientRect(), px=(t.x-r.left)*W/r.width, py=(t.y-r.top)*H/r.height;
-    const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+bw&&py>=s.y&&py<=s.y+s.h);
+    const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h);
     if(p>=0){ const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov");
       tip.innerHTML=`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`;
       tip.hidden=false;
