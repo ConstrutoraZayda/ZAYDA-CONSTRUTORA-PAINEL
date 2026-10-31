@@ -206,6 +206,9 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .toolbar input[type=search]{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;min-width:240px;flex:1;max-width:420px}
 .toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font-weight:700}
+.toolbar .limpar{display:inline-flex;align-items:center;justify-content:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:10px;padding:9px 12px;font-weight:700;cursor:pointer}
+.toolbar .limpar:hover{border-color:var(--brand);color:var(--brand)}
+.toolbar .limpar svg{width:14px;height:14px}
 @media (max-width:700px){.toolbar.obtool{flex-direction:column;align-items:stretch}.toolbar.obtool>*,.toolbar.obtool input[type=search]{width:100%;max-width:none;min-width:0}}
 .toolbar select option,select option{background:var(--surface);color:var(--ink)}
 /* Busca de obra e de material (substitui a lista nativa, ilegível no tema escuro) */
@@ -758,6 +761,7 @@ function vObras(){
   const tool=`<div class="toolbar obtool"><input type="search" id="busca" placeholder="Buscar código, rua ou cliente (ex.: OB-35, Santa Cecília, Alan)" value="${esc(S.busca)}" aria-label="Buscar obras">
     <select id="sitSel" aria-label="Status da obra"><option value="">Todos os status</option>${sts.map(x=>`<option value="${esc(x)}" ${S.sit===x?"selected":""}>${esc(x)} (${nSt[x]})</option>`).join("")}</select>
     <select id="ordSel" aria-label="Ordenar por">${[["codigo","Código"],["maiorCusto","Maior custo"],["menorCusto","Menor custo"],["maisEtapas","Mais etapas concluídas"],["menosEtapas","Menos etapas concluídas"]].map(([k,t])=>`<option value="${k}" ${(S.ord||"codigo")===k?"selected":""}>Ordenar por: ${t}</option>`).join("")}</select>
+    ${S.busca||S.sit||(S.ord&&S.ord!=="codigo")?`<button type="button" class="limpar" id="limparObras" title="Limpar busca, status e ordenação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar</button>`:""}
     <span class="muted" style="align-self:center">${lista.length} de ${D.obras.length} obras</span></div>`;
   if(!lista.length) return tool+`<div class="card empty"><b>Nenhuma obra encontrada</b>Confira o código, a rua ou o nome do cliente.</div>`;
   return tool+`<section class="grid obras">${lista.map(o=>{
@@ -1037,6 +1041,7 @@ function render(){
   const bs=$("busca"); if(bs){bs.addEventListener("input",()=>{S.busca=bs.value;const p=bs.selectionStart;render();const n=$("busca");n.focus();n.setSelectionRange(p,p)})}
   const ss=$("sitSel"); if(ss) ss.addEventListener("change",()=>{S.sit=ss.value;render()});
   const os=$("ordSel"); if(os) os.addEventListener("change",()=>{S.ord=os.value;render()});
+  const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{S.busca="";S.sit="";S.ord="";render()});
   const al=$("addLanc"); if(al) al.href=D.planilhaUrl||"#";
   document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();const [v,f]=a.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v;window.scrollTo(0,0)}));
   document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();imprimirPedido(b.dataset.print)}));
