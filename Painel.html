@@ -11,18 +11,18 @@
   --amber:#946000; --amber-soft:#FFF3DC; --blue:#2F5584; --blue-soft:#E8EEF7; --red:#B42318; --red-soft:#FDECEA;
   --shadow:0 1px 2px rgba(19,36,26,.04),0 8px 24px rgba(19,36,26,.05);
   --f-ui:"Manrope",system-ui,-apple-system,"Segoe UI",Arial,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
-  --r:16px; --vivo:#D3EEDB;
+  --r:16px; --vivo:#D3EEDB; --laranja:#B8500A; --laranja-soft:#FFEBD9; --laranja-line:#F2B98A;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0D1410; --surface:#141E18; --surface-2:#19251E; --line:#24332A; --ink:#E5EEE8; --ink-2:#A6B5AB; --ink-3:#6E7F74;
   --brand:#3DAE68; --brand-2:#2F8550; --brand-soft:#173324; --lime:#B6DA62; --hatch:#33443A; --hatch-bg:#1A251F;
   --amber:#E7AC4C; --amber-soft:#36290F; --blue:#90B4E6; --blue-soft:#1A2638; --red:#F28B7F; --red-soft:#3A1C19;
-  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; color-scheme:dark}}
+  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; --laranja:#F5A25D; --laranja-soft:#3A2412; --laranja-line:#70451F; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0D1410; --surface:#141E18; --surface-2:#19251E; --line:#24332A; --ink:#E5EEE8; --ink-2:#A6B5AB; --ink-3:#6E7F74;
   --brand:#3DAE68; --brand-2:#2F8550; --brand-soft:#173324; --lime:#B6DA62; --hatch:#33443A; --hatch-bg:#1A251F;
   --amber:#E7AC4C; --amber-soft:#36290F; --blue:#90B4E6; --blue-soft:#1A2638; --red:#F28B7F; --red-soft:#3A1C19;
-  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; color-scheme:dark}
+  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; --laranja:#F5A25D; --laranja-soft:#3A2412; --laranja-line:#70451F; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
@@ -203,6 +203,19 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .ped .rev{font-size:10.5px;font-weight:800;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 6px;margin-left:6px;color:var(--ink-2)}
 .ped .who{font-size:12px;color:var(--ink-3)}
 .ped .inner{padding:4px 16px 16px;border-top:1px solid var(--line)}
+/* Pedido parcial: selo, linha do que falta e quadro de materiais não entregues */
+.pill.parc{display:inline-flex;align-items:center;gap:4px;background:var(--laranja-soft);color:var(--laranja);border:1px solid var(--laranja-line)}
+.pill.parc svg{width:12px;height:12px;flex:none}
+.faltaln{color:var(--laranja);font-size:12px;font-weight:700;margin-top:2px}
+.faltaln.so-s{display:none}
+@media (max-width:900px){.faltaln.so-s{display:block}}
+.fbox{margin-top:12px;padding:12px 14px;background:var(--laranja-soft);border:1px solid var(--laranja-line);border-radius:12px;font-size:13px}
+.fbox>b{display:flex;align-items:center;gap:6px;color:var(--laranja);font-size:14px;font-weight:800;margin-bottom:6px}
+.fbox>b svg{width:16px;height:16px;flex:none}
+.fbox .fl{display:grid;grid-template-columns:minmax(0,1fr) 96px 96px 96px;gap:8px;padding:6px 0;border-top:1px solid var(--laranja-line)}
+.fbox .fl>:not(:first-child){text-align:right;white-space:nowrap}
+.fbox .fl.cab{font-size:11px;font-weight:700;color:var(--ink-2);border-top:0}
+@media (max-width:700px){.fbox .fl{grid-template-columns:repeat(3,minmax(0,1fr))}.fbox .fl>:first-child{grid-column:1/-1;font-weight:700}.fbox .fl>:not(:first-child){text-align:left}.fbox .fl.cab{display:none}.fbox .fl [data-r]::before{content:attr(data-r) " ";font-weight:500}}
 .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:14px}
 .toolbar input[type=search]{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;min-width:240px;flex:1;max-width:420px}
 .toolbar select{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font-weight:700}
@@ -803,18 +816,23 @@ function vSol(){
   let list = Object.entries(ped).map(([id,its])=>{
     const ent=its.filter(i=>i.entregue>0).length, semObra=its[0].obra==="SEM VÍNCULO";
     const sit = semObra?"OBRA NÃO IDENTIFICADA":ent===0?"A ENTREGAR":its.every(i=>i.saldo<=0)?"ENTREGUE":"PARCIAL";
-    return {id,its,sit,f:its[0]};
+    // Parcial: olha todos os itens do pedido, mesmo com busca ou filtro de material escondendo algum.
+    const todos=D.itens.filter(i=>i.pedido===id), pend=todos.filter(i=>i.saldo>0), parcial=todos.some(i=>i.entregue>0)&&pend.length>0;
+    return {id,its,sit,f:its[0],parcial,pend,nTodos:todos.length};
   }).sort(ordemPedido);
-  if(S.sit) list=list.filter(p=>S.sit==="FALTA"?(p.sit==="A ENTREGAR"||p.sit==="PARCIAL"):p.sit===S.sit);
+  if(S.sit) list=list.filter(p=>S.sit==="PARCIAL_FALTA"?p.parcial:S.sit==="FALTA"?(p.sit==="A ENTREGAR"||p.sit==="PARCIAL"):p.sit===S.sit);
+  const faltaTxt=p=>`Falta entregar: ${p.pend.length} de ${p.nTodos} ${p.nTodos===1?"material":"materiais"}`;
+  const seloSit=p=>!p.parcial?sitPill(p.sit):`<span class="pill parc">${ico("alert")}Parcial · atenção</span>${p.sit==="OBRA NÃO IDENTIFICADA"?sitPill(p.sit):""}`;
+  const faltaBox=p=>`<div class="fbox" role="alert"><b>${ico("alert")}Materiais não entregues</b><div class="fl cab"><span>Material</span><span>Pedido</span><span>Entregue</span><span>Falta</span></div>${p.pend.map(i=>`<div class="fl"><span>${esc(i.material)}</span><span data-r="Pedido:">${qtd(i.qtdSol)} ${esc(i.un)}</span><span data-r="Entregue:">${qtd(i.entregue)} ${esc(i.un)}</span><strong data-r="Falta:">${qtd(i.saldo)} ${esc(i.un)}</strong></div>`).join("")}</div>`;
   const tool = `<div class="toolbar"><input type="search" id="busca" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações">
-    <select id="sitSel" aria-label="Situação da entrega"><option value="">Todas as situações</option>${["FALTA","A ENTREGAR","PARCIAL","ENTREGUE","OBRA NÃO IDENTIFICADA"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"FALTA":"Ainda falta entregar","A ENTREGAR":"Nada entregue ainda","PARCIAL":"Entrega parcial","ENTREGUE":"Tudo entregue","OBRA NÃO IDENTIFICADA":"Sem obra reconhecida"}[x]}</option>`).join("")}</select></div>`;
+    <select id="sitSel" aria-label="Situação da entrega"><option value="">Todas as situações</option>${["FALTA","A ENTREGAR","PARCIAL","PARCIAL_FALTA","ENTREGUE","OBRA NÃO IDENTIFICADA"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"FALTA":"Ainda falta entregar","A ENTREGAR":"Nada entregue ainda","PARCIAL":"Entrega parcial","PARCIAL_FALTA":"Parcial (falta entregar)","ENTREGUE":"Tudo entregue","OBRA NÃO IDENTIFICADA":"Sem obra reconhecida"}[x]}</option>`).join("")}</select></div>`;
   if(!list.length) return tool+`<div class="card empty"><b>Nenhuma solicitação encontrada</b>Ajuste o período, a obra ou a busca.</div>`;
   return tool+list.map(p=>`<details class="ped" data-id="${esc(p.id)}"><summary>
-     <div><span class="pid">${esc(p.id)}</span><span class="rev" title="Revisão vigente">R${p.f.rev}</span><div class="who">${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)} · ${esc(p.f.atendente)} · entrega: ${esc(p.f.entregador)}</div></div>
+     <div><span class="pid">${esc(p.id)}</span><span class="rev" title="Revisão vigente">R${p.f.rev}</span><div class="who">${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)} · ${esc(p.f.atendente)} · entrega: ${esc(p.f.entregador)}</div>${p.parcial?`<div class="faltaln so-s">${faltaTxt(p)}</div>`:""}</div>
      <div class="hide-s">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted">“${esc(p.f.obraTexto)}”</span>`:`${obraCel(p.f.obra)}`}</div>
-     <div class="hide-s"><b>${brl(sum(p.its,i=>i.valorRef))}</b><div class="muted">valor do pedido · ${p.its.length} ${p.its.length===1?"item":"itens"}</div></div>
-     <div style="display:flex;gap:8px;align-items:center">${sitPill(p.sit)}<button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir este pedido" aria-label="Imprimir o pedido ${esc(p.id)}">${ico("print")}</button></div></summary>
-     <div class="inner">${(()=>{const R=recebedores(p.id);return `<dl class="pinfo">
+     <div class="hide-s"><b>${brl(sum(p.its,i=>i.valorRef))}</b><div class="muted">valor do pedido · ${p.its.length} ${p.its.length===1?"item":"itens"}</div>${p.parcial?`<div class="faltaln">${faltaTxt(p)}</div>`:""}</div>
+     <div style="display:flex;gap:8px;align-items:center">${seloSit(p)}<button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir este pedido" aria-label="Imprimir o pedido ${esc(p.id)}">${ico("print")}</button></div></summary>
+     <div class="inner">${p.parcial?faltaBox(p):""}${(()=>{const R=recebedores(p.id);return `<dl class="pinfo">
        <div><dt>Atendente</dt><dd>${esc(p.f.atendente||"—")}</dd></div>
        <div><dt>Entregador</dt><dd>${esc(p.f.entregador||"—")}</dd></div>
        <div><dt>Recebido na obra por</dt><dd>${R.length?R.map(r=>`${esc(r.nome)} <small>${dbr(r.data)}</small>`).join(", "):'<span class="muted">Ainda não entregue</span>'}</dd></div>
