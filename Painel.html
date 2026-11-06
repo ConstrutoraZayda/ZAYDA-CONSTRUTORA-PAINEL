@@ -231,6 +231,12 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .orcm label{display:block;margin:12px 0 5px;font-size:12px;font-weight:700;color:var(--ink-2)}
 .orcm input{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600}
 .orcm select{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600}
+#relModal .field.combo{flex:none;max-width:none;margin-top:6px}
+#relModal .field.combo label{margin:0;font-size:11px;color:var(--ink-3)}
+#relModal .field.combo input{border:0;background:transparent;padding:9px 2px}
+#relModal .pop{width:100%;max-height:260px}
+#relImprimir:disabled{opacity:.5;cursor:not-allowed;filter:none}
+@media (min-width:701px){#relModal{overflow:visible;max-height:none}}
 .orcm label.relop{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:13px;color:var(--ink);cursor:pointer}
 .orcm .relop input{width:auto;flex:none}
 .orcm-c{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--laranja-soft);color:var(--laranja);border:1px solid var(--laranja-line);font-size:13px;font-weight:700}
@@ -619,14 +625,12 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
         <div id="relBoxMes"><label for="relMes">Mês</label><select id="relMes"></select></div>
         <label class="relop"><input type="radio" name="relTipo" value="obra">Relatório de uma obra</label>
         <div id="relBoxObra" hidden>
-          <label for="relBusca">Buscar obra</label><input id="relBusca" type="search" autocomplete="off" placeholder="Código, rua ou cliente">
-          <label for="relObra">Obra</label><select id="relObra"></select>
+          <div class="field combo" id="cRel"><label for="relObra">OBRA</label><input id="relObra" type="text" autocomplete="off" spellcheck="false" placeholder="Buscar código, rua ou cliente" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lRel"><button type="button" class="clr" id="xRel" aria-label="Limpar a obra escolhida" hidden>×</button><ul class="pop" id="lRel" role="listbox" hidden></ul></div>
           <label class="relop"><input type="radio" name="relPer" value="mes" checked>Um mês</label>
           <div id="relBoxMes2"><select id="relMes2" aria-label="Mês do relatório da obra"></select></div>
           <label class="relop"><input type="radio" name="relPer" value="filtro"><span id="relFiltroTxt"></span></label>
         </div>
-        <div class="orcm-e" id="relMsg" role="alert" hidden></div>
-        <div class="orcm-b"><button type="button" class="btn" id="relCancelar">Cancelar</button><button type="submit" class="btn primary">Imprimir</button></div>
+        <div class="orcm-b"><button type="button" class="btn" id="relCancelar">Cancelar</button><button type="submit" class="btn primary" id="relImprimir">Imprimir</button></div>
       </form>
     </div>
     <div class="orcm" id="orcModal" role="dialog" aria-modal="true" aria-labelledby="orcTit" hidden>
@@ -1586,32 +1590,33 @@ function renderMantendo(n,manual){
 function route(){const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.busca="";S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render()}}
 window.addEventListener("hashchange",route);
 /* Campo de busca com lista própria (obra e material) */
-function combo(inputId,listId,clrId,todos,get,set){
+function combo(inputId,listId,clrId,todos,get,set,op={}){
+  const aoMudar=op.aoMudar||(()=>render()), limite=op.limite||80;
   const inp=$(inputId), ul=$(listId), clr=$(clrId); let act=-1, vis=[];
   const C={items:[]};
   const label=v=>{const it=C.items.find(i=>i.v===v); return it?(it.cd&&it.cd!==it.t?it.cd+" · "+it.t:it.t):""};
   C.sync=()=>{ if(document.activeElement!==inp) inp.value=label(get()); clr.hidden=!get(); inp.title=inp.value; };
-  const open=()=>{ const q=inp.value.trim(); const m=q?casa(q):null;
-    vis=(m?C.items.filter(i=>m(i.busca)):C.items).slice(0,80); act=vis.length?0:-1;
-    ul.innerHTML=(q?"":`<li role="option" data-v="" aria-selected="${act===-1}"><b>${todos}</b></li>`)+
+  const open=tudo=>{ const q=tudo?"":inp.value.trim(); const m=q?casa(q):null;
+    vis=(m?C.items.filter(i=>m(i.busca)):C.items).slice(0,limite); act=vis.length?(tudo?Math.max(0,vis.findIndex(i=>i.v===get())):0):-1;
+    ul.innerHTML=(q||!todos?"":`<li role="option" data-v="" aria-selected="${act===-1}"><b>${todos}</b></li>`)+
       (vis.length?vis.map((i,k)=>`<li role="option" data-v="${esc(i.v)}" aria-selected="${k===act}"><b>${i.cd&&i.cd!==i.t?`<span class="cd">${esc(i.cd)}</span>`:""}${esc(i.t)}</b>${i.sub?`<small>${esc(i.sub)}</small>`:""}</li>`).join("")
         :`<li class="none">Nada encontrado para “${esc(q)}”</li>`)+
-      (!q&&C.items.length>80?`<li class="none">Digite para encontrar entre ${C.items.length}</li>`:"");
-    ul.hidden=false; inp.setAttribute("aria-expanded","true"); };
+      (!q&&C.items.length>limite?`<li class="none">Digite para encontrar entre ${C.items.length}</li>`:"");
+    ul.hidden=false; inp.setAttribute("aria-expanded","true"); if(tudo&&act>0) mark(); };
   const close=()=>{ ul.hidden=true; inp.setAttribute("aria-expanded","false"); };
-  const pick=v=>{ set(v); close(); inp.blur(); render(); };
+  const pick=v=>{ set(v); close(); inp.blur(); aoMudar(); };
   const mark=()=>{ ul.querySelectorAll("li[data-v]").forEach(li=>li.setAttribute("aria-selected", li.dataset.v===(vis[act]||{}).v)); const s=ul.querySelector('li[aria-selected="true"]'); if(s) s.scrollIntoView({block:"nearest"}); };
-  inp.addEventListener("focus",()=>{ inp.select(); open(); });
-  inp.addEventListener("input",open);
+  inp.addEventListener("focus",()=>{ inp.select(); open(op.todasAoFocar); });
+  inp.addEventListener("input",()=>open());
   inp.addEventListener("keydown",e=>{
     if(e.key==="ArrowDown"){e.preventDefault(); if(ul.hidden)open(); act=Math.min(act+1,vis.length-1); mark();}
     else if(e.key==="ArrowUp"){e.preventDefault(); act=Math.max(act-1,0); mark();}
     else if(e.key==="Enter"){e.preventDefault(); if(!inp.value.trim()) pick(""); else if(vis[act]) pick(vis[act].v);}
-    else if(e.key==="Escape"){close(); inp.value=label(get()); inp.blur();}
+    else if(e.key==="Escape"){if(!ul.hidden) e.stopPropagation(); close(); inp.value=label(get()); inp.blur();}
   });
   inp.addEventListener("blur",()=>setTimeout(()=>{ close(); inp.value=label(get()); },150));
   ul.addEventListener("mousedown",e=>{ const li=e.target.closest("li[data-v]"); if(li){ e.preventDefault(); pick(li.dataset.v); } });
-  clr.addEventListener("click",()=>{ set(""); render(); });
+  clr.addEventListener("click",()=>{ set(""); aoMudar(); });
   return C;
 }
 const CO=combo("fObra","lObra","xObra","Todas as obras",()=>S.obra,v=>{S.obra=v;S.mes=null});
@@ -1734,20 +1739,20 @@ function relMeses(){
   while(y+"-"+pad(m)>=de&&out.length<240){ out.push(y+"-"+pad(m)); m--; if(m<1){m=12;y--} }
   return out;
 }
-function relObras(){
-  const q=$("relBusca").value.trim(), m=q?casa(q):null, sel=$("relObra"), atual=sel.value||REL_OBRA;
-  const its=D.obras.filter(o=>!m||m(o.id+" "+(o.endereco||o.casa)+" "+(o.cliente||o.empreendimento||""))).sort((a,b)=>a.id.localeCompare(b.id,"pt-BR",{numeric:true}));
-  sel.innerHTML=`<option value="">${its.length?"Escolha a obra":"Nenhuma obra encontrada"}</option>`+its.map(o=>`<option value="${esc(o.id)}" ${o.id===atual?"selected":""}>${esc(o.id)} · ${esc(o.endereco||o.casa)}</option>`).join("");
-}
 function relTipos(){
   const tipo=document.querySelector('[name="relTipo"]:checked').value, per=document.querySelector('[name="relPer"]:checked').value;
-  $("relBoxMes").hidden=tipo!=="mes"; $("relBoxObra").hidden=tipo!=="obra"; $("relBoxMes2").hidden=per!=="mes"; $("relMsg").hidden=true;
+  $("relBoxMes").hidden=tipo!=="mes"; $("relBoxObra").hidden=tipo!=="obra"; $("relBoxMes2").hidden=per!=="mes";
+  $("relImprimir").disabled=tipo==="obra"&&!REL_OBRA; // só imprime com uma obra escolhida
 }
 let REL_OBRA="";
+// Mesmo campo de busca do filtro OBRA do topo; aqui não redesenha o painel e abre sempre com a lista inteira.
+const CR=combo("relObra","lRel","xRel","",()=>REL_OBRA,v=>{REL_OBRA=v},{aoMudar:()=>{CR.sync();relTipos()},todasAoFocar:true,limite:Infinity});
 function abrirRelatorio(){
   const ms=relMeses().map(k=>`<option value="${k}">${relMesAno(k)}</option>`).join("");
   $("relMes").innerHTML=ms; $("relMes2").innerHTML=ms;
-  REL_OBRA=S.obra&&D.obras.some(o=>o.id===S.obra)?S.obra:""; $("relObra").innerHTML=""; $("relBusca").value=""; relObras();
+  REL_OBRA=S.obra&&D.obras.some(o=>o.id===S.obra)?S.obra:"";
+  CR.items=[...D.obras].sort((a,b)=>a.id.localeCompare(b.id,"pt-BR",{numeric:true})).map(o=>({v:o.id,cd:o.id,t:o.endereco||o.casa,sub:o.cliente||o.empreendimento||"",busca:o.id+" "+(o.endereco||o.casa)+" "+(o.cliente||o.empreendimento||"")}));
+  CR.sync();
   $("relFiltroTxt").textContent="Período do filtro atual ("+dbr(S.ini)+" a "+dbr(S.fim)+")";
   document.querySelector('[name="relTipo"][value="'+(REL_OBRA?"obra":"mes")+'"]').checked=true;
   relTipos(); $("relModal").hidden=false; $("relFundo").hidden=false; $("relCancelar").focus();
@@ -1757,7 +1762,7 @@ function imprimirRelatorio(e){
   e.preventDefault();
   const tipo=document.querySelector('[name="relTipo"]:checked').value; let html;
   if(tipo==="mes") html=folhaRelMes($("relMes").value);
-  else { const id=$("relObra").value, msg=$("relMsg"); if(!id){ msg.textContent="Escolha a obra."; msg.hidden=false; return; }
+  else { const id=REL_OBRA; if(!id) return;
     if(document.querySelector('[name="relPer"]:checked').value==="mes"){ const k=$("relMes2").value, [ini,fim]=relDoMes(k); html=folhaRelObra(id,ini,fim,relMesAno(k)); }
     else html=folhaRelObra(id,S.ini,S.fim,dbr(S.ini)+" a "+dbr(S.fim)); }
   fecharRelatorio();
@@ -1769,7 +1774,6 @@ $("btnRelatorio").addEventListener("click",abrirRelatorio);
 $("relForm").addEventListener("submit",imprimirRelatorio);
 $("relCancelar").addEventListener("click",fecharRelatorio);
 $("relFundo").addEventListener("click",fecharRelatorio);
-$("relBusca").addEventListener("input",relObras);
 document.querySelectorAll('[name="relTipo"],[name="relPer"]').forEach(x=>x.addEventListener("change",relTipos));
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharRelatorio(); });
 
