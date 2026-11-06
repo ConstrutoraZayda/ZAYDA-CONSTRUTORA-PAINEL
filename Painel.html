@@ -321,6 +321,10 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
   svg.desenha .ln{stroke-dasharray:1 2;animation:desenha .9s cubic-bezier(.3,.6,.3,1) both}
   @keyframes desenha{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
   svg.desenha .fim{animation:aparece .3s ease-out .8s both}
+  .brilho{animation:brilho 1s ease-out}
+  [data-t].brilho,[data-n].brilho{animation-name:brilhoTxt;border-radius:4px}
+  @keyframes brilho{0%{filter:brightness(1.5)}}
+  @keyframes brilhoTxt{0%{background-color:var(--vivo)}}
   .novo{animation:novo 2.5s ease-out}
   @keyframes novo{0%,55%{background-color:var(--vivo)}}
 }
@@ -648,15 +652,15 @@ function vPainel(){
   if(resto.length===1) partes.push(parte(resto[0],comp.indexOf(resto[0])));
   else if(resto.length) partes.push({nome:"Outras "+resto.length+" obras",v:sum(resto,e=>e[1]),cor:"var(--ink-3)",itens:resto.map(parte)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
-  const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
-  const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span><i style="background:${p.cor}"></i>${esc(p.nome)} · ${pct(p.v/s.custo)}</span>`).join("");
+  const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
+  const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span><i style="background:${p.cor}"></i>${esc(p.nome)} · <span ${tA("leg|"+(p.itens?"__OUTROS":p.nome),p.v/s.custo,"pct")}>${pct(p.v/s.custo)}</span></span>`).join("");
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
     <article class="card kpi">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
       <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
       <div class="foot"><b ${nA("conf",s.conf.length)}>${s.conf.length}</b> ${s.conf.length===1?"entrega":"entregas"} com custo real · quantidade entregue × custo unitário real</div>
-      <div class="segbar" aria-hidden="true">${seg}</div>
+      <div class="segbar" data-lista="seg" aria-hidden="true">${seg}</div>
       <div class="legend">${s.custo>0?leg:'<span>Nenhum custo confirmado neste período.</span>'}</div>
     </article>
     <article class="card kpi" data-ped="valor">
@@ -691,7 +695,7 @@ function vPainel(){
       ${pedidosObra(s)}
     </article>`:`<article class="card">
       <div class="cardhead"><div><h2>Comparativo entre obras</h2><div class="sub">Custo confirmado no período. Toque para ver só a obra.${somente()}</div></div></div>
-      <div class="rank" id="rank">${rankHtml()}</div>
+      <div class="rank" id="rank" data-lista="rank">${rankHtml()}</div>
     </article>`}
   </section>
 
@@ -732,8 +736,8 @@ function tabelaMensal(s){
   const tot=ms.map(k=>sum(rows,r=>r.m[k]||0));
   const nome=r=>porObra?`<b><i class="sw" style="background:${obraCor(r.k)}"></i>${esc(obraNome(r.k))}</b><small>${r.k==="SEM VÍNCULO"?"":esc(r.k)}</small>`:`<b>${esc(r.mat)}</b><small>${esc(r.k)}</small>`;
   return `<section class="card" style="margin-top:16px">${head}<div class="tw"><table class="mtable"><thead><tr><th>${porObra?"Obra":"Material"}</th>${ms.map(k=>`<th class="n">${mt(k)}</th>`).join("")}<th class="n">Total</th></tr></thead><tbody>
-  ${rows.map(r=>`<tr ${porObra?`data-obra="${esc(r.k)}"`:""}><td class="nm">${nome(r)}</td>${ms.map(k=>r.m[k]?`<td class="n">${brl(r.m[k])}</td>`:`<td class="z">—</td>`).join("")}<td class="n"><b>${brl(r.t)}</b></td></tr>`).join("")}
-  </tbody><tfoot><tr><td>Total do mês</td>${tot.map(v=>`<td class="n">${v?brl(v):"—"}</td>`).join("")}<td class="n">${brl(sum(tot,v=>v))}</td></tr></tfoot></table></div></section>`;
+  ${rows.map(r=>`<tr ${porObra?`data-obra="${esc(r.k)}"`:""}><td class="nm">${nome(r)}</td>${ms.map(k=>r.m[k]?`<td class="n" ${tA("tm|"+r.k+"|"+k,r.m[k])}>${brl(r.m[k])}</td>`:`<td class="z">—</td>`).join("")}<td class="n"><b ${tA("tmt|"+r.k,r.t)}>${brl(r.t)}</b></td></tr>`).join("")}
+  </tbody><tfoot><tr><td>Total do mês</td>${tot.map((v,i)=>v?`<td class="n" ${tA("tmf|"+ms[i],v)}>${brl(v)}</td>`:`<td class="n">—</td>`).join("")}<td class="n" ${tA("tmg",sum(tot,v=>v))}>${brl(sum(tot,v=>v))}</td></tr></tfoot></table></div></section>`;
 }
 function pedidosObra(s){
   const ped={}; s.I.forEach(i=>{(ped[i.pedido]=ped[i.pedido]||[]).push(i)});
@@ -773,9 +777,9 @@ function rankHtml(){
   if(!D.obras.length) return `<div class="empty"><b>Nenhuma obra cadastrada</b>As obras vêm da planilha Controle e Planejamento de Obras.</div>`;
   if(!rows.length) return `<div class="empty"><b>Nenhuma obra com custo neste período</b>As obras aparecem aqui quando recebem entregas com custo confirmado.</div>`;
   return rows.map(r=>`<button type="button" data-obra="${esc(r.o.id)}" class="${S.obra===r.o.id?"sel":""}" aria-pressed="${S.obra===r.o.id}">
-    <span class="nm">${esc(r.o.endereco||r.o.casa)}<small><span class="cd">${esc(r.o.id)}</span>${esc(r.o.cliente||"")}</small></span><span class="v">${brl(r.v)}</span>
-    <span class="track"><span style="width:${(r.v/max*100).toFixed(1)}%"></span></span>
-    <span class="pct">${r.n} ${r.n===1?"entrega":"entregas"} · ${pct(tot?r.v/tot:0)} do total</span></button>`).join("");
+    <span class="nm">${esc(r.o.endereco||r.o.casa)}<small><span class="cd">${esc(r.o.id)}</span>${esc(r.o.cliente||"")}</small></span><span class="v" ${tA("cmp|"+r.o.id,r.v)}>${brl(r.v)}</span>
+    <span class="track"><span ${bA("cmp|"+r.o.id,r.v)} style="width:${(r.v/max*100).toFixed(1)}%"></span></span>
+    <span class="pct">${r.n} ${r.n===1?"entrega":"entregas"} · <span ${tA("cmpp|"+r.o.id,tot?r.v/tot:0,"pct")}>${pct(tot?r.v/tot:0)}</span> do total</span></button>`).join("");
 }
 
 function matTable(s){
@@ -783,9 +787,9 @@ function matTable(s){
   const rows = Object.values(g).sort((a,b)=>b.v-a.v).slice(0,8);
   if(!rows.length) return `<div class="empty"><b>Nenhum custo confirmado neste período</b>Os materiais aparecem aqui quando uma entrega recebe custo e é conferida.</div>`;
   const max = rows[0].v;
-  return `<div class="tw"><table><thead><tr><th>Material</th><th>Un</th><th class="n">Qtd entregue</th><th class="n">Custo</th><th>Participação</th></tr></thead><tbody>
-  ${rows.map(r=>`<tr><td class="mat">${esc(r.mat)}<small>${esc(r.sku)}</small></td><td>${esc(r.un)}</td><td class="n">${qtd(r.q)}</td><td class="n"><b>${brl(r.v)}</b></td>
-  <td><div class="bar"><div class="t"><span style="width:${(r.v/max*100).toFixed(1)}%"></span></div><b>${pct(r.v/s.custo)}</b></div></td></tr>`).join("")}</tbody></table></div>`;
+  return `<div class="tw"><table><thead><tr><th>Material</th><th>Un</th><th class="n">Qtd entregue</th><th class="n">Custo</th><th>Participação</th></tr></thead><tbody data-lista="mat">
+  ${rows.map(r=>`<tr><td class="mat">${esc(r.mat)}<small>${esc(r.sku)}</small></td><td>${esc(r.un)}</td><td class="n">${qtd(r.q)}</td><td class="n"><b ${tA("mat|"+r.sku,r.v)}>${brl(r.v)}</b></td>
+  <td><div class="bar"><div class="t"><span ${bA("mat|"+r.sku,r.v)} style="width:${(r.v/max*100).toFixed(1)}%"></span></div><b ${tA("matp|"+r.sku,r.v/s.custo,"pct")}>${pct(r.v/s.custo)}</b></div></td></tr>`).join("")}</tbody></table></div>`;
 }
 
 function sitPill(s){
@@ -828,7 +832,7 @@ function vObras(){
       <div class="t1"><span class="id">${esc(o.id)}</span><span class="pill ${stCls(o.status)}">${esc(stTxt(o))}</span></div>
       <h3 style="font-size:15px">${esc(o.endereco||o.casa)}</h3><div class="emp">${esc(o.cliente||o.empreendimento||"")}${(o.fase||o.cidade)?" · "+esc(o.fase||o.cidade):""}</div>
       ${o.pct==null?"":`<div class="obpct"><div class="et-bar"><span style="width:${Math.min(100,Math.max(0,Math.round(o.pct*100)))}%"></span></div><small>${Math.round(o.pct*100)}% das etapas concluídas</small></div>`}
-      <div class="big">${brl(sum(conf,l=>l.valor))}</div><div class="muted">${conf.length?"custo confirmado no período":"Nenhum custo confirmado neste período"}</div>
+      <div class="big" ${tA("ob|"+o.id,sum(conf,l=>l.valor))}>${brl(sum(conf,l=>l.valor))}</div><div class="muted">${conf.length?"custo confirmado no período":"Nenhum custo confirmado neste período"}</div>
       <div class="stats"><div><b>${conf.length}</b>entregas</div><div><b>${uniq(I.map(i=>i.pedido)).length}</b>solicitações</div><div><b>${ult?dbr(ult).slice(0,5):"—"}</b>última entrega</div></div>
     </button>`}).join("")}</section>`;
 }
@@ -878,7 +882,7 @@ function vLanc(){
   return `<div class="toolbar"><input type="search" id="busca" placeholder="Buscar lançamento, material ou pedido" value="${esc(S.busca)}" aria-label="Buscar lançamentos">
     <select id="sitSel" aria-label="Situação"><option value="">Todas as situações</option>${["CUSTO CONFIRMADO","PENDENTE DE CUSTO","AGUARDANDO CONFERÊNCIA","CANCELADO"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"CUSTO CONFIRMADO":"Custo confirmado","PENDENTE DE CUSTO":"Pendente de custo","AGUARDANDO CONFERÊNCIA":"A conferir","CANCELADO":"Cancelado"}[x]}</option>`).join("")}</select>
     <a class="btn" id="addLanc" href="#" target="_blank" rel="noopener">Abrir planilha</a></div>
-  <section class="card"><div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">Custo confirmado desta lista: <b>${brl(sum(conf,l=>l.valor))}</b>. As entregas confirmadas no formulário entram aqui sozinhas; as canceladas ficam visíveis e não somam.${somente()}</div></div></div>
+  <section class="card"><div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">Custo confirmado desta lista: <b ${tA("lc",sum(conf,l=>l.valor))}>${brl(sum(conf,l=>l.valor))}</b>. As entregas confirmadas no formulário entram aqui sozinhas; as canceladas ficam visíveis e não somam.${somente()}</div></div></div>
   ${lancTable(L,true)}</section>`;
 }
 
@@ -926,18 +930,18 @@ function drawChart(){
     let topo=T+ih;
     bs.forEach((b,j)=>{const h=Math.max(6,b.v/ymax*ih), y0=T+ih-h, x=x0+j*(bwi+GAP); topo=Math.min(topo,y0);
       pedacos.push({x,w:bwi,y:y0,h,k:b.k,ki:b.ki,v:b.v,m:d.k,t:d.t,outros:b.k==="__OUTROS"?d.outros:null});
-      col+=`<rect class="seg" data-p="${pedacos.length-1}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
+      col+=`<rect class="seg" data-p="${pedacos.length-1}" data-sk="${esc(d.k+"|"+b.k)}" data-v="${b.v}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
     // Cada mês num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
-    if(d.t) g+=`<text class="tot fade" style="${dl}" x="${cx}" y="${topo-6}" text-anchor="middle">${brlK(d.t)}</text>`;
-    if(on&&bs.length) g+=`<rect class="fade" x="${x0-3}" y="${topo-3}" width="${gw+6}" height="${T+ih-topo+3}" rx="5" fill="none" style="${dl};stroke:var(--ink-3);stroke-width:1"/>`;
+    if(d.t) g+=`<text class="tot fade" data-stt="${d.k}" ${tA("tot|"+d.k,d.t,"k")} style="${dl}" x="${cx}" y="${topo-6}" text-anchor="middle">${brlK(d.t)}</text>`;
+    if(on&&bs.length) g+=`<rect class="fade" data-mes="${d.k}" x="${x0-3}" y="${topo-3}" width="${gw+6}" height="${T+ih-topo+3}" rx="5" fill="none" style="${dl};stroke:var(--ink-3);stroke-width:1"/>`;
     g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`;
     g+=`<rect class="hit" data-m="${d.k}" x="${L+slot*i}" y="${T}" width="${slot}" height="${ih+B}" aria-label="${MESES[+d.k.slice(5,7)-1]} ${d.k.slice(0,4)}"/>`;
   });
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${linhas.length===1?"":(f=>f<0.01?"menos de 1% do mês":Math.round(f*100)+"% do mês")(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
@@ -1015,10 +1019,10 @@ function drawLines(){
   g+=`<line class="xh" id="xh" x1="0" x2="0" y1="${T}" y2="${T+ih}" visibility="hidden"/>`;
   series.forEach((k,si)=>{const pts=val[k].slice(0,nVis).map((v,i)=>x(i).toFixed(1)+","+y(v).toFixed(1));
     g+=`<polyline class="ln" data-k="${esc(k)}" pathLength="1" points="${pts.join(" ")}" style="stroke:${cor(k,si)}"/>`;
-    const li=nVis-1; g+=`<circle class="fim" cx="${x(li)}" cy="${y(val[k][li])}" r="3.5" style="fill:${cor(k,si)}"/>`});
+    const li=nVis-1; g+=`<circle class="fim" data-fk="${esc(k)}" cx="${x(li)}" cy="${y(val[k][li])}" r="3.5" style="fill:${cor(k,si)}"/>`});
   g+=`<rect id="lhit" x="${Lm}" y="${T}" width="${iw}" height="${ih}" fill="transparent"/>`;
-  el.innerHTML=`<svg ${GRAF_ANIM?'class="desenha" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}">${g}</svg><div class="tip" id="ltip" hidden></div>`;
-  lg.innerHTML=series.map((k,si)=>`<button type="button" data-lk="${esc(k)}" title="${esc(rot(k))}"><i style="background:${cor(k,si)}"></i><span>${esc(rot(k))}</span><b>${brl(val[k][nVis-1])}</b></button>`).join("");
+  el.innerHTML=`<svg data-base="${T+ih}" ${GRAF_ANIM?'class="desenha" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}">${g}</svg><div class="tip" id="ltip" hidden></div>`;
+  lg.innerHTML=series.map((k,si)=>`<button type="button" data-lk="${esc(k)}" title="${esc(rot(k))}"><i style="background:${cor(k,si)}"></i><span>${esc(rot(k))}</span><b ${tA("ll|"+k,val[k][nVis-1])}>${brl(val[k][nVis-1])}</b></button>`).join("");
   const tip=$("ltip"), xh=$("xh"), svg=el.querySelector("svg");
   const mostra=i=>{xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.setAttribute("visibility","visible");
     const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>b.v-a.v), totI=sum(linhas,r=>r.v);
@@ -1045,16 +1049,94 @@ const semMov = () => !!(window.matchMedia&&matchMedia("(prefers-reduced-motion: 
 const nA = (k,v,f) => `data-n="${k}" data-nv="${v||0}" data-nf="${f||"int"}"`;
 const fBRL = new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}), fINT = new Intl.NumberFormat("pt-BR",{maximumFractionDigits:0});
 /* Números dos cards do topo: sobem do valor anterior até o novo em 0,7 s, só quando o valor muda. */
-function animarNumeros(mov){
+function animarNumeros(mov,realce){
   document.querySelectorAll("#view [data-n]").forEach(el=>{
     const k=el.dataset.n, novo=+el.dataset.nv||0, ant=NUM_ANT[k], ini=ant===undefined?0:ant; NUM_ANT[k]=novo;
     if(!mov||ini===novo) return;
+    if(realce) brilhar(el);
     const fmt=el.dataset.nf==="brl"?n=>fBRL.format(n):n=>fINT.format(Math.round(n)), fim=el.textContent, t0=performance.now();
     el.textContent=fmt(ini);
     const passo=t=>{ if(!el.isConnected) return; const p=Math.min(1,(t-t0)/700), e=1-Math.pow(1-p,3);
       el.textContent=p<1?fmt(ini+(novo-ini)*e):fim; if(p<1) requestAnimationFrame(passo); };
     requestAnimationFrame(passo);
   });
+}
+/* Transição do valor antigo ao novo quando o custo muda na atualização automática:
+   antes do redesenho, fotoTrans guarda barras e valores pela chave (data-b, data-t, data-sk...); depois, aplicarTrans anima a diferença. */
+const FMT_T = {brl, pct, k:brlK, mes:f=>f<0.01?"menos de 1% do mês":Math.round(f*100)+"% do mês"};
+const tA = (k,v,f) => `data-t="${esc(k)}" data-tv="${v||0}" data-tf="${f||"brl"}"`;
+const bA = (k,v) => `data-b="${esc(k)}" data-bv="${v||0}"`;
+function brilhar(el){ el.classList.add("brilho"); setTimeout(()=>el.classList.remove("brilho"),1000); }
+/* Interpola atributos de SVG em 0,8 s, desacelerando no final. */
+function tween(el,de,para,fim){
+  const t0=performance.now(), nums=Object.keys(para);
+  const passo=t=>{ if(!el.isConnected) return; const p=Math.min(1,(t-t0)/800), e=1-Math.pow(1-p,3);
+    nums.forEach(a=>el.setAttribute(a,de[a]+(para[a]-de[a])*e));
+    if(p<1) requestAnimationFrame(passo); else if(fim) fim(); };
+  nums.forEach(a=>el.setAttribute(a,de[a])); requestAnimationFrame(passo);
+}
+const geom = (el,attrs) => { const o={}; attrs.forEach(a=>o[a]=+el.getAttribute(a)); return o; };
+const RET = ["x","y","width","height"];
+const pontos = el => el.getAttribute("points").trim().split(/\s+/).map(p=>p.split(",").map(Number));
+function fotoTrans(){
+  const v=$("view"), f={t:{},b:{},seg:{},tot:{},sel:{},ln:{},fim:{}};
+  v.querySelectorAll("[data-t]").forEach(e=>{f.t[e.dataset.t]=+e.dataset.tv});
+  v.querySelectorAll("[data-b]").forEach(e=>{ const row=e.closest("[data-lista]>*"); f.b[e.dataset.b]={width:e.style.width,flexGrow:e.style.flexGrow,v:+e.dataset.bv,row,lista:row&&row.parentElement.dataset.lista}; });
+  v.querySelectorAll("#chart .seg").forEach(e=>{f.seg[e.dataset.sk]={g:geom(e,RET),v:+e.dataset.v,el:e}});
+  v.querySelectorAll("#chart [data-stt]").forEach(e=>{f.tot[e.dataset.stt]=+e.getAttribute("y")});
+  v.querySelectorAll("#chart [data-mes]").forEach(e=>{f.sel[e.dataset.mes]=geom(e,RET)});
+  v.querySelectorAll("#lines .ln").forEach(e=>{f.ln[e.dataset.k]={p:pontos(e),el:e}});
+  v.querySelectorAll("#lines .fim").forEach(e=>{f.fim[e.dataset.fk]=geom(e,["cx","cy"])});
+  return f;
+}
+function contarDe(el,de,para){
+  const fmt=FMT_T[el.dataset.tf]||brl, fim=el.textContent, t0=performance.now();
+  el.textContent=fmt(de);
+  const passo=t=>{ if(!el.isConnected) return; const p=Math.min(1,(t-t0)/700), e=1-Math.pow(1-p,3);
+    el.textContent=p<1?fmt(de+(para-de)*e):fim; if(p<1) requestAnimationFrame(passo); };
+  requestAnimationFrame(passo);
+}
+function aplicarTrans(f){
+  const v=$("view"), EASE=" .8s cubic-bezier(.2,.7,.2,1)";
+  // Valores: contam do antigo ao novo (o que é novo conta a partir de zero); os iguais ficam parados.
+  v.querySelectorAll("[data-t]").forEach(e=>{ const de=f.t[e.dataset.t]||0, para=+e.dataset.tv; if(Math.abs(de-para)<1e-9) return; contarDe(e,de,para); brilhar(e); });
+  // Barras em HTML: largura (ranking, comparativo, materiais) ou proporção (barra do custo confirmado).
+  const animar=(e,prop,css,de,para,fim)=>{ e.style.transition="none"; e.style[prop]=de; e.getBoundingClientRect(); e.style.transition=css+EASE; e.style[prop]=para; setTimeout(()=>{e.style.transition=""; if(fim) fim();},850); };
+  const vistos={};
+  v.querySelectorAll("[data-b]").forEach(e=>{ const a=f.b[e.dataset.b], flex=!!e.style.flexGrow; vistos[e.dataset.b]=1;
+    const prop=flex?"flexGrow":"width", para=e.style[prop], de=a?a[prop]:(flex?"0":"0%");
+    if(de!==para) animar(e,prop,flex?"flex-grow":"width",de,para);
+    if(!a||a.v!==+e.dataset.bv) brilhar(e); });
+  // Barra que deixou de existir: uma cópia encolhe até sumir.
+  Object.keys(f.b).forEach(k=>{ const a=f.b[k]; if(vistos[k]||!a.row) return; const pai=v.querySelector(`[data-lista="${a.lista}"]`); if(!pai) return;
+    const g=a.row.cloneNode(true), barra=g.matches("[data-b]")?g:g.querySelector("[data-b]"); if(!barra) return;
+    [g,...g.querySelectorAll("*")].forEach(x=>["data-t","data-tv","data-tf","data-b","data-bv","data-i","data-ki","data-obra"].forEach(n=>x.removeAttribute(n)));
+    g.style.pointerEvents="none"; pai.appendChild(g);
+    if(barra.style.flexGrow){ barra.style.minWidth="0"; animar(barra,"flexGrow","flex-grow",a.flexGrow,"0",()=>g.remove()); }
+    else { g.style.transition="opacity .8s"; g.getBoundingClientRect(); g.style.opacity="0"; animar(barra,"width","width",a.width,"0%",()=>g.remove()); } });
+  // Gráfico mensal: cada barra da altura antiga à nova; a nova cresce da base; a que sumiu encolhe.
+  const svg=v.querySelector("#chart svg");
+  if(svg){ const novas={};
+    svg.querySelectorAll(".seg").forEach(e=>{ const a=f.seg[e.dataset.sk], g=geom(e,RET); novas[e.dataset.sk]=1;
+      const de=a?a.g:{...g,y:g.y+g.height,height:0};
+      if(RET.some(c=>Math.abs(de[c]-g[c])>.01)) tween(e,de,g);
+      if(!a||a.v!==+e.dataset.v) brilhar(e); });
+    const hit=svg.querySelector(".hit");
+    Object.keys(f.seg).forEach(k=>{ if(novas[k]) return; const a=f.seg[k], g=a.el.cloneNode(); g.removeAttribute("class"); ["data-p","data-sk","data-v"].forEach(n=>g.removeAttribute(n));
+      svg.insertBefore(g,hit); tween(g,a.g,{...a.g,y:a.g.y+a.g.height,height:0},()=>g.remove()); });
+    svg.querySelectorAll("[data-stt]").forEach(e=>{ const y=f.tot[e.dataset.stt]; if(y!==undefined&&y!==+e.getAttribute("y")) tween(e,{y},{y:+e.getAttribute("y")}); });
+    svg.querySelectorAll("[data-mes]").forEach(e=>{ const a=f.sel[e.dataset.mes]; if(a&&RET.some(c=>Math.abs(a[c]-+e.getAttribute(c))>.01)) tween(e,a,geom(e,RET)); }); }
+  // Gasto acumulado: cada linha do desenho antigo ao novo; a nova sobe da base; a que sumiu desce e some.
+  const sl=v.querySelector("#lines svg");
+  if(sl){ const base=+sl.dataset.base, novas={};
+    const linha=(e,de,para,fim)=>{ const t0=performance.now(), txt=q=>q.map(c=>c[0].toFixed(1)+","+c[1].toFixed(1)).join(" ");
+      const passo=t=>{ if(!e.isConnected) return; const p=Math.min(1,(t-t0)/800), s=1-Math.pow(1-p,3); e.setAttribute("points",txt(para.map((c,i)=>[c[0],de[i][1]+(c[1]-de[i][1])*s]))); if(p<1) requestAnimationFrame(passo); else if(fim) fim(); };
+      e.setAttribute("points",txt(de)); requestAnimationFrame(passo); };
+    sl.querySelectorAll(".ln").forEach(e=>{ const a=f.ln[e.dataset.k], p=pontos(e); novas[e.dataset.k]=1;
+      const de=a?a.p:p.map(c=>[c[0],base]); if(de.length===p.length&&de.some((c,i)=>Math.abs(c[1]-p[i][1])>.05)) linha(e,de,p); });
+    sl.querySelectorAll(".fim").forEach(e=>{ const a=f.fim[e.dataset.fk], g=geom(e,["cx","cy"]); const de=a||{cx:g.cx,cy:base}; if(de.cx===g.cx&&Math.abs(de.cy-g.cy)>.05) tween(e,de,g); });
+    const alvo=sl.querySelector("#lhit");
+    Object.keys(f.ln).forEach(k=>{ if(novas[k]) return; const a=f.ln[k], g=a.el.cloneNode(); g.removeAttribute("data-k"); sl.insertBefore(g,alvo); linha(g,a.p,a.p.map(c=>[c[0],base]),()=>g.remove()); }); }
 }
 /* Cards e linhas da lista entrando um depois do outro (no máximo 12). */
 function entrada(){
@@ -1152,11 +1234,11 @@ function render(){
   const html={painel:vPainel,obras:vObras,solicitacoes:vSol,lancamentos:vLanc}[v]();
   $("view").innerHTML=html;
   const st=stats(); const np=$("navPend"); np.hidden=!(st.p.semCusto+st.p.conferir); np.textContent=st.p.semCusto+st.p.conferir;
-  GRAF_ANIM=mov&&modo!=="auto"; // gráficos crescem ao abrir, trocar filtros ou chegar dado novo
+  GRAF_ANIM=mov&&modo!=="auto"&&modo!=="novo"; // gráficos crescem do zero ao abrir, trocar filtros ou telas e no botão Atualizar; dado novo faz transição (aplicarTrans)
   if(v==="painel"){ drawChart(); drawLines(); }
   GRAF_ANIM=false;
   ligarSegbar();
-  animarNumeros(mov);
+  animarNumeros(mov,modo==="novo");
   if(mov&&modo==="aba") entrada();
   document.querySelectorAll("[data-obra]").forEach(b=>b.addEventListener("click",()=>{S.obra=(S.obra===b.dataset.obra&&v==="painel")?"":b.dataset.obra;S.mes=null;if(v==="obras")location.hash="painel";else render()}));
   document.querySelectorAll("[data-clear]").forEach(b=>b.addEventListener("click",()=>{S.obra="";S.mes=null;render()}));
@@ -1208,7 +1290,7 @@ function atualizarAgora(manual){
       if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
       const n=mudouCusto||mudouPed?novidades(fotoVivo(D),fotoVivo(d)):null;
       const y=window.scrollY; carregar(d);
-      if(manual||mudouCusto) renderMantendo(n); // custo mudou (ou botão Atualizar): redesenha tudo
+      if(manual||mudouCusto) renderMantendo(n,manual); // custo mudou: transição do valor antigo ao novo; botão Atualizar: redesenha tudo do zero
       else if(mudouPed){ if(S.view==="painel") renderPedidos(n); else if(S.view!=="lancamentos") renderMantendo(n); } // só pedidos: gráficos de gasto ficam como estão
       else if(S.view==="obras") renderMantendo(null); // só dados das obras: redesenha a lista de obras; no resto, entra no próximo redesenho
       window.scrollTo(0,y); })
@@ -1231,10 +1313,11 @@ function renderPedidos(n){
   animarNumeros(!semMov()); destacar(n);
 }
 /* Redesenha com os dados novos sem atrapalhar quem está usando: mantém pedidos abertos, o foco e o cursor da busca. */
-function renderMantendo(n){
+function renderMantendo(n,manual){
   const abertos=[...document.querySelectorAll("details.ped[open]")].map(d=>d.dataset.id);
   const a=document.activeElement, foco=a&&a.id, ini=a&&a.selectionStart, fim=a&&a.selectionEnd;
-  MODO=n?"novo":"auto"; render(); destacar(n);
+  const foto=n&&!manual&&!semMov()?fotoTrans():null;
+  MODO=manual?null:n?"novo":"auto"; render(); if(foto) aplicarTrans(foto); destacar(n);
   abertos.forEach(id=>{const d=document.querySelector(`details.ped[data-id="${CSS.escape(id)}"]`);if(d)d.open=true;});
   if(foco==="busca"){const n=$("busca");if(n){n.focus();try{n.setSelectionRange(ini,fim)}catch(e){}}}
 }
