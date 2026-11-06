@@ -1836,11 +1836,35 @@ const buscarEntregas = pedido => chamarApi({codigo:CODIGO,acao:"entregas",pedido
 
 /* ---------- impressão de um pedido ---------- */
 function aviso(t,ms){const a=$("aviso");a.textContent=t;a.hidden=!t;clearTimeout(aviso.t);if(t&&ms)aviso.t=setTimeout(()=>a.hidden=true,ms)}
-function imprimirPedido(id){
-  const its=D.itens.filter(i=>i.pedido===id); if(!its.length) return;
-  $("printArea").innerHTML=folhaPedido(id,its);
+/* Celular, tablet ou app: o print() de dentro do iframe imprime a página de fora e sai em branco. O iPad pode se identificar como Mac, por isso não basta olhar o userAgent. */
+const imprimeEmJanela = () => navigator.maxTouchPoints>1 || (!!window.matchMedia&&matchMedia("(pointer: coarse)").matches) || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || MODO_APP;
+function imprimirFolha(html){
+  if(imprimeEmJanela()) return abrirJanelaImpressao(html);
+  $("printArea").innerHTML=html;
   const imgs=[...$("printArea").querySelectorAll("img")];
   Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),60));
+}
+/* Tem de rodar dentro do próprio clique, senão o navegador bloqueia a janela. A janela usa os mesmos estilos do painel e funciona sozinha, mesmo com o painel parado em segundo plano. */
+function abrirJanelaImpressao(html){
+  const falhou=()=>aviso("Não foi possível abrir a impressão. Libere pop-ups para este site e tente de novo.",6000);
+  const w=window.open("","_blank"); if(!w) return falhou();
+  const css=[...document.querySelectorAll("style")].map(s=>s.textContent).join("\n"), fontes=document.querySelector('link[rel="stylesheet"]');
+  const extra=`html,body{background:#fff!important;color:#111!important}
+#printArea{display:block;width:210mm;margin:64px auto 0;font:500 10.5px/1.4 var(--f-ui);color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+.imp-barra{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:flex-end;gap:10px;padding:10px 12px;background:#fff;border-bottom:1px solid #cfd8d2}
+.imp-barra button{padding:9px 18px;border:1px solid #cfd8d2;border-radius:10px;background:#fff;color:#111;font:700 15px var(--f-ui);cursor:pointer}
+.imp-barra .imp-ok{background:#00632B;border-color:#00632B;color:#fff}
+@media print{.imp-barra{display:none!important}#printArea{width:auto;margin:0;zoom:1!important}}`;
+  const aoCarregar="var a=document.getElementById('printArea');function z(){a.style.zoom=Math.min(1,innerWidth/794)}z();addEventListener('resize',z);(document.fonts&&document.fonts.ready||Promise.resolve()).then(function(){setTimeout(function(){window.print()},300)})";
+  try{
+    w.document.open();
+    w.document.write(`<!doctype html><html lang="pt-BR" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zayda Construtora | Impressão</title>${fontes?`<link rel="stylesheet" href="${esc(fontes.href)}">`:""}<style>${css}${extra}</style></head><body onload="${aoCarregar}"><div class="imp-barra"><button type="button" class="imp-ok" onclick="window.print()">Imprimir</button><button type="button" onclick="window.close()">Fechar</button></div><div id="printArea">${html}</div></body></html>`);
+    w.document.close();
+  }catch(e){ try{w.close()}catch(e2){} falhou(); }
+}
+function imprimirPedido(id){
+  const its=D.itens.filter(i=>i.pedido===id); if(!its.length) return;
+  imprimirFolha(folhaPedido(id,its));
 }
 function folhaPedido(id,its){
   const P=(D.pedidos||{})[id]||{}, f=its[0], o=D.obras.find(x=>x.id===f.obra);
@@ -1958,9 +1982,7 @@ function imprimirRelatorio(e){
     if(document.querySelector('[name="relPer"]:checked').value==="mes"){ const k=$("relMes2").value, [ini,fim]=relDoMes(k); html=folhaRelObra(id,ini,fim,relMesAno(k)); }
     else html=folhaRelObra(id,S.ini,S.fim,dbr(S.ini)+" a "+dbr(S.fim)); }
   fecharRelatorio();
-  $("printArea").innerHTML=html;
-  const imgs=[...$("printArea").querySelectorAll("img")];
-  Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),60));
+  imprimirFolha(html);
 }
 $("btnRelatorio").addEventListener("click",abrirRelatorio);
 $("relForm").addEventListener("submit",imprimirRelatorio);
