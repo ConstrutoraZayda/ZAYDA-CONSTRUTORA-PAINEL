@@ -296,6 +296,47 @@ function sincronizarOrcamentos_(ss, linhas) {
   return faltam.length;
 }
 
+/** Chamado pelo painel: grava o orçamento de uma obra (valor vazio = remover). Só toca D-H da linha da obra.
+ *  Responde {ok:true, orcamento:{valor,data,obs}} ou {ok:false, motivo}. */
+function salvarOrcamento(codigo, obra, valor, data, obs) {
+  const acesso = validarCodigoPainel_(codigo);
+  if (acesso !== 'OK') return {ok: false, motivo: {INVALIDO: 'Código de acesso incorreto. Entre de novo no painel.',
+    BLOQUEADO: 'Muitas tentativas erradas. Aguarde 10 minutos e tente de novo.', SEM_CODIGO: 'O código de acesso do painel ainda não foi definido.'}[acesso] || 'Acesso não liberado.'};
+  const id = texto_(obra).toUpperCase();
+  let num = '';
+  if (texto_(valor) !== '') {
+    num = valor_(valor);
+    if (num === '' || !(num > 0) || num > 100000000) return {ok: false, motivo: 'Informe um valor maior que zero e de até R$ 100.000.000,00, ou apague o valor para remover o orçamento.'};
+    num = Math.round(num * 100) / 100;
+  }
+  const dt = texto_(data) || Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy');
+  const m = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(dt);
+  const dataCel = m ? new Date(+m[3], +m[2] - 1, +m[1], 12) : null;
+  if (!m || dataCel.getMonth() !== +m[2] - 1 || dataCel.getDate() !== +m[1]) return {ok: false, motivo: 'Informe uma data válida no formato dd/mm/aaaa.'};
+  const nota = texto_(obs);
+  if (nota.length > 300) return {ok: false, motivo: 'A observação pode ter no máximo 300 caracteres.'};
+  if (/^[=+@]/.test(nota)) return {ok: false, motivo: 'A observação não pode começar com =, + ou @.'};
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está sincronizando. Tente de novo em alguns segundos.'};
+  try {
+    const ss = planilhaControle_();
+    const achar = () => { const sh = ss.getSheetByName(CTRL.orcamentos), n = sh ? sh.getLastRow() - 1 : 0;
+      return n > 0 ? sh.getRange(2, 1, n, 1).getValues().findIndex(r => texto_(r[0]).toUpperCase() === id) : -1; };
+    let i = achar();
+    // Aba ou obra ainda não criadas pela sincronização: acrescenta agora (só A-C).
+    if (i < 0) { sincronizarOrcamentos_(ss, linhas_(ss, CTRL.obras, CTRL.linhaObras, 3).filter(r => texto_(r[0]))); i = achar(); }
+    if (i < 0) return {ok: false, motivo: 'A obra ' + id + ' não foi encontrada na aba ORCAMENTOS.'};
+    const sh = ss.getSheetByName(CTRL.orcamentos), linha = i + 2;
+    if (texto_(sh.getRange(1, 7).getValue()) !== 'ALTERADO POR') sh.getRange(1, 7, 1, 2).setValues([['ALTERADO POR', 'ALTERADO EM']])
+      .setFontWeight('bold').setBackground('#EDF6DD').setFontColor('#064B25');
+    sh.getRange(linha, 6, 1, 3).setNumberFormat('@');
+    sh.getRange(linha, 4, 1, 5).setValues([[num, dataCel, nota, 'Painel', Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm')]]);
+    SpreadsheetApp.flush();
+    return {ok: true, orcamento: {valor: num === '' ? null : num, data: dt, obs: nota}};
+  } catch (e) { return {ok: false, motivo: 'Não foi possível salvar: ' + e.message}; }
+  finally { lock.releaseLock(); }
+}
+
 /** Menu Zayda: cria a aba agora (sem esperar a próxima sincronização) e acrescenta as obras que faltam. */
 function criarAbaOrcamentos() {
   const lock = LockService.getScriptLock();
@@ -658,7 +699,9 @@ function doPost(e) {
   let corpo = {};
   try { corpo = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { corpo = {}; }
   let saida;
-  try { saida = corpo.acao === 'entregas' ? getEntregasPedido(corpo.codigo, corpo.pedido) : getDadosPainel(corpo.codigo); }
+  try { saida = corpo.acao === 'entregas' ? getEntregasPedido(corpo.codigo, corpo.pedido)
+    : corpo.acao === 'salvarOrcamento' ? salvarOrcamento(corpo.codigo, corpo.obra, corpo.valor, corpo.data, corpo.obs)
+    : getDadosPainel(corpo.codigo); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
 }
