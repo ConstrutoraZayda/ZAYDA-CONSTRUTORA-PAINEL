@@ -32,7 +32,7 @@ const CTRL = Object.freeze({
   abaEntregasOrigem: 'ENTREGAS', prefixoEntrega: 'ENT-', linhaLanc: 5, linhaApelidos: 18,
   destPedidos: '_IMPORT_PEDIDOS', destItens: '_IMPORT_ITENS', destCatalogo: '_IMPORT_CATALOGO',
   obras: 'OBRAS', solicitacoes: 'SOLICITACOES', lancamentos: 'MATERIAIS_E_CUSTOS',
-  abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS',
+  abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS', orcamentos: 'ORCAMENTOS',
   intervaloMinutos: 1, copiaCompletaMinutos: 15
 });
 
@@ -44,6 +44,7 @@ function onOpen() {
     .addSeparator()
     .addItem('Abrir painel executivo', 'mostrarLinkPainel')
     .addItem('Código de acesso do painel', 'definirCodigoPainel')
+    .addItem('Criar/atualizar aba de orçamentos', 'criarAbaOrcamentos')
     .addToUi();
 }
 
@@ -252,6 +253,60 @@ function escreverObras_(ss, linhas) {
   sh.getRange(CTRL.linhaObras, 1, linhas.length, 10).setValues(linhas);
   sh.getRange(CTRL.linhaObras, 10, linhas.length, 1).setNumberFormat('0%');
   if (texto_(sh.getRange(CTRL.linhaObras - 1, 10).getValue()) !== '% CONCLUÍDO') sh.getRange(CTRL.linhaObras - 1, 10).setValue('% CONCLUÍDO');
+  // Uma falha na aba de orçamentos não pode impedir a atualização das obras.
+  try { sincronizarOrcamentos_(ss, linhas); } catch (e) { Logger.log('Aba de orçamentos não atualizada: ' + e.message); }
+}
+
+/* ===================== ORÇAMENTO DE MATERIAIS ===================== */
+/** Aba ORCAMENTOS: A-C preenchidas pelo sistema; D-F digitadas pela equipe (nunca são gravadas aqui).
+ *  Cria a aba se não existir, acrescenta no fim as obras novas e atualiza endereço e cliente das existentes. Não apaga linhas. */
+function sincronizarOrcamentos_(ss, linhas) {
+  let sh = ss.getSheetByName(CTRL.orcamentos);
+  if (!sh) {
+    sh = ss.insertSheet(CTRL.orcamentos, 2);
+    sh.getRange(1, 1, 1, 6).setValues([['ID_OBRA', 'OBRA (ENDEREÇO)', 'CLIENTE', 'ORÇAMENTO DE MATERIAIS (R$)', 'DATA DO ORÇAMENTO', 'OBSERVAÇÕES']])
+      .setFontWeight('bold').setBackground('#EDF6DD').setFontColor('#064B25');
+    sh.setFrozenRows(1);
+    sh.getRange(2, 4, sh.getMaxRows() - 1, 1).setNumberFormat('"R$ "#,##0.00');
+    sh.getRange(2, 5, sh.getMaxRows() - 1, 1).setNumberFormat('dd/mm/yyyy');
+    sh.setColumnWidth(1, 90); sh.setColumnWidth(2, 340); sh.setColumnWidth(3, 240); sh.setColumnWidth(4, 200); sh.setColumnWidth(5, 150); sh.setColumnWidth(6, 300);
+  }
+  const porId = {};
+  linhas.forEach(l => { const id = texto_(l[0]).toUpperCase(); if (id) porId[id] = l; });
+  const n = Math.max(0, sh.getLastRow() - 1), vistos = {};
+  if (n) {
+    const atuais = sh.getRange(2, 1, n, 3).getValues();
+    let mudou = false;
+    const novas = atuais.map(r => {
+      const id = texto_(r[0]).toUpperCase(), l = porId[id]; if (id) vistos[id] = true;
+      if (!l || (texto_(r[1]) === texto_(l[2]) && texto_(r[2]) === texto_(l[1]))) return r;
+      mudou = true; return [r[0], texto_(l[2]), texto_(l[1])];
+    });
+    if (mudou) sh.getRange(2, 1, n, 3).setValues(novas); // só as colunas A-C
+  }
+  const faltam = Object.keys(porId).filter(id => !vistos[id]).map(id => [id, texto_(porId[id][2]), texto_(porId[id][1])]);
+  if (!faltam.length) return 0;
+  const ini = n + 2, fim = ini + faltam.length - 1;
+  if (sh.getMaxRows() < fim) sh.insertRowsAfter(sh.getMaxRows(), fim - sh.getMaxRows());
+  sh.getRange(ini, 1, faltam.length, 1).setNumberFormat('@');
+  sh.getRange(ini, 1, faltam.length, 3).setValues(faltam).setBackground('#EEF2EF');
+  sh.getRange(ini, 4, faltam.length, 3).setBackground('#FFFFFF');
+  sh.getRange(ini, 4, faltam.length, 1).setNumberFormat('"R$ "#,##0.00');
+  sh.getRange(ini, 5, faltam.length, 1).setNumberFormat('dd/mm/yyyy');
+  return faltam.length;
+}
+
+/** Menu Zayda: cria a aba agora (sem esperar a próxima sincronização) e acrescenta as obras que faltam. */
+function criarAbaOrcamentos() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) throw new Error('Outra sincronização está em andamento. Tente de novo em instantes.');
+  try {
+    const ss = planilhaControle_();
+    const linhas = linhas_(ss, CTRL.obras, CTRL.linhaObras, 3).filter(r => texto_(r[0]));
+    const novas = sincronizarOrcamentos_(ss, linhas);
+    ss.toast('Aba ORCAMENTOS pronta. Obras acrescentadas: ' + novas + '.', 'Orçamentos');
+    return novas;
+  } finally { lock.releaseLock(); }
 }
 
 /* ===== Identificação da obra a partir do que foi digitado no formulário ===== */
@@ -718,9 +773,18 @@ function getDadosPainel(codigo) {
       entregador: texto_(r[6]), endereco: texto_(r[7]), casa: texto_(r[8]), obs: texto_(r[9]), status: texto_(r[12]),
       referencia: texto_(r[15])};
   });
+  // Orçamentos preenchidos na aba ORCAMENTOS (só as obras com valor).
+  const orcamentos = {}, shOrc = ss.getSheetByName(CTRL.orcamentos);
+  if (shOrc && shOrc.getLastRow() > 1) {
+    shOrc.getRange(2, 1, shOrc.getLastRow() - 1, 6).getValues().forEach(r => {
+      const id = texto_(r[0]).toUpperCase(), valor = valor_(r[3]);
+      if (id && valor > 0 && !orcamentos[id]) orcamentos[id] = {valor,
+        data: r[4] instanceof Date ? Utilities.formatDate(r[4], CTRL.fuso, 'dd/MM/yyyy') : texto_(r[4]), obs: texto_(r[5])};
+    });
+  }
   const conf = ss.getSheetByName(CTRL.conf);
   return {
-    acesso: true, pedidos, nomesEtapas,
+    acesso: true, pedidos, nomesEtapas, orcamentos,
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
     modo: texto_(conf.getRange(CTRL.celulaModo).getValue()) || 'PRODUÇÃO',

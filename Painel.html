@@ -208,6 +208,29 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .pill.info{background:var(--blue-soft);color:var(--blue)}
 .pill.bad{background:var(--red-soft);color:var(--red)}
 .pill.off{background:var(--surface-2);color:var(--ink-3);text-decoration:line-through}
+.pill.sem{background:var(--surface-2);color:var(--ink-3)}
+/* Orçamentos */
+.orc4{grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:16px}
+.orclista{gap:10px}
+.orc .oc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:12px}
+.orc .oc-ob{min-width:0;overflow-wrap:anywhere}
+.orc .id,.oc-sem .id{font-family:var(--f-mono);font-size:11.5px;color:var(--brand);margin-right:8px}
+.oc-met{display:grid;grid-template-columns:repeat(2,minmax(0,1fr)) minmax(0,2fr) repeat(2,minmax(0,1fr));gap:12px 16px;align-items:start}
+.oc-c small{display:block;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:3px}
+.oc-c b{font-weight:800;white-space:nowrap}
+.oc-c b.neg{color:var(--red)}
+.oc-n{font-size:11.5px;color:var(--ink-3);line-height:1.3;display:block}
+.oc-t{position:relative;height:10px;margin-top:6px;border-radius:99px;background:var(--hatch-bg)}
+.oc-t span{display:block;height:100%;border-radius:99px;min-width:2px}
+.oc-t i{position:absolute;top:-3px;width:2px;height:16px;margin-left:-1px;background:var(--ink);border-radius:2px}
+.ob-orc{margin-top:8px}
+.orcsem{margin-top:16px}
+.orcsem summary{cursor:pointer;font-weight:800}
+.orcsem p{margin:10px 0 6px}
+.oc-sem{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;padding:8px 0;border-top:1px solid var(--line);font-size:13px}
+.oc-sem b{white-space:nowrap}
+@media (max-width:1180px){.orc4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:700px){.orc4{grid-template-columns:1fr}.oc-met{grid-template-columns:repeat(2,minmax(0,1fr))}.oc-bar{grid-column:1/-1}.orc .oc-top{flex-direction:column;gap:6px}}
 .alert{color:var(--red);font-size:11.5px;font-weight:700;display:block;margin-top:2px}
 .empty{padding:28px 12px;text-align:center;color:var(--ink-3);font-size:13px}
 .empty b{display:block;color:var(--ink-2);font-size:14px;margin-bottom:4px}
@@ -521,6 +544,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
       <nav class="nav" id="nav">
         <a href="#painel" data-v="painel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="3" y="3" width="7" height="9" rx="2"/><rect x="14" y="3" width="7" height="5" rx="2"/><rect x="14" y="12" width="7" height="9" rx="2"/><rect x="3" y="16" width="7" height="5" rx="2"/></svg>Painel</a>
         <a href="#obras" data-v="obras"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V10l7-5 7 5v11M9 21v-6h6v6"/></svg>Obras</a>
+        <a href="#orcamentos" data-v="orcamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18M7 15h4"/></svg>Orçamentos</a>
         <a href="#solicitacoes" data-v="solicitacoes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 4h6l1 2h3v15H5V6h3z"/><path d="M9 11h6M9 15h4"/></svg>Solicitações</a>
         <a href="#lancamentos" data-v="lancamentos"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4z"/><path d="M3 12l9 4 9-4M3 17l9 4 9-4"/></svg>Materiais e custos<span class="count" id="navPend" hidden></span></a>
       </nav>
@@ -839,6 +863,43 @@ function lancTable(rows, full){
   <td>${sitPill(l.situacao)}</td><td>${obraCel(l.obra)}</td><td class="mono">${l.pedido?esc(l.pedido):'<span class="pill info">Excepcional</span>'}</td><td class="mono">${esc(l.id)}</td>${full?`<td>${esc(l.resp)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
 }
 
+/* ---------- orçamento de materiais ---------- */
+const ORC_SIT={FORA:{t:"Fora do orçamento",c:"bad",cor:"var(--red)"},RISCO:{t:"Em risco",c:"parc",cor:"var(--laranja)"},DENTRO:{t:"Dentro do orçamento",c:"ok",cor:"var(--brand-2)"},SEM:{t:"Sem orçamento",c:"sem",cor:"var(--ink-3)"}};
+const seloOrc = s => `<span class="pill ${ORC_SIT[s].c}">${ORC_SIT[s].t}</span>`;
+/* Situação de cada obra, com TODO o custo confirmado (sem filtro de período). Projeção só a partir de 15% concluído. */
+function orcObras(){
+  const gastos={}, out={};
+  D.lanc.forEach(l=>{ if(l.situacao==="CUSTO CONFIRMADO") gastos[l.obra]=(gastos[l.obra]||0)+(l.valor||0); });
+  D.obras.forEach(o=>{ const gasto=gastos[o.id]||0, od=(D.orcamentos||{})[o.id], orc=od?od.valor:null;
+    const proj=o.pct!=null&&o.pct>=0.15?gasto/o.pct:null;
+    const sit=orc==null?"SEM":gasto>orc?"FORA":proj!=null&&proj>orc?"RISCO":"DENTRO";
+    out[o.id]={o,gasto,orc,data:od?od.data:"",obs:od?od.obs:"",usado:orc?gasto/orc:0,saldo:orc==null?null:orc-gasto,proj,sit}; });
+  return out;
+}
+function vOrc(){
+  if(!D.obras.length) return `<div class="card empty"><b>Nenhuma obra cadastrada</b>As obras vêm da planilha Controle e Planejamento de Obras.</div>`;
+  const todas=Object.values(orcObras()), ORDEM={FORA:0,RISCO:1,DENTRO:2};
+  const resumo=`<section class="grid orc4">${["DENTRO","RISCO","FORA","SEM"].map(s=>{const g=todas.filter(x=>x.sit===s);
+    return `<article class="card kpi"><div>${seloOrc(s)}</div><div class="val">${g.length}</div><div class="foot">${s==="SEM"?"obras sem valor digitado":(g.length===1?"obra":"obras")+" · <b>"+brl(sum(g,x=>x.orc))+"</b> em orçamentos"}</div></article>`}).join("")}</section>`;
+  const m=S.busca?casa(S.busca):null, achou=x=>!m||m(x.o.id+" "+(x.o.endereco||x.o.casa));
+  const comOrc=todas.filter(x=>x.sit!=="SEM"), lista=comOrc.filter(x=>achou(x)&&(!S.sit||x.sit===S.sit)).sort((a,b)=>ORDEM[a.sit]-ORDEM[b.sit]||b.usado-a.usado);
+  const sem=todas.filter(x=>x.sit==="SEM"&&achou(x)&&(!S.sit||S.sit==="SEM")).sort((a,b)=>a.o.id.localeCompare(b.o.id,"pt-BR",{numeric:true}));
+  const tool=`<div class="toolbar obtool"><input type="search" id="busca" placeholder="Buscar código ou endereço" value="${esc(S.busca)}" aria-label="Buscar obras">
+    <select id="sitSel" aria-label="Situação do orçamento"><option value="">Todas as situações</option>${["FORA","RISCO","DENTRO","SEM"].map(s=>`<option value="${s}" ${S.sit===s?"selected":""}>${ORC_SIT[s].t}</option>`).join("")}</select>
+    <span class="muted" style="align-self:center">${lista.length} de ${comOrc.length} obras com orçamento</span></div>`;
+  const celula=(rot,val,extra)=>`<div class="oc-c"><small>${rot}</small><b ${extra||""}>${val}</b></div>`;
+  const linha=x=>{ const u=Math.round(x.usado*100), c=x.o.pct==null?null:Math.round(x.o.pct*100);
+    return `<article class="card orc"><div class="oc-top"><div class="oc-ob"><span class="id">${esc(x.o.id)}</span><b>${esc(x.o.endereco||x.o.casa)}</b></div>${seloOrc(x.sit)}</div>
+    <div class="oc-met">${celula("Orçamento",brl(x.orc),x.data||x.obs?`title="${esc([x.data,x.obs].filter(Boolean).join(" · "))}"`:"")}${celula("Gasto",brl(x.gasto))}
+      <div class="oc-c oc-bar"><small>${u}% usado${c==null?"":" · "+c+"% concluído"}</small><div class="oc-t"><span style="width:${Math.min(100,u)}%;background:${ORC_SIT[x.sit].cor}"></span>${c==null?"":`<i style="left:${Math.min(100,Math.max(0,c))}%" title="${c}% concluído"></i>`}</div></div>
+      ${celula("Saldo",brl(x.saldo),x.saldo<0?'class="neg"':"")}
+      ${x.proj==null?`<div class="oc-c"><small>Projeção</small><span class="oc-n">projeção a partir de 15% concluído</span></div>`:celula("Projeção",brl(x.proj))}</div></article>`; };
+  const corpo=lista.length?`<div class="grid orclista">${lista.map(linha).join("")}</div>`:(S.sit==="SEM"?"":`<div class="card empty"><b>Nenhuma obra nesta lista</b>${comOrc.length?"Ajuste a situação ou a busca.":"Digite o orçamento na aba ORCAMENTOS da planilha de controle."}</div>`);
+  const blocoSem=!sem.length?"":`<details class="card orcsem" id="orcSem" ${S.orcSem||S.sit==="SEM"?"open":""}><summary>Obras sem orçamento (${sem.length})</summary><p class="muted">Digite o orçamento na aba ORCAMENTOS da planilha de controle</p>
+    ${sem.map(x=>`<div class="oc-sem"><span class="id">${esc(x.o.id)}</span><span>${esc(x.o.endereco||x.o.casa)}</span><b>${brl(x.gasto)}</b></div>`).join("")}</details>`;
+  return resumo+tool+corpo+blocoSem;
+}
+
 function vObras(){
   if(!D.obras.length) return `<div class="card empty"><b>Nenhuma obra cadastrada</b>As obras vêm da planilha Controle e Planejamento de Obras.</div>`;
   const sts=uniq(D.obras.map(stTxt)).sort((a,b)=>a.localeCompare(b,"pt-BR"));
@@ -858,6 +919,7 @@ function vObras(){
     ${S.busca||S.sit||(S.ord&&S.ord!=="codigo")?`<button type="button" class="limpar" id="limparObras" title="Limpar busca, status e ordenação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar</button>`:""}
     <span class="muted" style="align-self:center">${lista.length} de ${D.obras.length} obras</span></div>`;
   if(!lista.length) return tool+`<div class="card empty"><b>Nenhuma obra encontrada</b>Confira o código, a rua ou o nome do cliente.</div>`;
+  const orcS=orcObras();
   return tool+`<section class="grid obras">${lista.map(o=>{
     const L=D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)), conf=L.filter(l=>l.situacao==="CUSTO CONFIRMADO");
     const I=D.itens.filter(i=>i.obra===o.id&&inP(i.data)&&okS(i.sku));
@@ -865,6 +927,7 @@ function vObras(){
     return `<button type="button" class="card ob" data-obra="${esc(o.id)}">
       <div class="t1"><span class="id">${esc(o.id)}</span><span class="pill ${stCls(o.status)}">${esc(stTxt(o))}</span></div>
       <h3 style="font-size:15px">${esc(o.endereco||o.casa)}</h3><div class="emp">${esc(o.cliente||o.empreendimento||"")}${(o.fase||o.cidade)?" · "+esc(o.fase||o.cidade):""}</div>
+      ${orcS[o.id].sit==="SEM"?"":`<div class="ob-orc">${seloOrc(orcS[o.id].sit)}</div>`}
       ${o.pct==null?"":`<div class="obpct"><div class="et-bar"><span style="width:${Math.min(100,Math.max(0,Math.round(o.pct*100)))}%"></span></div><small>${Math.round(o.pct*100)}% das etapas concluídas</small></div>`}
       <div class="big" ${tA("ob|"+o.id,sum(conf,l=>l.valor))}>${brl(sum(conf,l=>l.valor))}</div><div class="muted">${conf.length?"custo confirmado no período":"Nenhum custo confirmado neste período"}</div>
       <div class="stats"><div><b>${conf.length}</b>entregas</div><div><b>${uniq(I.map(i=>i.pedido)).length}</b>solicitações</div><div><b>${ult?dbr(ult).slice(0,5):"—"}</b>última entrega</div></div>
@@ -1285,7 +1348,7 @@ document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.tar
 
 /* ---------- shell ---------- */
 function ico(n){const p={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',print:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'}[n];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`}
-const TITLES={painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."]};
+const TITLES={painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
 function cliqueIr(e){e.preventDefault();const [v,f]=e.currentTarget.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v;window.scrollTo(0,0)}
 function render(){
   const modo=MODO, mov=!semMov(); MODO=null;
@@ -1300,11 +1363,12 @@ function render(){
   const fa=$("faviso");
   fa.innerHTML=(S.sku?`<span>Filtrando por material: <b title="${esc(nomeSku())}">${esc(nomeSku())}</b><button type="button" data-fx="sku" aria-label="Limpar filtro de material">×</button></span>`:"")+
     (S.obra?`<span>Filtrando por obra: <b title="${esc(obraNome(S.obra))}">${esc(obraNome(S.obra))}</b><button type="button" data-fx="obra" aria-label="Limpar filtro de obra">×</button></span>`:"");
-  fa.hidden=!(S.sku||S.obra);
+  fa.hidden=!(S.sku||S.obra)||v==="orcamentos";
+  $("filters").hidden=v==="orcamentos"; $("context").hidden=v==="orcamentos"; // o orçamento usa todo o custo da obra: os filtros de cima não valem aqui
   fa.querySelectorAll("[data-fx]").forEach(b=>b.addEventListener("click",()=>{S[b.dataset.fx]="";S.mes=null;render()}));
   $("context").innerHTML=`Exibindo ${v==="obras"?"":`<b>${S.obra?esc(obraNome(S.obra))+" ("+esc(S.obra)+")":"todas as obras"}</b> · `}<b>${dbr(S.ini)}</b> a <b>${dbr(S.fim)}</b> · <b>${S.sku?esc(D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku):"todos os materiais"}</b>`;
   definirCores();
-  const html={painel:vPainel,obras:vObras,solicitacoes:vSol,lancamentos:vLanc}[v]();
+  const html={painel:vPainel,obras:vObras,orcamentos:vOrc,solicitacoes:vSol,lancamentos:vLanc}[v]();
   $("view").innerHTML=html;
   const st=stats(); const np=$("navPend"); np.hidden=!(st.p.semCusto+st.p.conferir); np.textContent=st.p.semCusto+st.p.conferir;
   GRAF_ANIM=mov&&modo!=="auto"&&modo!=="novo"; // gráficos crescem do zero ao abrir, trocar filtros ou telas e no botão Atualizar; dado novo faz transição (aplicarTrans)
@@ -1318,6 +1382,7 @@ function render(){
   const bs=$("busca"); if(bs){bs.addEventListener("input",()=>{S.busca=bs.value;const p=bs.selectionStart;render();const n=$("busca");n.focus();n.setSelectionRange(p,p)})}
   const ss=$("sitSel"); if(ss) ss.addEventListener("change",()=>{S.sit=ss.value;render()});
   const os=$("ordSel"); if(os) os.addEventListener("change",()=>{S.ord=os.value;render()});
+  const ds=$("orcSem"); if(ds) ds.addEventListener("toggle",()=>{S.orcSem=ds.open});
   const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{S.busca="";S.sit="";S.ord="";render()});
   const al=$("addLanc"); if(al) al.href=D.planilhaUrl||"#";
   document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr));
@@ -1364,8 +1429,8 @@ function atualizarAgora(manual){
       const n=mudouCusto||mudouPed?novidades(fotoVivo(D),fotoVivo(d)):null;
       const y=window.scrollY; carregar(d);
       if(manual||mudouCusto) renderMantendo(n,manual); // custo mudou: transição do valor antigo ao novo; botão Atualizar: redesenha tudo do zero
-      else if(mudouPed){ if(S.view==="painel") renderPedidos(n); else if(S.view!=="lancamentos") renderMantendo(n); } // só pedidos: gráficos de gasto ficam como estão
-      else if(S.view==="obras") renderMantendo(null); // só dados das obras: redesenha a lista de obras; no resto, entra no próximo redesenho
+      else if(mudouPed){ if(S.view==="painel") renderPedidos(n); else if(S.view!=="lancamentos"&&S.view!=="orcamentos") renderMantendo(n); } // só pedidos: gráficos de gasto ficam como estão
+      else if(S.view==="obras"||S.view==="orcamentos") renderMantendo(null); // só dados das obras: redesenha a lista de obras; no resto, entra no próximo redesenho
       window.scrollTo(0,y); })
     .catch(()=>{buscando=false;$("live").classList.add("off");$("updated").textContent="Sem conexão com a planilha · tentando de novo";});
 }
