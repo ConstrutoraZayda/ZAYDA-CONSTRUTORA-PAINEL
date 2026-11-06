@@ -706,7 +706,7 @@ function versaoPainel_(recalcular) {
 function doGet() {
   const url = ScriptApp.getService().getUrl() || '';
   const html = HtmlService.createHtmlOutputFromFile('Painel').getContent()
-    .split('"__URL_API__"').join(JSON.stringify(url))
+    .split('"__URL_API__"').join(JSON.stringify(url).replace(/\//g, '\\/')) // sem "//": o removedor de comentários do HtmlService pode cortar a URL ali
     .split('"__VERSAO_PAINEL__"').join(JSON.stringify(versaoPainel_(true)));
   return HtmlService.createHtmlOutput(html)
     .setTitle('Zayda | Painel de custos por obra')
