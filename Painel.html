@@ -456,6 +456,12 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .etapas li.info small{color:var(--blue)}.etapas li.info{background:var(--blue-soft);border-color:var(--blue-soft)}
 .etapas li.bad small{color:var(--red)}.etapas li.bad{background:var(--red-soft);border-color:var(--red-soft)}
 .etapas li.warn small{color:var(--amber)}.etapas li.warn{background:var(--amber-soft);border-color:var(--amber-soft)}
+.ob-q{grid-column:1/-1;margin-top:12px;padding-top:12px;border-top:1px solid var(--line)}
+.ob-q-top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:10px}
+.ob-q-top>b{font-size:13px}
+.ob-q-s{margin:0;font-size:13px;color:var(--ink-2)}
+.ob-q-n{display:block;margin-top:10px;font-size:11.5px;color:var(--ink-3)}
+@media (max-width:700px){.ob-q .oc-met{grid-template-columns:1fr}.ob-q .oc-bar{grid-column:auto}}
 .obpct{margin-top:10px}.obpct .et-bar{margin-bottom:4px}.obpct small{font-size:11.5px;color:var(--ink-3);font-weight:600}
 .pinfo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px 18px;margin:12px 0 14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .pinfo dt{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
@@ -849,7 +855,19 @@ function obraHead(id){
     <dl><div><dt>FASE ATUAL</dt><dd>${esc(o.fase||o.cidade||"—")}</dd></div><div><dt>PRAZO</dt><dd class="${late?"late":""}">${esc(o.prazo&&o.prazo!=="—"?o.prazo:"—")}</dd></div>
       <div><dt>ENTREGA PREVISTA</dt><dd>${dbr(o.entrega)}</dd></div><div><dt>CONTRATO</dt><dd>${dbr(o.contrato||o.inicio)}</dd></div></dl>
     ${etapasHtml(o)}
+    ${orcFicha(o)}
   </section>`;
+}
+/* Quadro do orçamento na ficha da obra: compara com todo o gasto da obra (mesma regra e mesma janela da tela Orçamentos). */
+function orcFicha(o){
+  const x=orcObras()[o.id], nota=`<small class="ob-q-n">O orçamento compara com todo o gasto da obra, independente do período escolhido no filtro.</small>`;
+  if(x.sit==="SEM") return `<div class="ob-q"><div class="ob-q-top"><b>Orçamento de materiais</b><button type="button" class="btn oc-ed" data-orc="${esc(o.id)}">Definir orçamento</button></div><p class="ob-q-s">Esta obra ainda não tem orçamento</p>${nota}</div>`;
+  const u=Math.round(x.usado*100), c=o.pct==null?null:Math.round(o.pct*100);
+  return `<div class="ob-q"><div class="ob-q-top"><b>Orçamento de materiais</b><div class="oc-acao">${seloOrc(x.sit)}<button type="button" class="btn oc-ed" data-orc="${esc(o.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/></svg>Editar</button></div></div>
+    <div class="oc-met"><div class="oc-c"><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Orçamento (planejado)</small><b>${brl(x.orc)}</b></div><div class="oc-c"><small>Gasto até agora (custo confirmado)</small><b class="oc-gasto">${brl(x.gasto)}</b></div>
+      <div class="oc-c oc-bar"><small>${brl(x.gasto)} gastos de ${brl(x.orc)} orçados${c==null?"":" · "+c+"% concluído"}</small><div class="oc-t"><span style="width:${Math.min(100,u)}%;background:${ORC_SIT[x.sit].cor}"></span>${c==null?"":`<i style="left:${Math.min(100,Math.max(0,c))}%" title="${c}% concluído"></i>`}</div></div>
+      <div class="oc-c"><small>Saldo</small><b ${x.saldo<0?'class="neg"':""}>${brl(x.saldo)}</b></div>
+      <div class="oc-c"><small>Projeção do gasto final</small>${x.proj==null?'<span class="oc-n">projeção a partir de 15% concluído</span>':`<b>${brl(x.proj)}</b>`}</div></div>${nota}</div>`;
 }
 /* Etapas da obra (aba ETAPAS da planilha Controle e Planejamento de Obras) */
 const etCls = s => { const k=semAc(s); return /conclu/.test(k)?"ok":/andamento/.test(k)?"info":/paralis/.test(k)?"bad":/verificar/.test(k)?"warn":"off"; };
