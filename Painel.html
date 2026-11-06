@@ -11,18 +11,18 @@
   --amber:#946000; --amber-soft:#FFF3DC; --blue:#2F5584; --blue-soft:#E8EEF7; --red:#B42318; --red-soft:#FDECEA;
   --shadow:0 1px 2px rgba(19,36,26,.04),0 8px 24px rgba(19,36,26,.05);
   --f-ui:"Manrope",system-ui,-apple-system,"Segoe UI",Arial,sans-serif; --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
-  --r:16px; --vivo:#D3EEDB; --laranja:#B8500A; --laranja-soft:#FFEBD9; --laranja-line:#F2B98A;
+  --r:16px; --vivo:#D3EEDB; --laranja:#B8500A; --laranja-soft:#FFEBD9; --laranja-line:#F2B98A; --outros:#B3BEB7; --outros-2:#DCE2DE;
 }
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
   --bg:#0D1410; --surface:#141E18; --surface-2:#19251E; --line:#24332A; --ink:#E5EEE8; --ink-2:#A6B5AB; --ink-3:#6E7F74;
   --brand:#3DAE68; --brand-2:#2F8550; --brand-soft:#173324; --lime:#B6DA62; --hatch:#33443A; --hatch-bg:#1A251F;
   --amber:#E7AC4C; --amber-soft:#36290F; --blue:#90B4E6; --blue-soft:#1A2638; --red:#F28B7F; --red-soft:#3A1C19;
-  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; --laranja:#F5A25D; --laranja-soft:#3A2412; --laranja-line:#70451F; color-scheme:dark}}
+  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; --laranja:#F5A25D; --laranja-soft:#3A2412; --laranja-line:#70451F; --outros:#A3B0A8; --outros-2:#55645B; color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0D1410; --surface:#141E18; --surface-2:#19251E; --line:#24332A; --ink:#E5EEE8; --ink-2:#A6B5AB; --ink-3:#6E7F74;
   --brand:#3DAE68; --brand-2:#2F8550; --brand-soft:#173324; --lime:#B6DA62; --hatch:#33443A; --hatch-bg:#1A251F;
   --amber:#E7AC4C; --amber-soft:#36290F; --blue:#90B4E6; --blue-soft:#1A2638; --red:#F28B7F; --red-soft:#3A1C19;
-  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; --laranja:#F5A25D; --laranja-soft:#3A2412; --laranja-line:#70451F; color-scheme:dark}
+  --shadow:0 1px 2px rgba(0,0,0,.3); --vivo:#1F4A2F; --laranja:#F5A25D; --laranja-soft:#3A2412; --laranja-line:#70451F; --outros:#A3B0A8; --outros-2:#55645B; color-scheme:dark}
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{background:var(--bg);color:var(--ink)}
@@ -367,6 +367,9 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .mdet .rk{display:grid;grid-template-columns:9px minmax(0,1.3fr) minmax(60px,1fr) 112px 118px;grid-template-areas:"sw nm rb v p";align-items:center;gap:4px 8px;padding:6px 4px;margin:0 -4px;border-radius:6px;font-size:12px;color:var(--ink-2)}
 .mdet .rk+.rk{border-top:1px solid var(--line)}
 .mdet .rk.hov{background:var(--surface)}
+/* Grupo "Outras": listrado na barra e separado das obras no ranking */
+.faixa{background:repeating-linear-gradient(135deg,var(--outros) 0 3px,var(--outros-2) 3px 6px)!important}
+.mdet .rk.outros:not(:first-child){border-top:1px dashed var(--ink-3);margin-top:4px;padding-top:9px}
 .mdet .rk>i{grid-area:sw;width:9px;height:9px;border-radius:3px}
 .mdet .rk>em{grid-area:nm}
 .mdet .rk .rb{grid-area:rb;height:8px;border-radius:99px;background:var(--hatch-bg);overflow:hidden}
@@ -650,9 +653,9 @@ function vPainel(){
   const resto = S.obra ? [] : comp.filter(([k])=>!CORES[k]);
   const partes = comp.filter(e=>!resto.includes(e)).map(parte);
   if(resto.length===1) partes.push(parte(resto[0],comp.indexOf(resto[0])));
-  else if(resto.length) partes.push({nome:"Outras "+resto.length+" obras",v:sum(resto,e=>e[1]),cor:"var(--ink-3)",itens:resto.map(parte)});
+  else if(resto.length) partes.push({nome:"Outras "+resto.length+" obras",v:sum(resto,e=>e[1]),cor:"var(--outros)",itens:resto.map(parte)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
-  const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
+  const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${p.itens?'class="faixa" ':""}${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
   const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span><i style="background:${p.cor}"></i>${esc(p.nome)} · <span ${tA("leg|"+(p.itens?"__OUTROS":p.nome),p.v/s.custo,"pct")}>${pct(p.v/s.custo)}</span></span>`).join("");
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
@@ -907,7 +910,8 @@ function drawChart(){
   const MAXK=6, fixas=S.obra?(keys.length>MAXK?keys.slice(0,MAXK-1):keys):keys.filter(k=>CORES[k]);
   if(fixas.length<keys.length) keys=fixas.concat(["__OUTROS"]);
   const grp=k=>fixas.includes(k)?k:"__OUTROS";
-  const cor=(k,i)=>k==="__OUTROS"?"var(--ink-3)":S.obra?PAL[i%PAL.length]:obraCor(k);
+  const cor=(k,i)=>k==="__OUTROS"?"var(--outros)":S.obra?PAL[i%PAL.length]:obraCor(k);
+  const outrosPorUltimo=(a,b)=>(a.k==="__OUTROS")-(b.k==="__OUTROS")||b.v-a.v; // obras do maior para o menor; o grupo sempre no fim
   const rot=(k,outros)=>k==="__OUTROS"?(S.obra?"Outras categorias":"Outras obras")+" ("+outros.length+")":S.obra?k:obraCurta(k);
   const data=ms.map(m=>{const v={}, o={}; keys.forEach(k=>v[k]=0);
     conf.filter(l=>ym(l.data)===m).forEach(l=>{const c=chave(l), g=grp(c); v[g]+=l.valor; if(g==="__OUTROS") o[c]=(o[c]||0)+l.valor});
@@ -924,13 +928,13 @@ function drawChart(){
   for(let i=0;i<=4;i++){const v=ymax/4*i,y=yv(v);g+=`<line class="grid-l" x1="${L}" x2="${W-R}" y1="${y}" y2="${y}"/><text class="axis" x="${L-10}" y="${y+4}" text-anchor="end">${brlK(v)}</text>`}
   data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes, dl=`--d:${i*50}ms`; let col="";
     // Uma barra por obra, da maior para a menor, lado a lado com um pequeno espaço; mínimo de 6px de altura.
-    const bs=keys.map((k,ki)=>({k,ki,v:d.v[k]})).filter(b=>b.v>0).sort((a,b)=>b.v-a.v);
+    const bs=keys.map((k,ki)=>({k,ki,v:d.v[k]})).filter(b=>b.v>0).sort(outrosPorUltimo);
     const espaco=slot*0.82, GAP=bs.length>1?Math.min(2,espaco*0.25/(bs.length-1)):0; // com muitas barras, o grupo não invade o mês vizinho
     const bwi=bs.length?Math.min(22,(espaco-GAP*(bs.length-1))/bs.length):0, gw=bs.length*bwi+GAP*Math.max(bs.length-1,0), x0=cx-gw/2;
     let topo=T+ih;
     bs.forEach((b,j)=>{const h=Math.max(6,b.v/ymax*ih), y0=T+ih-h, x=x0+j*(bwi+GAP); topo=Math.min(topo,y0);
       pedacos.push({x,w:bwi,y:y0,h,k:b.k,ki:b.ki,v:b.v,m:d.k,t:d.t,outros:b.k==="__OUTROS"?d.outros:null});
-      col+=`<rect class="seg" data-p="${pedacos.length-1}" data-sk="${esc(d.k+"|"+b.k)}" data-v="${b.v}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
+      col+=`<rect class="seg" data-p="${pedacos.length-1}" data-sk="${esc(d.k+"|"+b.k)}" data-v="${b.v}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${b.k==="__OUTROS"?"url(#faixaOutros)":cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
     // Cada mês num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
     if(d.t) g+=`<text class="tot fade" data-stt="${d.k}" ${tA("tot|"+d.k,d.t,"k")} style="${dl}" x="${cx}" y="${topo-6}" text-anchor="middle">${brlK(d.t)}</text>`;
@@ -938,10 +942,10 @@ function drawChart(){
     g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`;
     g+=`<rect class="hit" data-m="${d.k}" x="${L+slot*i}" y="${T}" width="${slot}" height="${ih+B}" aria-label="${MESES[+d.k.slice(5,7)-1]} ${d.k.slice(0,4)}"/>`;
   });
-  el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
+  el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}"><defs><pattern id="faixaOutros" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--outros-2)"/><rect width="3" height="6" style="fill:var(--outros)"/></pattern></defs>${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
-  const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort(outrosPorUltimo), maiorL=Math.max(...linhas.map(r=>r.v),0);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk${r.k==="__OUTROS"?" outros":""}" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${r.k==="__OUTROS"?'class="faixa" ':""}${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/maiorL*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
@@ -1011,7 +1015,7 @@ function drawLines(){
   const max=Math.max(...series.map(k=>val[k][nVis-1]||0),1); const step=Math.pow(10,Math.floor(Math.log10(max))); const top=Math.ceil(max/(step/2))*(step/2);
   const x=i=>Lm+(ends.length===1?iw/2:iw*i/(ends.length-1)), y=v=>T+ih-v/top*ih;
   const fmtX=e=>passo==="m"?MESES[+e.slice(5,7)-1]+" "+e.slice(2,4):e.slice(8,10)+"/"+e.slice(5,7);
-  const cor=(k,i)=>k==="__OUTROS"?"var(--ink-3)":(S.obra?PAL[i%PAL.length]:obraCor(k));
+  const cor=(k,i)=>k==="__OUTROS"?"var(--outros)":(S.obra?PAL[i%PAL.length]:obraCor(k));
   let g="";
   for(let i=0;i<=4;i++){const v=top/4*i;g+=`<line class="grid-l" x1="${Lm}" x2="${W-R}" y1="${y(v)}" y2="${y(v)}"/><text class="axis" x="${Lm-10}" y="${y(v)+4}" text-anchor="end">${brlK(v)}</text>`}
   const nLab=Math.min(ends.length,Math.max(2,Math.floor(iw/70))); const cada=Math.ceil(ends.length/nLab);
@@ -1025,7 +1029,7 @@ function drawLines(){
   lg.innerHTML=series.map((k,si)=>`<button type="button" data-lk="${esc(k)}" title="${esc(rot(k))}"><i style="background:${cor(k,si)}"></i><span>${esc(rot(k))}</span><b ${tA("ll|"+k,val[k][nVis-1])}>${brl(val[k][nVis-1])}</b></button>`).join("");
   const tip=$("ltip"), xh=$("xh"), svg=el.querySelector("svg");
   const mostra=i=>{xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.setAttribute("visibility","visible");
-    const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>b.v-a.v), totI=sum(linhas,r=>r.v);
+    const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>(a.k==="__OUTROS")-(b.k==="__OUTROS")||b.v-a.v), totI=sum(linhas,r=>r.v);
     // Grupo "Outras": só as obras (ou materiais) com valor até este ponto do gráfico.
     const oI={}; L.forEach(l=>{const c=chave(l); if(grp(c)==="__OUTROS"&&l.data<=ends[i]) oI[c]=(oI[c]||0)+l.valor});
     const gI=Object.entries(oI).filter(e=>e[1]>0).map(([c,v])=>({nome:nome(c),v})).sort((a,b)=>b.v-a.v);
