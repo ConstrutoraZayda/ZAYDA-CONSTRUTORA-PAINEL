@@ -57,7 +57,7 @@ button,select,input{font:inherit;color:inherit}
 @media (prefers-reduced-motion:no-preference){.live i{animation:pulso 2s infinite}}
 @keyframes pulso{0%{box-shadow:0 0 0 0 rgba(61,174,104,.55)}70%{box-shadow:0 0 0 7px rgba(61,174,104,0)}100%{box-shadow:0 0 0 0 rgba(61,174,104,0)}}
 .live.off{color:var(--ink-3)}.live.off i{background:var(--ink-3);animation:none}
-#btnAtualizar{padding:6px 11px;font-size:12px}
+#btnAtualizar,#btnRelatorio{padding:6px 11px;font-size:12px}
 .chip{display:inline-flex;align-items:center;gap:6px;border-radius:99px;padding:5px 11px;font-size:12px;font-weight:700;white-space:nowrap}
 .chip.test{background:var(--amber-soft);color:var(--amber)}
 .chip.prod{background:var(--brand-soft);color:var(--brand)}
@@ -230,6 +230,9 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .orcm-g{margin:0 0 12px;font-size:12.5px;color:var(--ink-2);overflow-wrap:anywhere}
 .orcm label{display:block;margin:12px 0 5px;font-size:12px;font-weight:700;color:var(--ink-2)}
 .orcm input{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600}
+.orcm select{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600}
+.orcm label.relop{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:13px;color:var(--ink);cursor:pointer}
+.orcm .relop input{width:auto;flex:none}
 .orcm-c{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--laranja-soft);color:var(--laranja);border:1px solid var(--laranja-line);font-size:13px;font-weight:700}
 .orcm-e{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--red-soft);color:var(--red);font-size:13px;font-weight:700}
 .orcm-b{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
@@ -515,6 +518,13 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 #printArea .ass span{font-size:9px;color:#555}
 #printArea .linha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:34px;break-inside:avoid}
 #printArea .linha div{border-top:1px solid #333;padding-top:5px;font-size:10px;font-weight:700;color:#222;text-align:center;letter-spacing:.04em;text-transform:uppercase}
+#printArea .rel h2{break-after:avoid}
+#printArea .rel .tot{margin:8px 0}
+#printArea .rel .tot.q4{grid-template-columns:repeat(4,1fr)}
+#printArea .rel .tb thead{display:table-header-group}
+#printArea .rel .tb tr.t td{font-weight:800;background:#F5F8F6!important}
+#printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#555}
+#printArea .rel .emit{margin-top:30px;font-size:10px;font-weight:700;color:#222;break-inside:avoid}
 #printArea .rod{margin-top:14px;font-size:8.5px;color:#777;display:flex;justify-content:space-between}
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
 #intro{position:fixed;inset:0;z-index:9999;color:#fff;display:grid;
@@ -581,7 +591,8 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
     <header class="top">
       <div><h1 id="title">Painel de custos</h1><p id="subtitle">Custo confirmado dos materiais entregues em cada obra.</p></div>
       <div class="topright"><span class="chip" id="modeChip" hidden></span><span class="live" id="live" hidden><i></i>Ao vivo</span><span class="muted" id="updated"></span>
-        <button type="button" class="btn" id="btnAtualizar" title="Buscar os dados da planilha agora" hidden>Atualizar</button></div>
+        <button type="button" class="btn" id="btnAtualizar" title="Buscar os dados da planilha agora" hidden>Atualizar</button>
+        <button type="button" class="btn" id="btnRelatorio" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>Imprimir relatório</button></div>
     </header>
 
     <div class="filters" id="filters">
@@ -600,6 +611,24 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
     <div id="view"><div class="loading">Carregando dados da planilha…</div></div>
     <div class="tip" id="stip" hidden></div>
     <div class="lat-fundo aberto" id="orcFundo" hidden></div>
+    <div class="lat-fundo aberto" id="relFundo" hidden></div>
+    <div class="orcm" id="relModal" role="dialog" aria-modal="true" aria-labelledby="relTit" hidden>
+      <form id="relForm" novalidate>
+        <h2 id="relTit">Imprimir relatório</h2>
+        <label class="relop"><input type="radio" name="relTipo" value="mes" checked>Relatório do mês (todas as obras)</label>
+        <div id="relBoxMes"><label for="relMes">Mês</label><select id="relMes"></select></div>
+        <label class="relop"><input type="radio" name="relTipo" value="obra">Relatório de uma obra</label>
+        <div id="relBoxObra" hidden>
+          <label for="relBusca">Buscar obra</label><input id="relBusca" type="search" autocomplete="off" placeholder="Código, rua ou cliente">
+          <label for="relObra">Obra</label><select id="relObra"></select>
+          <label class="relop"><input type="radio" name="relPer" value="mes" checked>Um mês</label>
+          <div id="relBoxMes2"><select id="relMes2" aria-label="Mês do relatório da obra"></select></div>
+          <label class="relop"><input type="radio" name="relPer" value="filtro"><span id="relFiltroTxt"></span></label>
+        </div>
+        <div class="orcm-e" id="relMsg" role="alert" hidden></div>
+        <div class="orcm-b"><button type="button" class="btn" id="relCancelar">Cancelar</button><button type="submit" class="btn primary">Imprimir</button></div>
+      </form>
+    </div>
     <div class="orcm" id="orcModal" role="dialog" aria-modal="true" aria-labelledby="orcTit" hidden>
       <form id="orcForm" novalidate>
         <h2 id="orcTit"></h2>
@@ -1486,7 +1515,7 @@ function render(){
 function carregar(d){
   assinatura=assinar(d); // antes dos ajustes abaixo, para comparar sempre os dados como vieram do servidor
   D=d; D.lanc.forEach(l=>{l.data=l.data||""}); D.itens.forEach(i=>{i.data=i.data||""});
-  $("sheetLink").href=D.planilhaUrl||"#";
+  $("sheetLink").href=D.planilhaUrl||"#"; $("btnRelatorio").hidden=false;
   const mc=$("modeChip"); mc.hidden=false; mc.className="chip "+(D.modo==="TESTE"?"test":"prod"); mc.textContent=D.modo==="TESTE"?"Dados de teste":"Dados reais";
   LIDO=Date.now(); textoAtualizado();
   D.lanc.forEach(l=>{if(!l.obra)l.obra="SEM VÍNCULO"});
@@ -1644,6 +1673,105 @@ function folhaPedido(id,its){
   <div class="rod"><span></span><span>Impresso em ${hj}</span></div>
   </td></tr></tbody></table>`;
 }
+
+/* ---------- relatórios para imprimir (mesmo método da folha do pedido) ---------- */
+const relMesAno = k => MESES[+k.slice(5,7)-1]+"/"+k.slice(0,4);
+const relDoMes = k => [k+"-01",k+"-"+pad(lastDay(+k.slice(0,4),+k.slice(5,7)))];
+const relAgora = () => { const a=new Date(); return pad(a.getDate())+"/"+pad(a.getMonth()+1)+"/"+a.getFullYear()+" "+pad(a.getHours())+":"+pad(a.getMinutes()); };
+const relPct = (v,t) => pct(t?v/t:0);
+const relGrupo = (lista,chave) => { const g={}; lista.forEach(l=>{ const k=chave(l); (g[k]=g[k]||[]).push(l); }); return g; };
+/* Mesmas regras de stats(): período, obra e custo confirmado. Relatório considera todos os materiais. */
+function relDados(ini,fim,obra){
+  const ok=x=>x.data&&x.data>=ini&&x.data<=fim&&(!obra||x.obra===obra);
+  const L=D.lanc.filter(ok), I=D.itens.filter(ok), conf=L.filter(l=>l.situacao==="CUSTO CONFIRMADO");
+  return {L,I,conf,custo:sum(conf,l=>l.valor),ref:sum(I,i=>i.valorRef),pedidos:uniq(I.map(i=>i.pedido)).length};
+}
+/* Tabela com cabeçalho repetido em cada página: colunas ["Título"] ou [["Título","n"]] (n = à direita); última linha opcional de total. */
+function relTabela(cols,linhas,total){
+  const n=cols.map(c=>Array.isArray(c)&&c[1]==="n"), tit=cols.map(c=>Array.isArray(c)?c[0]:c), lin=(cel,cl)=>`<tr${cl?` class="${cl}"`:""}>${cel.map((c,i)=>`<td${n[i]?' class="n"':""}>${c}</td>`).join("")}</tr>`;
+  return `<table class="tb"><thead><tr>${tit.map((c,i)=>`<th${n[i]?' class="n"':""}>${c}</th>`).join("")}</tr></thead><tbody>${linhas.map(c=>lin(c)).join("")}${total?lin(total,"t"):""}</tbody></table>`;
+}
+const relCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}<div class="muted">Emitido em ${relAgora()}</div></div></div>`;
+const relFolha = corpo => `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel">${corpo}<div class="emit">Emitido por: ______________________</div></div></td></tr></tbody></table>`;
+const relVazio = t => `<p class="av">${t}</p>`;
+function relCategorias(conf,total,rotulo){
+  const c=Object.entries(relGrupo(conf,l=>l.cat||"Outros")).map(([k,a])=>({k,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
+  return c.length?relTabela(["Categoria",["Custo confirmado","n"],[rotulo,"n"]],c.map(x=>[esc(x.k),brl(x.v),relPct(x.v,total)]),["TOTAL",brl(total),relPct(total,total)]):relVazio("Nenhum custo confirmado neste período.");
+}
+function folhaRelMes(k){
+  const [ini,fim]=relDoMes(k), d=relDados(ini,fim), orc=orcObras();
+  const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,n:a.length,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
+  const mats=Object.values(d.conf.reduce((g,l)=>{ const m=g[l.sku]=g[l.sku]||{mat:l.material,un:l.un,q:0,v:0}; m.q+=l.qtd; m.v+=l.valor; return g; },{})).sort((a,b)=>b.v-a.v).slice(0,10);
+  const curta=(a,f)=>{ const u=uniq(a.map(f)); return u.slice(0,5).map(esc).join(", ")+(u.length>5?" e mais "+(u.length-5):""); };
+  const saldo=d.I.filter(i=>i.saldo>0), semObra=d.I.filter(i=>i.obra==="SEM VÍNCULO"), semCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO");
+  return relFolha(relCab("Relatório de gastos com materiais",[relMesAno(k)])+
+    `<h2>RESUMO</h2><div class="tot q4"><div><span>CUSTO CONFIRMADO</span><b>${brl(d.custo)}</b></div><div><span>VALOR DOS PEDIDOS</span><b>${brl(d.ref)}</b></div><div><span>ENTREGAS COM CUSTO</span><b>${d.conf.length}</b></div><div><span>PEDIDOS</span><b>${d.pedidos}</b></div></div>`+
+    `<h2>GASTO POR OBRA</h2>`+(obras.length?relTabela(["Obra",["Entregas","n"],["Custo confirmado","n"],["% do mês","n"],["Orçamento (planejado)","n"],"Situação do orçamento"],
+      obras.map(o=>{ const x=orc[o.id], tem=x&&x.sit!=="SEM"; return [o.id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(o.id)}</small>${esc(obraNome(o.id))}`,o.n,brl(o.v),relPct(o.v,d.custo),tem?brl(x.orc):"—",tem?ORC_SIT[x.sit].t:"—"]; }),
+      ["TOTAL",d.conf.length,brl(d.custo),relPct(d.custo,d.custo),"",""]):relVazio("Nenhum custo confirmado neste mês."))+
+    `<h2>GASTO POR CATEGORIA</h2>`+relCategorias(d.conf,d.custo,"% do mês")+
+    `<h2>10 MATERIAIS DE MAIOR GASTO</h2>`+(mats.length?relTabela(["Material",["Quantidade","n"],"Unidade",["Custo confirmado","n"]],mats.map(m=>[esc(m.mat),qtd(m.q),esc(m.un),brl(m.v)])):relVazio("Nenhum custo confirmado neste mês."))+
+    `<h2>PENDÊNCIAS DO MÊS</h2>`+relTabela(["Pendência",["Quantidade","n"],"Lista"],[["Materiais que ainda não chegaram",saldo.length,curta(saldo,i=>i.material)],["Pedidos sem obra reconhecida",uniq(semObra.map(i=>i.pedido)).length,curta(semObra,i=>i.pedido)],["Entregas sem valor",semCusto.length,curta(semCusto,l=>l.material)]]));
+}
+function folhaRelObra(id,ini,fim,periodo){
+  const o=D.obras.find(x=>x.id===id), x=orcObras()[id], d=relDados(ini,fim,id), c=o.pct==null?"—":Math.round(o.pct*100)+"%";
+  const meses=Object.entries(relGrupo(d.conf,l=>ym(l.data))).sort((a,b)=>a[0].localeCompare(b[0]));
+  const ent=d.L.filter(l=>l.situacao!=="CANCELADO").sort((a,b)=>a.data.localeCompare(b.data)||a.id.localeCompare(b.id));
+  const faltam=D.itens.filter(i=>i.obra===id&&i.saldo>0).sort(ordemFalta);
+  return relFolha(relCab("Relatório de gastos da obra",[esc(o.id)+" · "+esc(o.endereco||o.casa),esc(o.cliente||o.empreendimento||"—"),"Período: "+periodo])+
+    `<h2>DADOS DA OBRA</h2><dl class="blk"><div><dt>FASE ATUAL</dt><dd>${esc(o.fase||o.cidade||"—")}</dd></div><div><dt>% CONCLUÍDO</dt><dd>${c}</dd></div><div><dt>PRAZO</dt><dd>${esc(o.prazo&&o.prazo!=="—"?o.prazo:"—")}</dd></div><div><dt>ENTREGA PREVISTA</dt><dd>${dbr(o.entrega)}</dd></div><div><dt>SITUAÇÃO DA OBRA</dt><dd>${esc(stTxt(o))}</dd></div></dl>`+
+    `<h2>ORÇAMENTO DE MATERIAIS</h2>`+(x.sit==="SEM"?relVazio("Obra sem orçamento definido")+`<div class="tot"><div><span>GASTO ATÉ AGORA · CUSTO CONFIRMADO (TODAS AS DATAS)</span><b>${brl(x.gasto)}</b></div></div>`:
+      `<div class="tot q4"><div><span>ORÇAMENTO (PLANEJADO)</span><b>${brl(x.orc)}</b></div><div><span>GASTO ATÉ AGORA · CUSTO CONFIRMADO (TODAS AS DATAS)</span><b>${brl(x.gasto)}</b></div><div><span>SALDO</span><b>${brl(x.saldo)}</b></div><div><span>PROJEÇÃO DO GASTO FINAL</span><b>${x.proj==null?"a partir de 15% concluído":brl(x.proj)}</b></div></div><p class="av"><b>Situação: ${ORC_SIT[x.sit].t}.</b> O orçamento compara com todo o gasto da obra.</p>`)+
+    `<h2>GASTO NO PERÍODO</h2><div class="tot"><div><span>CUSTO CONFIRMADO NO PERÍODO</span><b>${brl(d.custo)}</b></div></div>`+relCategorias(d.conf,d.custo,"% do período")+
+    (ini.slice(0,7)!==fim.slice(0,7)&&meses.length?`<h2>POR MÊS</h2>`+relTabela(["Mês",["Custo confirmado","n"],["% do período","n"]],meses.map(([m,a])=>[relMesAno(m),brl(sum(a,l=>l.valor)),relPct(sum(a,l=>l.valor),d.custo)]),["TOTAL",brl(d.custo),relPct(d.custo,d.custo)]):"")+
+    `<h2>ENTREGAS NO PERÍODO</h2>`+(ent.length?relTabela(["Data","Pedido","Material",["Qtd","n"],"Un",["Valor unit.","n"],["Total","n"],"Recebido por"],ent.map(l=>{ const c=l.situacao==="CUSTO CONFIRMADO"; return [dbr(l.data),esc(l.pedido||"—"),esc(l.material),qtd(l.qtd),esc(l.un),c&&l.custo!=null?brl(l.custo):"—",c?brl(l.valor):"Sem custo confirmado",esc(partesEntrega(l.obs).nome||"—")]; }),["TOTAL (custo confirmado)","","","","","",brl(d.custo),""]):relVazio("Nenhuma entrega neste período."))+
+    `<h2>MATERIAIS QUE AINDA FALTAM CHEGAR</h2>`+(faltam.length?relTabela(["Pedido","Material",["Quantidade pedida","n"],["Entregue","n"],["Falta","n"]],faltam.map(i=>[esc(i.pedido),esc(i.material),qtd(i.qtdSol)+" "+esc(i.un),qtd(i.entregue)+" "+esc(i.un),qtd(i.saldo)+" "+esc(i.un)])):relVazio("Nenhum material pendente nesta obra.")));
+}
+const ordemFalta = (a,b) => b.data.localeCompare(a.data)||a.pedido.localeCompare(b.pedido);
+/* Janela de escolha do relatório. */
+function relMeses(){
+  const ds=D.lanc.concat(D.itens).map(x=>x.data).filter(Boolean).sort(), ate=D.hoje.slice(0,7); let y=+ate.slice(0,4), m=+ate.slice(5,7); const de=(ds[0]||D.hoje).slice(0,7), out=[];
+  while(y+"-"+pad(m)>=de&&out.length<240){ out.push(y+"-"+pad(m)); m--; if(m<1){m=12;y--} }
+  return out;
+}
+function relObras(){
+  const q=$("relBusca").value.trim(), m=q?casa(q):null, sel=$("relObra"), atual=sel.value||REL_OBRA;
+  const its=D.obras.filter(o=>!m||m(o.id+" "+(o.endereco||o.casa)+" "+(o.cliente||o.empreendimento||""))).sort((a,b)=>a.id.localeCompare(b.id,"pt-BR",{numeric:true}));
+  sel.innerHTML=`<option value="">${its.length?"Escolha a obra":"Nenhuma obra encontrada"}</option>`+its.map(o=>`<option value="${esc(o.id)}" ${o.id===atual?"selected":""}>${esc(o.id)} · ${esc(o.endereco||o.casa)}</option>`).join("");
+}
+function relTipos(){
+  const tipo=document.querySelector('[name="relTipo"]:checked').value, per=document.querySelector('[name="relPer"]:checked').value;
+  $("relBoxMes").hidden=tipo!=="mes"; $("relBoxObra").hidden=tipo!=="obra"; $("relBoxMes2").hidden=per!=="mes"; $("relMsg").hidden=true;
+}
+let REL_OBRA="";
+function abrirRelatorio(){
+  const ms=relMeses().map(k=>`<option value="${k}">${relMesAno(k)}</option>`).join("");
+  $("relMes").innerHTML=ms; $("relMes2").innerHTML=ms;
+  REL_OBRA=S.obra&&D.obras.some(o=>o.id===S.obra)?S.obra:""; $("relObra").innerHTML=""; $("relBusca").value=""; relObras();
+  $("relFiltroTxt").textContent="Período do filtro atual ("+dbr(S.ini)+" a "+dbr(S.fim)+")";
+  document.querySelector('[name="relTipo"][value="'+(REL_OBRA?"obra":"mes")+'"]').checked=true;
+  relTipos(); $("relModal").hidden=false; $("relFundo").hidden=false; $("relCancelar").focus();
+}
+function fecharRelatorio(){ $("relModal").hidden=true; $("relFundo").hidden=true; }
+function imprimirRelatorio(e){
+  e.preventDefault();
+  const tipo=document.querySelector('[name="relTipo"]:checked').value; let html;
+  if(tipo==="mes") html=folhaRelMes($("relMes").value);
+  else { const id=$("relObra").value, msg=$("relMsg"); if(!id){ msg.textContent="Escolha a obra."; msg.hidden=false; return; }
+    if(document.querySelector('[name="relPer"]:checked').value==="mes"){ const k=$("relMes2").value, [ini,fim]=relDoMes(k); html=folhaRelObra(id,ini,fim,relMesAno(k)); }
+    else html=folhaRelObra(id,S.ini,S.fim,dbr(S.ini)+" a "+dbr(S.fim)); }
+  fecharRelatorio();
+  $("printArea").innerHTML=html;
+  const imgs=[...$("printArea").querySelectorAll("img")];
+  Promise.all(imgs.map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r}))).then(()=>setTimeout(()=>window.print(),60));
+}
+$("btnRelatorio").addEventListener("click",abrirRelatorio);
+$("relForm").addEventListener("submit",imprimirRelatorio);
+$("relCancelar").addEventListener("click",fecharRelatorio);
+$("relFundo").addEventListener("click",fecharRelatorio);
+$("relBusca").addEventListener("input",relObras);
+document.querySelectorAll('[name="relTipo"],[name="relPer"]').forEach(x=>x.addEventListener("change",relTipos));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharRelatorio(); });
 
 /* ---------- código de acesso ---------- */
 const CHAVE_LOCAL="zaydaPainelCodigo"; let CODIGO="";
