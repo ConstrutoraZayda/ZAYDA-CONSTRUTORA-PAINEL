@@ -96,8 +96,33 @@ button,select,input{font:inherit;color:inherit}
 .segbar span::after{content:"";position:absolute;inset:-8px 0} /* área maior para o toque, sem mudar o desenho */
 /* Balão da barra do custo confirmado: mesmo estilo do balão do gráfico, fixo na tela */
 #stip{position:fixed;left:0;top:0;min-width:0;transform:none;z-index:40;max-width:min(420px,90vw);max-height:calc(100vh - 16px);overflow:auto}
-#stip.toque{pointer-events:auto}
-.tip .lista{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);column-gap:18px}
+.tip .lista{margin-top:8px;padding-top:8px;border-top:1px solid var(--line)}
+.tip .maisob{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);color:var(--brand);font-weight:700}
+.lgoutros{cursor:pointer}
+.segbar .faixa{cursor:pointer}
+.mdet .rk.outros{cursor:pointer}
+/* Painel lateral com a lista completa de "Outras obras" */
+.lat-fundo{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.35);opacity:0;transition:opacity .25s}
+.lat-fundo.aberto{opacity:1}
+.lateral{position:fixed;top:0;right:0;bottom:0;z-index:46;width:min(420px,100vw);display:flex;flex-direction:column;gap:10px;padding:18px 16px;background:var(--surface);color:var(--ink);border-left:1px solid var(--line);box-shadow:-8px 0 32px rgba(0,0,0,.2);transform:translateX(100%);transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+.lateral.aberto{transform:none}
+.lateral header{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.lateral h2{margin:0;font-size:16px;font-weight:800;letter-spacing:-.01em;overflow-wrap:anywhere}
+.lat-x{border:1px solid var(--line);background:var(--surface-2);color:var(--ink-2);border-radius:8px;width:32px;height:32px;flex:none;font-size:18px;line-height:1;cursor:pointer}
+.lat-x:hover{border-color:var(--brand);color:var(--brand)}
+.lat-total{font-size:20px;font-weight:800;letter-spacing:-.02em}
+.lateral input[type=search]{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:9px 12px}
+.lat-lista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -4px;padding:0 4px}
+.lat-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px 10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
+.lat-item:last-child{border-bottom:0}
+.lat-item>span{overflow-wrap:anywhere;color:var(--ink-2)}
+.lat-item small{display:block;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
+.lat-item>b{font-weight:800;white-space:nowrap}
+.lat-item>em{font-style:normal;font-size:12px;color:var(--ink-3);white-space:nowrap;min-width:42px;text-align:right}
+.lat-item>i{grid-column:1/-1;display:block;height:6px;border-radius:99px;background:var(--hatch-bg);overflow:hidden}
+.lat-item>i>u{display:block;height:100%;min-width:3px;border-radius:99px;background:var(--outros)}
+@media (max-width:700px){.lateral{width:100%;border-left:0}}
+@media (prefers-reduced-motion:reduce){.lateral,.lat-fundo{transition:none}}
 .tip .lista div{break-inside:avoid;padding:2px 0}
 
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink-2)}
@@ -118,7 +143,6 @@ button,select,input{font:inherit;color:inherit}
 .chartwrap .hit{fill:transparent;cursor:pointer}
 .chartwrap .seg.hov{opacity:1!important;stroke:var(--ink);stroke-width:1.5}
 #ctip{min-width:0;transform:none;z-index:5;max-width:min(420px,90vw);max-height:calc(100vh - 16px);overflow:auto}
-#ctip.toque{pointer-events:auto}
 /* Gráfico de linhas: gasto acumulado */
 .lw{position:relative;min-height:300px}
 .lw svg{display:block;width:100%;height:300px;overflow:visible}
@@ -526,6 +550,13 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
     <div id="err" class="err" hidden></div>
     <div id="view"><div class="loading">Carregando dados da planilha…</div></div>
     <div class="tip" id="stip" hidden></div>
+    <div class="lat-fundo" id="latFundo" hidden></div>
+    <aside class="lateral" id="latOutros" role="dialog" aria-modal="true" aria-labelledby="latTit" hidden>
+      <header><h2 id="latTit"></h2><button type="button" class="lat-x" id="latX" aria-label="Fechar">×</button></header>
+      <div class="lat-total" id="latTotal"></div>
+      <input type="search" id="latBusca" placeholder="Buscar por nome ou código" aria-label="Buscar na lista">
+      <div class="lat-lista" id="latLista"></div>
+    </aside>
   </main>
 </div>
 
@@ -649,14 +680,14 @@ function vPainel(){
   const compCor = (k,i) => S.obra ? PAL[i%PAL.length] : obraCor(k);
   const compNome = k => S.obra ? k : obraNome(k);
   // Obras principais com cor própria; as cinzas viram um pedaço só no fim (se for uma só, fica com o nome dela).
-  const parte = ([k,v],i) => ({nome:compNome(k),v,cor:compCor(k,i)});
+  const parte = ([k,v],i) => ({nome:compNome(k),cod:k,v,cor:compCor(k,i)});
   const resto = S.obra ? [] : comp.filter(([k])=>!CORES[k]);
   const partes = comp.filter(e=>!resto.includes(e)).map(parte);
   if(resto.length===1) partes.push(parte(resto[0],comp.indexOf(resto[0])));
   else if(resto.length) partes.push({nome:"Outras "+resto.length+" obras",v:sum(resto,e=>e[1]),cor:"var(--outros)",itens:resto.map(parte)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
   const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${p.itens?'class="faixa" ':""}${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
-  const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span><i style="background:${p.cor}"></i>${esc(p.nome)} · <span ${tA("leg|"+(p.itens?"__OUTROS":p.nome),p.v/s.custo,"pct")}>${pct(p.v/s.custo)}</span></span>`).join("");
+  const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span ${p.itens?'class="lgoutros"':""}><i style="background:${p.cor}"></i>${esc(p.nome)} · <span ${tA("leg|"+(p.itens?"__OUTROS":p.nome),p.v/s.custo,"pct")}>${pct(p.v/s.custo)}</span></span>`).join("");
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
     <article class="card kpi">
@@ -897,7 +928,7 @@ function months(){
 }
 /* Balão no toque (celular/tablet): ponto tocado à espera do redesenho do gráfico e prazo de 3 s. */
 let toqueChart=null, toqueTimer=null;
-function esconderToque(){ clearTimeout(toqueTimer); const t=$("ctip"); if(t){t.hidden=true;t.classList.remove("toque");} document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); }
+function esconderToque(){ clearTimeout(toqueTimer); const t=$("ctip"); if(t) t.hidden=true; document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); }
 document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#chart"))) esconderToque(); });
 function drawChart(){
   const el=$("chart"); if(!el) return;
@@ -915,7 +946,7 @@ function drawChart(){
   const rot=(k,outros)=>k==="__OUTROS"?(S.obra?"Outras categorias":"Outras obras")+" ("+outros.length+")":S.obra?k:obraCurta(k);
   const data=ms.map(m=>{const v={}, o={}; keys.forEach(k=>v[k]=0);
     conf.filter(l=>ym(l.data)===m).forEach(l=>{const c=chave(l), g=grp(c); v[g]+=l.valor; if(g==="__OUTROS") o[c]=(o[c]||0)+l.valor});
-    return {k:m,v,t:sum(keys,k=>v[k]),outros:Object.entries(o).filter(e=>e[1]>0).map(([c,x])=>({nome:S.obra?c:obraCurta(c),v:x})).sort((a,b)=>b.v-a.v)}});
+    return {k:m,v,t:sum(keys,k=>v[k]),outros:Object.entries(o).filter(e=>e[1]>0).map(([c,x])=>({nome:S.obra?c:obraCurta(c),cod:c,v:x})).sort((a,b)=>b.v-a.v)}});
   const max=Math.max(...data.map(d=>d.t),0);
   if(!max){el.innerHTML=`<div class="empty" style="padding-top:90px"><b>Nenhum gasto neste período</b>As colunas aparecem quando as entregas são confirmadas no formulário.</div>`;return}
   // Barras agrupadas: a escala vai até o maior valor de uma obra num mês.
@@ -948,14 +979,18 @@ function drawChart(){
   $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk${r.k==="__OUTROS"?" outros":""}" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${r.k==="__OUTROS"?'class="faixa" ':""}${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/maiorL*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
-    if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
-    S.mes=h.dataset.m;drawChart()}));
+    const r=el.querySelector("svg").getBoundingClientRect(), px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height;
+    const pg=pedacos.find(s=>s.outros&&px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h); // clique na barra de "Outras" abre a lista completa
+    if(!pg&&tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
+    S.mes=h.dataset.m;drawChart();
+    if(pg) abrirOutros(rot(pg.k,pg.outros)+" · "+mesAno(pg.m),pg.outros,pg.t);}));
   // Balão com a obra ao passar o mouse: o pedaço é achado pela posição do cursor, porque o .hit do mês fica por cima
   // (e continua recebendo o clique). Só com mouse; no celular, tocar no mês segue mostrando o detalhe embaixo.
   const svg=el.querySelector("svg"), tip=$("ctip"); let atual=-1;
-  const htmlTip=s=>`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k,s.outros))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`+listaTip(tip,s.outros||[],s.t);
+  const htmlTip=s=>`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k,s.outros))}${s.outros?" · "+mesAno(s.m):""}</b><div>${s.outros?`<span>${brl(s.v)}</span><span>${pct(s.t?s.v/s.t:0)}</span>`:`<span>${mesAno(s.m)}</span><span>${brl(s.v)}</span>`}</div>`+listaTip(tip,s.outros||[],s.t);
   // Ranking do mês <-> pedaço da barra: a linha acende o pedaço do mês selecionado e o pedaço acende a linha.
   const linhaRk=s=>s&&s.m===S.mes?$("chartDet").querySelector(`.rk[data-ki="${s.ki}"]`):null;
+  const rkOut=$("chartDet").querySelector(".rk.outros"); if(rkOut) rkOut.addEventListener("click",()=>abrirOutros(rot("__OUTROS",sel.outros)+" · "+mesAno(sel.k),sel.outros,sel.t));
   $("chartDet").querySelectorAll(".rk").forEach(row=>{
     const seg=()=>{const p=pedacos.findIndex(s=>s.m===S.mes&&s.ki===+row.dataset.ki);return p<0?null:svg.querySelector(`.seg[data-p="${p}"]`)};
     row.addEventListener("mouseenter",()=>{row.classList.add("hov");const g=seg();if(g)g.classList.add("hov")});
@@ -988,7 +1023,7 @@ function drawChart(){
       const x=Math.max(8,Math.min(t.x-w/2,vw-8-w));
       let y=t.y-h-28; if(y<8) y=t.y+28; y=Math.max(8,Math.min(y,window.innerHeight-h-8));
       tip.style.left=(x-er.left)+"px"; tip.style.top=(y-er.top)+"px";
-      tip.classList.toggle("toque",!!s.outros); if(!s.outros) toqueTimer=setTimeout(esconderToque,3000); } // a lista de "Outras" fica até tocar fora
+      toqueTimer=setTimeout(esconderToque,3000); }
   }
 }
 
@@ -1029,12 +1064,12 @@ function drawLines(){
   lg.innerHTML=series.map((k,si)=>`<button type="button" data-lk="${esc(k)}" title="${esc(rot(k))}"><i style="background:${cor(k,si)}"></i><span>${esc(rot(k))}</span><b ${tA("ll|"+k,val[k][nVis-1])}>${brl(val[k][nVis-1])}</b></button>`).join("");
   const tip=$("ltip"), xh=$("xh"), svg=el.querySelector("svg");
   const mostra=i=>{xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.setAttribute("visibility","visible");
-    const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>(a.k==="__OUTROS")-(b.k==="__OUTROS")||b.v-a.v), totI=sum(linhas,r=>r.v);
-    // Grupo "Outras": só as obras (ou materiais) com valor até este ponto do gráfico.
+    const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>(a.k==="__OUTROS")-(b.k==="__OUTROS")||b.v-a.v);
+    // Grupo "Outras": conta só as obras (ou materiais) com valor até este ponto do gráfico.
     const oI={}; L.forEach(l=>{const c=chave(l); if(grp(c)==="__OUTROS"&&l.data<=ends[i]) oI[c]=(oI[c]||0)+l.valor});
-    const gI=Object.entries(oI).filter(e=>e[1]>0).map(([c,v])=>({nome:nome(c),v})).sort((a,b)=>b.v-a.v);
-    const rotI=k=>k==="__OUTROS"?(S.obra?"Outros materiais":"Outras obras")+" ("+gI.length+")":rot(k);
-    tip.innerHTML=`<b>${passo==="d"?dbr(ends[i]):passo==="s"?"Até "+dbr(ends[i]):MESES[+ends[i].slice(5,7)-1]+" "+ends[i].slice(0,4)}</b>`+linhas.map(r=>`<div><span><i style="background:${cor(r.k,r.si)}"></i>${esc(rotI(r.k))}</span><span>${brl(r.v)}</span></div>`).join("")+listaTip(tip,gI,totI);
+    const nI=Object.values(oI).filter(v=>v>0).length;
+    const rotI=k=>k==="__OUTROS"?(S.obra?"Outros materiais":"Outras obras")+" ("+nI+")":rot(k);
+    tip.innerHTML=`<b>${passo==="d"?dbr(ends[i]):passo==="s"?"Até "+dbr(ends[i]):MESES[+ends[i].slice(5,7)-1]+" "+ends[i].slice(0,4)}</b>`+linhas.map(r=>`<div><span><i style="background:${cor(r.k,r.si)}"></i>${esc(rotI(r.k))}</span><span>${brl(r.v)}</span></div>`).join("");
     tip.hidden=false; const tw=tip.offsetWidth, th=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
     tip.style.left=Math.max(tw/2+8-er.left,Math.min(Math.min(Math.max(x(i),130),W-130),vw-8-tw/2-er.left))+"px"; tip.style.top=Math.max(8-er.top,Math.min(18,window.innerHeight-8-th-er.top))+"px";};
   svg.addEventListener("mousemove",e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width; let i=ends.length===1?0:Math.round((px-Lm)/iw*(ends.length-1)); i=Math.max(0,Math.min(nVis-1,i)); mostra(i)});
@@ -1042,7 +1077,7 @@ function drawLines(){
   lg.querySelectorAll("[data-lk]").forEach(b=>{const k=b.dataset.lk;
     b.addEventListener("mouseenter",()=>el.querySelectorAll(".ln").forEach(p=>p.classList.toggle("dim",p.dataset.k!==k)));
     b.addEventListener("mouseleave",()=>el.querySelectorAll(".ln").forEach(p=>p.classList.remove("dim")));
-    b.addEventListener("click",()=>{if(k==="__OUTROS")return; if(S.obra){S.sku=S.sku===k?"":k}else{S.obra=k} S.mes=null; render()});});
+    b.addEventListener("click",()=>{if(k==="__OUTROS"){abrirOutros(rot(k)+" · "+dbr(S.ini)+" a "+dbr(S.fim),outros.map(c=>({nome:S.obra?nome(c):obraCurta(c),cod:c,v:tot[c]})),sum(L,l=>l.valor));return;} if(S.obra){S.sku=S.sku===k?"":k}else{S.obra=k} S.mes=null; render()});});
 }
 
 /* ---------- animações ----------
@@ -1175,22 +1210,54 @@ function destacar(n){
     el.addEventListener("animationend",function f(e){ if(e.target!==el) return; el.classList.remove("novo"); el.removeEventListener("animationend",f); }); });
 }
 
+/* ---------- painel lateral: lista completa de "Outras obras" ---------- */
+const mesAno = k => MESES[+k.slice(5,7)-1]+" "+k.slice(0,4);
+const tituloSeg = p => "Outras obras ("+p.itens.length+") · "+dbr(S.ini)+" a "+dbr(S.fim);
+const abrirSeg = p => abrirOutros(tituloSeg(p),p.itens,SEG_TOTAL);
+let LAT={itens:[],base:0}, latVolta=null, latTimer=null;
+function latLista(){
+  const q=$("latBusca").value.trim(), m=q?casa(q):null, max=Math.max(...LAT.itens.map(o=>o.v),0);
+  const its=LAT.itens.filter(o=>!m||m((o.cod||"")+" "+o.nome));
+  $("latLista").innerHTML=its.length?its.map(o=>`<div class="lat-item"><span>${esc(o.nome)}${o.cod&&o.cod!==o.nome&&o.cod!=="SEM VÍNCULO"?`<small>${esc(o.cod)}</small>`:""}</span><b>${brl(o.v)}</b><em>${pct(LAT.base?o.v/LAT.base:0)}</em><i><u style="width:${(max?o.v/max*100:0).toFixed(1)}%"></u></i></div>`).join(""):`<div class="empty"><b>Nada encontrado</b>Confira o nome ou o código.</div>`;
+}
+function abrirOutros(titulo,itens,base){
+  esconderSeg(); esconderToque(); clearTimeout(latTimer);
+  const lat=$("latOutros"), fundo=$("latFundo");
+  LAT={itens:[...itens].sort((a,b)=>b.v-a.v),base};
+  $("latTit").textContent=titulo; $("latTotal").textContent=brl(sum(itens,o=>o.v)); $("latBusca").value=""; latLista(); $("latLista").scrollTop=0;
+  if(lat.hidden){ latVolta=document.activeElement; const barra=window.innerWidth-document.documentElement.clientWidth;
+    document.documentElement.style.overflow="hidden"; document.body.style.paddingRight=barra?barra+"px":""; } // rolagem só dentro do painel
+  lat.hidden=false; fundo.hidden=false; lat.getBoundingClientRect();
+  lat.classList.add("aberto"); fundo.classList.add("aberto");
+  (window.matchMedia&&matchMedia("(hover:hover)").matches?$("latBusca"):$("latX")).focus();
+}
+function fecharOutros(){
+  const lat=$("latOutros"), fundo=$("latFundo"); if(lat.hidden) return;
+  lat.classList.remove("aberto"); fundo.classList.remove("aberto");
+  document.documentElement.style.overflow=""; document.body.style.paddingRight="";
+  clearTimeout(latTimer); latTimer=setTimeout(()=>{lat.hidden=true;fundo.hidden=true;},semMov()?0:260);
+  if(latVolta&&latVolta.isConnected&&latVolta.focus) latVolta.focus(); latVolta=null;
+}
+$("latX").addEventListener("click",fecharOutros);
+$("latFundo").addEventListener("click",fecharOutros);
+$("latBusca").addEventListener("input",latLista);
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharOutros(); });
+
 /* ---------- balão da barra do custo confirmado ---------- */
 let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, segTimer=null;
-function esconderSeg(){ clearTimeout(segTimer); segAtual=-1; const t=$("stip"); if(t){t.hidden=true;t.classList.remove("toque");} }
-/* Lista do grupo "Outras" nos balões: cada item com valor e %; até 420px (90% da tela no celular) e, se a lista for longa, em colunas para caber na tela. */
+function esconderSeg(){ clearTimeout(segTimer); segAtual=-1; const t=$("stip"); if(t) t.hidden=true; }
+/* Resumo do grupo "Outras" nos balões: uma coluna, até 380px, com as 5 maiores; o resto fica no painel lateral. */
 function listaTip(t,its,total){
-  const vw=document.documentElement.clientWidth, vh=window.innerHeight;
-  const umaCol=Math.min(420,vw*0.9), carac=Math.max(14,Math.floor((umaCol-160)/6.2)); // caracteres do nome por linha, para estimar a altura
-  const altura=sum(its,o=>Math.ceil(o.nome.length/carac)*17+4), maxCol=Math.max(1,Math.floor((vw-40)/280)), cols=Math.min(maxCol,Math.ceil(altura/Math.max(80,vh-120))||1);
-  const larg=its.length?(cols===1?umaCol:Math.min(cols*420,vw-16))+"px":"";
+  const larg=its.length?Math.min(380,document.documentElement.clientWidth*0.9)+"px":"";
   t.style.width=larg; t.style.maxWidth=larg;
-  return its.length?`<div class="lista" style="display:block;column-count:${cols}">${its.map(o=>`<div><span>${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(total?o.v/total:0)}</span></div>`).join("")}</div>`:"";
+  if(!its.length) return "";
+  const mais=its.length-5, tipo=S.obra?(mais===1?"categoria":"categorias"):(mais===1?"obra":"obras");
+  return `<div class="lista" style="display:block">${its.slice(0,5).map(o=>`<div><span>${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(total?o.v/total:0)}</span></div>`).join("")}${mais>0?`<div class="maisob">+ ${mais} ${tipo} · clique para ver todas</div>`:""}</div>`;
 }
-function mostrarSeg(i,toque){
+function mostrarSeg(i){
   const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
-  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(p.v/SEG_TOTAL)}</span></div>`+listaTip(t,p.itens||[],SEG_TOTAL);
-  t.classList.toggle("toque",!!toque); t.hidden=false; segAtual=i;
+  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.itens?tituloSeg(p):p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(p.v/SEG_TOTAL)}</span></div>`+listaTip(t,p.itens||[],SEG_TOTAL);
+  t.hidden=false; segAtual=i;
 }
 function posSeg(x,y,toque){
   const t=$("stip"), w=t.offsetWidth, h=t.offsetHeight, vw=document.documentElement.clientWidth, vh=window.innerHeight;
@@ -1204,13 +1271,15 @@ function ligarSegbar(){
   bar.addEventListener("pointerdown",e=>{tipo=e.pointerType});
   bar.addEventListener("pointermove",e=>{ if(e.pointerType!=="mouse") return;
     const s=e.target.closest&&e.target.closest("[data-i]"); if(!s){esconderSeg();return;}
-    if(+s.dataset.i!==segAtual) mostrarSeg(+s.dataset.i,false);
+    if(+s.dataset.i!==segAtual) mostrarSeg(+s.dataset.i);
     posSeg(e.clientX,e.clientY,false); });
   bar.addEventListener("pointerleave",e=>{ if(e.pointerType==="mouse") esconderSeg(); });
-  bar.addEventListener("click",e=>{ if(!tipo||tipo==="mouse") return;
-    const s=e.target.closest&&e.target.closest("[data-i]"); if(!s) return;
-    clearTimeout(segTimer); mostrarSeg(+s.dataset.i,true); posSeg(e.clientX,e.clientY,true);
-    if(!SEG_PARTES[+s.dataset.i].itens) segTimer=setTimeout(esconderSeg,3000); }); // a lista de "Outras" fica até tocar fora
+  bar.addEventListener("click",e=>{ const s=e.target.closest&&e.target.closest("[data-i]"); if(!s) return;
+    if(SEG_PARTES[+s.dataset.i].itens){ abrirSeg(SEG_PARTES[+s.dataset.i]); return; }
+    if(!tipo||tipo==="mouse") return;
+    clearTimeout(segTimer); mostrarSeg(+s.dataset.i); posSeg(e.clientX,e.clientY,true);
+    segTimer=setTimeout(esconderSeg,3000); });
+  const lg=document.querySelector("#view .lgoutros"); if(lg) lg.addEventListener("click",()=>abrirSeg(SEG_PARTES.find(p=>p.itens)));
 }
 document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#view .segbar,#stip"))) esconderSeg(); });
 
