@@ -97,9 +97,9 @@ button,select,input{font:inherit;color:inherit}
 /* Balão da barra do custo confirmado: mesmo estilo do balão do gráfico, fixo na tela */
 #stip{position:fixed;left:0;top:0;min-width:0;transform:none;z-index:40;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
 #stip.toque{pointer-events:auto}
-#stip .lista{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);column-gap:18px}
-#stip .lista div{break-inside:avoid;padding:2px 0}
-#stip .lista span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+.tip .lista{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);column-gap:18px}
+.tip .lista div{break-inside:avoid;padding:2px 0}
+.tip .lista span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink-2)}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:middle}
 .pend{display:grid;gap:6px;margin-top:12px}
@@ -117,7 +117,8 @@ button,select,input{font:inherit;color:inherit}
 .chartwrap .grid-l{stroke:var(--line);stroke-dasharray:3 4}
 .chartwrap .hit{fill:transparent;cursor:pointer}
 .chartwrap .seg.hov{opacity:1!important;stroke:var(--ink);stroke-width:1.5}
-#ctip{min-width:0;transform:none;z-index:5}
+#ctip{min-width:0;transform:none;z-index:5;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
+#ctip.toque{pointer-events:auto}
 /* Gráfico de linhas: gasto acumulado */
 .lw{position:relative;min-height:300px}
 .lw svg{display:block;width:100%;height:300px;overflow:visible}
@@ -126,7 +127,7 @@ button,select,input{font:inherit;color:inherit}
 .lw .xh{stroke:var(--ink-3);stroke-dasharray:2 3}
 .lw .ln{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
 .lw .ln.dim{opacity:.18}
-.lw .tip{min-width:240px;transform:translate(-50%,0)}
+.lw .tip{min-width:240px;transform:translate(-50%,0);z-index:5;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
 .lw .tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
 .lleg{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px}
 .lleg button{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:99px;padding:5px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;max-width:100%}
@@ -519,6 +520,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 <script>
 const PREVIEW = null;
 const PAL = ["#00632B","#5BAA72","#A5CD49","#5F93AA","#C9A44C","#8E7FB8","#D27D5A","#6E8577"];
+const COR_OBRA = ["#00632B","#5BAA72","#A5CD49","#5F93AA","#C9A44C","#8E7FB8","#D27D5A","#C65B8C","#3B78C4","#1FA6A0"]; // 10 cores diferentes entre si e do cinza de "Outras"
 const MESES = ["Jan","Fev","Mar","Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"];
 const S = {view:"painel", obra:"", sku:"", preset:"6m", ini:"", fim:"", mes:null, busca:"", sit:"", ord:""};
 let D = null;
@@ -572,7 +574,9 @@ const stCls = s => ({"EM EXECUÇÃO":"ok","PLANEJADA":"info","PARALISADA":"warn"
 const stTxt = o => o.statusTxt || (o.status ? o.status.charAt(0)+o.status.slice(1).toLowerCase() : "Sem status");
 let CORES = {};
 function definirCores(){ const t={}; D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&inP(l.data)&&okS(l.sku)).forEach(l=>{t[l.obra]=(t[l.obra]||0)+l.valor});
-  CORES={}; Object.entries(t).sort((a,b)=>b[1]-a[1]).forEach(([k],i)=>{ if(i<PAL.length-1&&k!=="SEM VÍNCULO") CORES[k]=PAL[i]; }); }
+  // Regra única: obra com 3% ou mais do custo do período ganha cor própria (no máximo 10, as maiores); o resto é "Outras".
+  const total=Object.values(t).reduce((a,b)=>a+b,0);
+  CORES={}; Object.entries(t).filter(([k,v])=>k!=="SEM VÍNCULO"&&v/total>=0.03).sort((a,b)=>b[1]-a[1]).slice(0,COR_OBRA.length).forEach(([k],i)=>{ CORES[k]=COR_OBRA[i]; }); }
 const obraCor = id => CORES[id] || "var(--ink-3)";
 
 function setPreset(p){
@@ -881,7 +885,7 @@ function months(){
 }
 /* Balão no toque (celular/tablet): ponto tocado à espera do redesenho do gráfico e prazo de 3 s. */
 let toqueChart=null, toqueTimer=null;
-function esconderToque(){ clearTimeout(toqueTimer); const t=$("ctip"); if(t) t.hidden=true; document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); }
+function esconderToque(){ clearTimeout(toqueTimer); const t=$("ctip"); if(t){t.hidden=true;t.classList.remove("toque");} document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); }
 document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#chart"))) esconderToque(); });
 function drawChart(){
   const el=$("chart"); if(!el) return;
@@ -890,17 +894,21 @@ function drawChart(){
   const chave=l=>S.obra?(l.cat||"Outros"):l.obra;
   const tot={}; conf.forEach(l=>{tot[chave(l)]=(tot[chave(l)]||0)+l.valor});
   let keys=Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
-  const MAXK=6, resto=keys.length>MAXK?keys.slice(MAXK-1):[]; if(resto.length) keys=keys.slice(0,MAXK-1).concat(["__OUTROS"]);
-  const grp=k=>resto.indexOf(k)>=0?"__OUTROS":k;
-  const cor=(k,i)=>k==="__OUTROS"?"var(--ink-3)":k==="SEM VÍNCULO"?"var(--hatch)":S.obra?PAL[i%PAL.length]:obraCor(k);
-  const rot=k=>k==="__OUTROS"?(S.obra?"Outras categorias":"Outras obras")+" ("+resto.length+")":S.obra?k:obraCurta(k);
-  const data=ms.map(m=>{const v={}; keys.forEach(k=>v[k]=0); conf.filter(l=>ym(l.data)===m).forEach(l=>{v[grp(chave(l))]+=l.valor}); return {k:m,v,t:sum(keys,k=>v[k])}});
+  // Obras com cor própria (regra de definirCores); as demais são "Outras", contadas e somadas em cada mês.
+  const MAXK=6, fixas=S.obra?(keys.length>MAXK?keys.slice(0,MAXK-1):keys):keys.filter(k=>CORES[k]);
+  if(fixas.length<keys.length) keys=fixas.concat(["__OUTROS"]);
+  const grp=k=>fixas.includes(k)?k:"__OUTROS";
+  const cor=(k,i)=>k==="__OUTROS"?"var(--ink-3)":S.obra?PAL[i%PAL.length]:obraCor(k);
+  const rot=(k,outros)=>k==="__OUTROS"?(S.obra?"Outras categorias":"Outras obras")+" ("+outros.length+")":S.obra?k:obraCurta(k);
+  const data=ms.map(m=>{const v={}, o={}; keys.forEach(k=>v[k]=0);
+    conf.filter(l=>ym(l.data)===m).forEach(l=>{const c=chave(l), g=grp(c); v[g]+=l.valor; if(g==="__OUTROS") o[c]=(o[c]||0)+l.valor});
+    return {k:m,v,t:sum(keys,k=>v[k]),outros:Object.entries(o).filter(e=>e[1]>0).map(([c,x])=>({nome:S.obra?c:obraCurta(c),v:x})).sort((a,b)=>b.v-a.v)}});
   const max=Math.max(...data.map(d=>d.t),0);
   if(!max){el.innerHTML=`<div class="empty" style="padding-top:90px"><b>Nenhum gasto neste período</b>As colunas aparecem quando as entregas são confirmadas no formulário.</div>`;return}
   // Barras agrupadas: a escala vai até o maior valor de uma obra num mês.
   const maxV=Math.max(...data.map(d=>Math.max(...keys.map(k=>d.v[k]))));
   const step=Math.pow(10,Math.floor(Math.log10(maxV))), ymax=Math.ceil(maxV/(step/2))*(step/2);
-  const ih=H-T-B, iw=W-L-R, slot=iw/data.length, GAP=2;
+  const ih=H-T-B, iw=W-L-R, slot=iw/data.length;
   const yv=v=>T+ih-(v/ymax*ih);
   if(S.mes==null||!ms.includes(S.mes)) S.mes=[...data].reverse().find(d=>d.t)?.k||ms[ms.length-1];
   let g=""; const pedacos=[]; // posição de cada barra, para o balão ao passar o mouse ou tocar
@@ -908,10 +916,11 @@ function drawChart(){
   data.forEach((d,i)=>{const cx=L+slot*i+slot/2, on=d.k===S.mes, dl=`--d:${i*50}ms`; let col="";
     // Uma barra por obra, da maior para a menor, lado a lado com um pequeno espaço; mínimo de 6px de altura.
     const bs=keys.map((k,ki)=>({k,ki,v:d.v[k]})).filter(b=>b.v>0).sort((a,b)=>b.v-a.v);
-    const bwi=bs.length?Math.max(2,Math.min(22,(slot*0.82-GAP*(bs.length-1))/bs.length)):0, gw=bs.length*bwi+GAP*Math.max(bs.length-1,0), x0=cx-gw/2;
+    const espaco=slot*0.82, GAP=bs.length>1?Math.min(2,espaco*0.25/(bs.length-1)):0; // com muitas barras, o grupo não invade o mês vizinho
+    const bwi=bs.length?Math.min(22,(espaco-GAP*(bs.length-1))/bs.length):0, gw=bs.length*bwi+GAP*Math.max(bs.length-1,0), x0=cx-gw/2;
     let topo=T+ih;
     bs.forEach((b,j)=>{const h=Math.max(6,b.v/ymax*ih), y0=T+ih-h, x=x0+j*(bwi+GAP); topo=Math.min(topo,y0);
-      pedacos.push({x,w:bwi,y:y0,h,k:b.k,ki:b.ki,v:b.v,m:d.k});
+      pedacos.push({x,w:bwi,y:y0,h,k:b.k,ki:b.ki,v:b.v,m:d.k,t:d.t,outros:b.k==="__OUTROS"?d.outros:null});
       col+=`<rect class="seg" data-p="${pedacos.length-1}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
     // Cada mês num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
@@ -923,7 +932,7 @@ function drawChart(){
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}">${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort((a,b)=>b.v-a.v);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${linhas.length===1?"":(f=>f<0.01?"menos de 1% do mês":Math.round(f*100)+"% do mês")(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span>${brl(sel.t)}</span></b>`+(linhas.length?`<div>${linhas.map(r=>`<div class="rk" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i style="width:${(r.v/linhas[0].v*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong>${brl(r.v)}</strong><small>${linhas.length===1?"":(f=>f<0.01?"menos de 1% do mês":Math.round(f*100)+"% do mês")(sel.t?r.v/sel.t:0)}</small></div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     if(tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
@@ -931,6 +940,7 @@ function drawChart(){
   // Balão com a obra ao passar o mouse: o pedaço é achado pela posição do cursor, porque o .hit do mês fica por cima
   // (e continua recebendo o clique). Só com mouse; no celular, tocar no mês segue mostrando o detalhe embaixo.
   const svg=el.querySelector("svg"), tip=$("ctip"); let atual=-1;
+  const htmlTip=s=>`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k,s.outros))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`+listaTip(tip,s.outros||[],s.t);
   // Ranking do mês <-> pedaço da barra: a linha acende o pedaço do mês selecionado e o pedaço acende a linha.
   const linhaRk=s=>s&&s.m===S.mes?$("chartDet").querySelector(`.rk[data-ki="${s.ki}"]`):null;
   $("chartDet").querySelectorAll(".rk").forEach(row=>{
@@ -945,12 +955,12 @@ function drawChart(){
     const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h);
     if(p<0){solta();return;}
     if(p!==atual){ solta(); atual=p; const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov"); const l=linhaRk(s); if(l) l.classList.add("hov");
-      tip.innerHTML=`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`;
+      tip.innerHTML=htmlTip(s);
       tip.hidden=false; }
     // Perto do cursor, sem sair da tela: vira para a esquerda na borda direita e desce quando falta espaço em cima.
     const w=tip.offsetWidth, h=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
     let x=e.clientX+14; if(x+w>vw-8) x=e.clientX-14-w; x=Math.max(8,x);
-    let y=e.clientY-h-12; if(y<8) y=e.clientY+18;
+    let y=e.clientY-h-12; if(y<8) y=e.clientY+18; y=Math.max(8,Math.min(y,window.innerHeight-h-8));
     tip.style.left=(x-er.left)+"px"; tip.style.top=(y-er.top)+"px";
   });
   svg.addEventListener("pointerleave",solta);
@@ -959,13 +969,13 @@ function drawChart(){
     const r=svg.getBoundingClientRect(), px=(t.x-r.left)*W/r.width, py=(t.y-r.top)*H/r.height;
     const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h);
     if(p>=0){ const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov");
-      tip.innerHTML=`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k))}</b><div><span>${MESES[+s.m.slice(5,7)-1]} ${s.m.slice(0,4)}</span><span>${brl(s.v)}</span></div>`;
+      tip.innerHTML=htmlTip(s);
       tip.hidden=false;
       const w=tip.offsetWidth, h=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
       const x=Math.max(8,Math.min(t.x-w/2,vw-8-w));
-      let y=t.y-h-28; if(y<8) y=t.y+28;
+      let y=t.y-h-28; if(y<8) y=t.y+28; y=Math.max(8,Math.min(y,window.innerHeight-h-8));
       tip.style.left=(x-er.left)+"px"; tip.style.top=(y-er.top)+"px";
-      toqueTimer=setTimeout(esconderToque,3000); }
+      tip.classList.toggle("toque",!!s.outros); if(!s.outros) toqueTimer=setTimeout(esconderToque,3000); } // a lista de "Outras" fica até tocar fora
   }
 }
 
@@ -976,7 +986,8 @@ function drawLines(){
   const chave=l=>S.obra?l.sku:l.obra, nome=k=>S.obra?(L.find(l=>l.sku===k)||{}).material||k:(k==="SEM VÍNCULO"?"Sem obra identificada":k+" · "+obraCurta(k));
   const tot={}; L.forEach(l=>{tot[chave(l)]=(tot[chave(l)]||0)+l.valor});
   let series=Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
-  const MAXS=7, outros=series.length>MAXS?series.slice(MAXS-1):[]; if(outros.length) series=series.slice(0,MAXS-1).concat(["__OUTROS"]);
+  // Por obra: as mesmas obras com cor dos outros gráficos; as demais são "Outras obras".
+  const MAXS=7, fixas=S.obra?(series.length>MAXS?series.slice(0,MAXS-1):series):series.filter(k=>CORES[k]), outros=series.filter(k=>!fixas.includes(k)); if(outros.length) series=fixas.concat(["__OUTROS"]);
   const grp=k=>outros.indexOf(k)>=0?"__OUTROS":k, rot=k=>k==="__OUTROS"?(S.obra?"Outros materiais":"Outras obras")+" ("+outros.length+")":nome(k);
   if(!L.length){el.innerHTML=`<div class="empty" style="padding-top:100px"><b>Nenhum custo confirmado neste período</b>As linhas aparecem quando há entregas com custo.</div>`;lg.innerHTML="";return}
   // buckets: dia (até 45 dias), semana (até 200 dias) ou mês
@@ -1005,9 +1016,14 @@ function drawLines(){
   lg.innerHTML=series.map((k,si)=>`<button type="button" data-lk="${esc(k)}" title="${esc(rot(k))}"><i style="background:${cor(k,si)}"></i><span>${esc(rot(k))}</span><b>${brl(val[k][nVis-1])}</b></button>`).join("");
   const tip=$("ltip"), xh=$("xh"), svg=el.querySelector("svg");
   const mostra=i=>{xh.setAttribute("x1",x(i));xh.setAttribute("x2",x(i));xh.setAttribute("visibility","visible");
-    const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>b.v-a.v);
-    tip.innerHTML=`<b>${passo==="d"?dbr(ends[i]):passo==="s"?"Até "+dbr(ends[i]):MESES[+ends[i].slice(5,7)-1]+" "+ends[i].slice(0,4)}</b>`+linhas.map(r=>`<div><span><i style="background:${cor(r.k,r.si)}"></i>${esc(rot(r.k).length>34?rot(r.k).slice(0,33)+"…":rot(r.k))}</span><span>${brl(r.v)}</span></div>`).join("");
-    tip.hidden=false; tip.style.left=Math.min(Math.max(x(i),130),W-130)+"px"; tip.style.top="18px";};
+    const linhas=series.map((k,si)=>({k,si,v:val[k][i]})).sort((a,b)=>b.v-a.v), totI=sum(linhas,r=>r.v);
+    // Grupo "Outras": só as obras (ou materiais) com valor até este ponto do gráfico.
+    const oI={}; L.forEach(l=>{const c=chave(l); if(grp(c)==="__OUTROS"&&l.data<=ends[i]) oI[c]=(oI[c]||0)+l.valor});
+    const gI=Object.entries(oI).filter(e=>e[1]>0).map(([c,v])=>({nome:nome(c),v})).sort((a,b)=>b.v-a.v);
+    const rotI=k=>k==="__OUTROS"?(S.obra?"Outros materiais":"Outras obras")+" ("+gI.length+")":rot(k);
+    tip.innerHTML=`<b>${passo==="d"?dbr(ends[i]):passo==="s"?"Até "+dbr(ends[i]):MESES[+ends[i].slice(5,7)-1]+" "+ends[i].slice(0,4)}</b>`+linhas.map(r=>`<div><span><i style="background:${cor(r.k,r.si)}"></i>${esc(rotI(r.k).length>34?rotI(r.k).slice(0,33)+"…":rotI(r.k))}</span><span>${brl(r.v)}</span></div>`).join("")+listaTip(tip,gI,totI);
+    tip.hidden=false; const tw=tip.offsetWidth, th=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
+    tip.style.left=Math.max(tw/2+8-er.left,Math.min(Math.min(Math.max(x(i),130),W-130),vw-8-tw/2-er.left))+"px"; tip.style.top=Math.max(8-er.top,Math.min(18,window.innerHeight-8-th-er.top))+"px";};
   svg.addEventListener("mousemove",e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width; let i=ends.length===1?0:Math.round((px-Lm)/iw*(ends.length-1)); i=Math.max(0,Math.min(nVis-1,i)); mostra(i)});
   svg.addEventListener("mouseleave",()=>{tip.hidden=true;xh.setAttribute("visibility","hidden")});
   lg.querySelectorAll("[data-lk]").forEach(b=>{const k=b.dataset.lk;
@@ -1071,14 +1087,16 @@ function destacar(n){
 /* ---------- balão da barra do custo confirmado ---------- */
 let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, segTimer=null;
 function esconderSeg(){ clearTimeout(segTimer); segAtual=-1; const t=$("stip"); if(t){t.hidden=true;t.classList.remove("toque");} }
-function mostrarSeg(i,toque){
-  const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
-  const vw=document.documentElement.clientWidth, vh=window.innerHeight, its=p.itens||[];
-  // Lista longa de "Outras": divide em colunas para caber na tela.
+/* Lista do grupo "Outras" nos balões: cada item com valor e %; lista longa se divide em colunas para caber na tela. */
+function listaTip(t,its,total){
+  const vw=document.documentElement.clientWidth, vh=window.innerHeight;
   const maxLin=Math.max(4,Math.floor((vh-110)/22)), maxCol=Math.max(1,Math.floor((vw-40)/300)), cols=Math.min(maxCol,Math.ceil(its.length/maxLin)||1);
   t.style.width=its.length?Math.min(cols*300,vw-16)+"px":"";
-  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(p.v/SEG_TOTAL)}</span></div>`+
-    (its.length?`<div class="lista" style="display:block;column-count:${cols}">${its.map(o=>`<div><span title="${esc(o.nome)}">${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(o.v/SEG_TOTAL)}</span></div>`).join("")}</div>`:"");
+  return its.length?`<div class="lista" style="display:block;column-count:${cols}">${its.map(o=>`<div><span title="${esc(o.nome)}">${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(total?o.v/total:0)}</span></div>`).join("")}</div>`:"";
+}
+function mostrarSeg(i,toque){
+  const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
+  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(p.v/SEG_TOTAL)}</span></div>`+listaTip(t,p.itens||[],SEG_TOTAL);
   t.classList.toggle("toque",!!toque); t.hidden=false; segAtual=i;
 }
 function posSeg(x,y,toque){
