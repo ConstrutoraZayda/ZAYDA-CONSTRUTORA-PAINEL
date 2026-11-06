@@ -692,6 +692,7 @@ function doGet() {
     .split('"__URL_API__"').join(JSON.stringify(url));
   return HtmlService.createHtmlOutput(html)
     .setTitle('Zayda | Painel de custos por obra')
+    .setFaviconUrl('https://res.cloudinary.com/dovqcebdt/image/upload/v1793988690/favicon-zayda_jiggwc.png')
     .addMetaTag('viewport', 'width=device-width, initial-scale=1');
 }
 
