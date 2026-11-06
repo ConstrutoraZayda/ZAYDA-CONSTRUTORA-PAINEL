@@ -115,6 +115,8 @@ button,select,input{font:inherit;color:inherit}
 .lat-lista{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin:0 -4px;padding:0 4px}
 .lat-item{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:5px 10px;align-items:baseline;padding:9px 0;border-bottom:1px solid var(--line);font-size:13px}
 .lat-item:last-child{border-bottom:0}
+.lat-ir{cursor:pointer;margin:0 -4px;padding-left:4px;padding-right:4px;border-radius:6px}
+.lat-ir:hover{background:var(--surface-2)}
 .lat-item>span{overflow-wrap:anywhere;color:var(--ink-2)}
 .lat-item small{display:block;font-family:var(--f-mono);font-size:11px;color:var(--ink-3)}
 .lat-item>b{font-weight:800;white-space:nowrap}
@@ -1450,7 +1452,8 @@ let LAT={itens:[],base:0}, latVolta=null, latTimer=null;
 function latLista(){
   const q=$("latBusca").value.trim(), m=q?casa(q):null, max=Math.max(...LAT.itens.map(o=>o.v),0);
   const its=LAT.itens.filter(o=>!m||m((o.cod||"")+" "+o.nome));
-  $("latLista").innerHTML=its.length?its.map(o=>`<div class="lat-item"><span>${esc(o.nome)}${o.cod&&o.cod!==o.nome&&o.cod!=="SEM VÍNCULO"?`<small>${esc(o.cod)}</small>`:""}</span><b>${brl(o.v)}</b><em>${pct(LAT.base?o.v/LAT.base:0)}</em><i><u style="width:${(max?o.v/max*100:0).toFixed(1)}%"></u></i></div>`).join(""):`<div class="empty"><b>Nada encontrado</b>Confira o nome ou o código.</div>`;
+  const temPagina=o=>D.obras.some(x=>x.id===o.cod); // "Sem obra identificada", categorias e materiais não têm página
+  $("latLista").innerHTML=its.length?its.map(o=>`<div class="lat-item${temPagina(o)?` lat-ir" role="button" tabindex="0" data-latobra="${esc(o.cod)}`:""}"><span>${esc(o.nome)}${o.cod&&o.cod!==o.nome&&o.cod!=="SEM VÍNCULO"?`<small>${esc(o.cod)}</small>`:""}</span><b>${brl(o.v)}</b><em>${pct(LAT.base?o.v/LAT.base:0)}</em><i><u style="width:${(max?o.v/max*100:0).toFixed(1)}%"></u></i></div>`).join(""):`<div class="empty"><b>Nada encontrado</b>Confira o nome ou o código.</div>`;
 }
 function abrirOutros(titulo,itens,base){
   esconderSeg(); esconderToque(); clearTimeout(latTimer);
@@ -1473,6 +1476,9 @@ function fecharOutros(){
 $("latX").addEventListener("click",fecharOutros);
 $("latFundo").addEventListener("click",fecharOutros);
 $("latBusca").addEventListener("input",latLista);
+const latAbrir=el=>{ const id=el.dataset.latobra; fecharOutros(); abrirObra(id); };
+$("latLista").addEventListener("click",e=>{ const l=e.target.closest("[data-latobra]"); if(l) latAbrir(l); });
+$("latLista").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.matches("[data-latobra]")) latAbrir(e.target); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharOutros(); });
 
 /* ---------- balão da barra do custo confirmado ---------- */
@@ -1518,6 +1524,8 @@ document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.tar
 /* ---------- shell ---------- */
 function ico(n){const p={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',print:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'}[n];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`}
 const TITLES={painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
+/* Mesmo efeito de escolher a obra no filtro OBRA: tela Painel com a página da obra, no topo. */
+function abrirObra(id){ S.obra=id; S.mes=null; if(S.view==="painel") render(); else location.hash="painel"; window.scrollTo(0,0); }
 function cliqueIr(e){e.preventDefault();const [v,f]=e.currentTarget.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v;window.scrollTo(0,0)}
 function render(){
   const modo=MODO, mov=!semMov(); MODO=null;
@@ -1556,7 +1564,7 @@ function render(){
   document.querySelectorAll("[data-fsit]").forEach(b=>b.addEventListener("click",()=>{S.sit=S.sit===b.dataset.fsit?"":b.dataset.fsit;render()}));
   document.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{S.orcVista=b.dataset.vista;try{localStorage.setItem("zaydaOrcVista",S.orcVista)}catch(e){}render()}));
   document.querySelectorAll("[data-orc]").forEach(b=>b.addEventListener("click",()=>abrirOrc(b.dataset.orc)));
-  document.querySelectorAll("[data-irobra]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();S.obra=a.dataset.irobra;S.mes=null;location.hash="painel";window.scrollTo(0,0)}));
+  document.querySelectorAll("[data-irobra]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();abrirObra(a.dataset.irobra)}));
   const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{S.busca="";S.sit="";S.ord="";render()});
   const al=$("addLanc"); if(al) al.href=D.planilhaUrl||"#";
   document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr));
