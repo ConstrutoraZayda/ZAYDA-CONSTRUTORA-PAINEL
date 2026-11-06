@@ -1161,6 +1161,7 @@ function render(){
   document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();imprimirPedido(b.dataset.print)}));
 }
 function carregar(d){
+  assinatura=assinar(d); // antes dos ajustes abaixo, para comparar sempre os dados como vieram do servidor
   D=d; D.lanc.forEach(l=>{l.data=l.data||""}); D.itens.forEach(i=>{i.data=i.data||""});
   $("sheetLink").href=D.planilhaUrl||"#";
   const mc=$("modeChip"); mc.hidden=false; mc.className="chip "+(D.modo==="TESTE"?"test":"prod"); mc.textContent=D.modo==="TESTE"?"Dados de teste":"Dados reais";
@@ -1176,6 +1177,8 @@ function boot(d){ carregar(d); setPreset(S.preset); route(); iniciarAoVivo(); }
 
 /* ---------- atualização automática (ao vivo) ---------- */
 const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura="";
+// Retrato dos dados para comparar: sem os horários que mudam sempre e sem diferença entre campo vazio e ausente (os dois canais de dados diferem nisso).
+const assinar=({geradoEm,sincronizadoEm,...dados})=>JSON.stringify(dados,(k,v)=>v==null?undefined:v);
 function textoAtualizado(){
   const seg=Math.round((Date.now()-LIDO)/1000);
   const lido=seg<10?"agora":seg<60?"há "+seg+" s":"há "+Math.round(seg/60)+" min";
@@ -1191,14 +1194,14 @@ function atualizarAgora(manual){
   buscando=true; $("live").classList.remove("off");
   buscarDados(CODIGO).then(d=>{buscando=false;
       if(!d||d.acesso===false){ if(d&&d.motivo==="ERRO") return; esquecerCodigo(); telaAcesso(motivoTxt(d&&d.motivo)); return; }
-      const nova=JSON.stringify([d.lanc,d.itens,d.obras]); const mudou=nova!==assinatura; assinatura=nova;
+      const mudou=assinar(d)!==assinatura;
+      if(!mudou&&!manual){ D.sincronizadoEm=d.sincronizadoEm; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
       const n=mudou?novidades(fotoVivo(D),fotoVivo(d)):null;
       const y=window.scrollY; carregar(d); if(mudou||manual){renderMantendo(n); window.scrollTo(0,y);} })
     .catch(()=>{buscando=false;$("live").classList.add("off");$("updated").textContent="Sem conexão com a planilha · tentando de novo";});
 }
 function iniciarAoVivo(){
   if(!(window.google&&google.script&&google.script.run)) return; // prévia sem servidor
-  assinatura=JSON.stringify([D.lanc,D.itens,D.obras]);
   $("live").hidden=false; $("btnAtualizar").hidden=false;
   $("btnAtualizar").addEventListener("click",()=>atualizarAgora(true));
   clearInterval(timerVivo); timerVivo=setInterval(()=>atualizarAgora(false),INTERVALO_MS);
