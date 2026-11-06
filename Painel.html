@@ -1814,6 +1814,10 @@ function fail(e){$("err").hidden=false;$("err").textContent="Não foi possível 
    2º (reserva): google.script.run. */
 const URL_API = "__URL_API__";
 const VERSAO_PAINEL = "__VERSAO_PAINEL__";
+/* Modo app: aberto pela página de entrada, que acrescenta app=1 no endereço. Nele, quem recarrega tudo é a página de entrada. */
+let MODO_APP = false;
+try { google.script.url.getLocation(l=>{ MODO_APP = !!l.parameter && l.parameter.app==="1"; }); } catch(e) {}
+$("novaVerLink").addEventListener("click",e=>{ if(!MODO_APP) return; e.preventDefault(); window.top.postMessage({zayda:"recarregar"},"*"); });
 /* Versão publicada diferente da que está aberta: mostra a faixa (só uma vez; depois nada muda na tela). */
 function avisarVersao(d){
   const f=$("novaVer"); if(!f.hidden||!d.versaoPainel||!/^[0-9a-f]{8}$/.test(VERSAO_PAINEL)||d.versaoPainel===VERSAO_PAINEL) return; // sem assinatura válida (prévia ou erro), não avisa
