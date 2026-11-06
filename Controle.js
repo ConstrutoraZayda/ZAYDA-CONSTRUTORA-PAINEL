@@ -686,10 +686,28 @@ function removerDadosDeTeste() {
 }
 
 /* ========================= PAINEL (APP DA WEB) ========================= */
+/** Assinatura curta do Painel.html publicado (MD5, 8 caracteres), guardada por 6 horas. /dev e /exec têm conteúdos diferentes
+ *  e guardam em chaves separadas. recalcular=true (ao abrir o painel) regrava na hora, para valer logo depois de publicar. */
+function versaoPainel_(recalcular) {
+  try {
+    const cache = CacheService.getScriptCache();
+    const chave = 'VERSAO_PAINEL_' + (/\/dev$/.test(ScriptApp.getService().getUrl() || '') ? 'DEV' : 'EXEC');
+    let v = recalcular ? null : cache.get(chave);
+    if (!v) {
+      const conteudo = HtmlService.createHtmlOutputFromFile('Painel').getContent();
+      v = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, conteudo, Utilities.Charset.UTF_8)
+        .map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('').slice(0, 8);
+      cache.put(chave, v, 21600);
+    }
+    return v;
+  } catch (e) { Logger.log('Assinatura da versão não calculada: ' + e.message); return ''; }
+}
+
 function doGet() {
   const url = ScriptApp.getService().getUrl() || '';
   const html = HtmlService.createHtmlOutputFromFile('Painel').getContent()
-    .split('"__URL_API__"').join(JSON.stringify(url));
+    .split('"__URL_API__"').join(JSON.stringify(url))
+    .split('"__VERSAO_PAINEL__"').join(JSON.stringify(versaoPainel_(true)));
   return HtmlService.createHtmlOutput(html)
     .setTitle('Zayda | Painel de custos por obra')
     .setFaviconUrl('https://res.cloudinary.com/dovqcebdt/image/upload/v1793988690/favicon-zayda_jiggwc.png')
@@ -833,7 +851,7 @@ function getDadosPainel(codigo) {
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
     modo: texto_(conf.getRange(CTRL.celulaModo).getValue()) || 'PRODUÇÃO',
     sincronizadoEm: texto_(conf.getRange(CTRL.celulaUltimaSinc).getValue()).split(' · ')[0],
-    planilhaUrl: ss.getUrl(), obras, itens, lanc
+    planilhaUrl: ss.getUrl(), versaoPainel: versaoPainel_(), obras, itens, lanc
   };
 }
 

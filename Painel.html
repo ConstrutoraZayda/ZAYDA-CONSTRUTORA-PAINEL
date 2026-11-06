@@ -48,6 +48,8 @@ button,select,input{font:inherit;color:inherit}
 .sidecard a{color:var(--brand);font-weight:700;text-decoration:none;display:inline-block;margin-top:8px}
 /* Main */
 .main{padding:24px max(28px, env(safe-area-inset-right,0px)) 40px max(28px, env(safe-area-inset-left,0px));min-width:0}
+.novaver{display:flex;align-items:center;justify-content:space-between;gap:10px 16px;flex-wrap:wrap;margin-bottom:14px;padding:10px 14px;background:var(--brand-soft);color:var(--brand);border:1px solid var(--line);border-radius:12px;font-size:13px;font-weight:700}
+.novaver .btn{padding:6px 11px;font-size:12px}
 .top{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:18px}
 .top h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em;text-wrap:balance}
 .top p{margin:4px 0 0;color:var(--ink-2);font-size:13px;max-width:62ch}
@@ -622,6 +624,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
   </aside>
 
   <main class="main">
+    <div class="novaver" id="novaVer" role="status" hidden><span>Nova versão do painel disponível.</span><a class="btn primary" id="novaVerLink" target="_top">Atualizar agora</a></div>
     <header class="top">
       <div><h1 id="title">Painel de custos</h1><p id="subtitle">Custo confirmado dos materiais entregues em cada obra.</p></div>
       <div class="topright"><span class="chip" id="modeChip" hidden></span><span class="live" id="live" hidden><i></i>Ao vivo</span><span class="muted" id="updated"></span>
@@ -1590,7 +1593,7 @@ const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura
 // Retrato dos dados para comparar, em três partes: custo (lançamentos), pedidos (pedidos e itens) e o resto (obras etc.).
 // Sem os horários de leitura, sem diferença entre campo vazio e ausente e sem depender da ordem das chaves.
 const canon=x=>JSON.stringify(x,(k,v)=>{ if(v==null) return undefined; if(typeof v!=="object"||Array.isArray(v)) return v; const o={}; Object.keys(v).sort().forEach(c=>o[c]=v[c]); return o; });
-const assinar=({geradoEm,sincronizadoEm,lanc,itens,pedidos,...resto})=>({custo:canon(lanc),ped:canon([itens,pedidos]),resto:canon(resto)});
+const assinar=({geradoEm,sincronizadoEm,versaoPainel,lanc,itens,pedidos,...resto})=>({custo:canon(lanc),ped:canon([itens,pedidos]),resto:canon(resto)});
 function textoAtualizado(){
   const seg=Math.round((Date.now()-LIDO)/1000);
   const lido=seg<10?"agora":seg<60?"há "+seg+" s":"há "+Math.round(seg/60)+" min";
@@ -1606,6 +1609,7 @@ function atualizarAgora(manual){
   buscando=true; $("live").classList.remove("off");
   buscarDados(CODIGO).then(d=>{buscando=false;
       if(!d||d.acesso===false){ if(d&&d.motivo==="ERRO") return; esquecerCodigo(); telaAcesso(motivoTxt(d&&d.motivo)); return; }
+      avisarVersao(d);
       const nova=assinar(d), mudouCusto=nova.custo!==assinatura.custo, mudouPed=nova.ped!==assinatura.ped, mudouResto=nova.resto!==assinatura.resto;
       if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
       const n=mudouCusto||mudouPed?novidades(fotoVivo(D),fotoVivo(d)):null;
@@ -1685,6 +1689,12 @@ function fail(e){$("err").hidden=false;$("err").textContent="Não foi possível 
    1º: POST direto no endereço publicado (sem cookies/conta: funciona em janela anônima e com várias contas).
    2º (reserva): google.script.run. */
 const URL_API = "__URL_API__";
+const VERSAO_PAINEL = "__VERSAO_PAINEL__";
+/* Versão publicada diferente da que está aberta: mostra a faixa (só uma vez; depois nada muda na tela). */
+function avisarVersao(d){
+  const f=$("novaVer"); if(!f.hidden||!d.versaoPainel||!/^[0-9a-f]{8}$/.test(VERSAO_PAINEL)||d.versaoPainel===VERSAO_PAINEL) return; // sem assinatura válida (prévia ou erro), não avisa
+  $("novaVerLink").href=URL_API; f.hidden=false;
+}
 function chamarApi(corpo,funcao,args){
   const viaScript=()=>new Promise((ok,erro)=>google.script.run.withSuccessHandler(ok).withFailureHandler(erro)[funcao](...args));
   if(!URL_API) return viaScript();
