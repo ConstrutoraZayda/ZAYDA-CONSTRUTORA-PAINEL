@@ -92,7 +92,14 @@ button,select,input{font:inherit;color:inherit}
 .kpi .foot b{color:var(--ink-2)}
 .tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;border-radius:6px;padding:2px 7px;background:var(--surface-2);color:var(--ink-3);border:1px solid var(--line)}
 .segbar{display:flex;gap:4px;height:12px;margin-top:16px}
-.segbar span{border-radius:99px;min-width:6px}
+.segbar span{border-radius:99px;min-width:6px;position:relative}
+.segbar span::after{content:"";position:absolute;inset:-8px 0} /* área maior para o toque, sem mudar o desenho */
+/* Balão da barra do custo confirmado: mesmo estilo do balão do gráfico, fixo na tela */
+#stip{position:fixed;left:0;top:0;min-width:0;transform:none;z-index:40;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
+#stip.toque{pointer-events:auto}
+#stip .lista{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);column-gap:18px}
+#stip .lista div{break-inside:avoid;padding:2px 0}
+#stip .lista span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink-2)}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:middle}
 .pend{display:grid;gap:6px;margin-top:12px}
@@ -505,6 +512,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
     <div class="context" id="context"></div>
     <div id="err" class="err" hidden></div>
     <div id="view"><div class="loading">Carregando dados da planilha…</div></div>
+    <div class="tip" id="stip" hidden></div>
   </main>
 </div>
 
@@ -624,8 +632,15 @@ function vPainel(){
   const comp = Object.entries(grp).sort((a,b)=>b[1]-a[1]);
   const compCor = (k,i) => S.obra ? PAL[i%PAL.length] : obraCor(k);
   const compNome = k => S.obra ? k : obraNome(k);
-  const seg = s.custo>0 ? comp.map(([k,v],i)=>`<span style="flex:${v};background:${compCor(k,i)}" title="${esc(compNome(k))}: ${brl(v)}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
-  const leg = comp.slice(0,6).map(([k,v],i)=>`<span><i style="background:${compCor(k,i)}"></i>${esc(compNome(k))} · ${pct(v/s.custo)}</span>`).join("");
+  // Obras principais com cor própria; as cinzas viram um pedaço só no fim (se for uma só, fica com o nome dela).
+  const parte = ([k,v],i) => ({nome:compNome(k),v,cor:compCor(k,i)});
+  const resto = S.obra ? [] : comp.filter(([k])=>!CORES[k]);
+  const partes = comp.filter(e=>!resto.includes(e)).map(parte);
+  if(resto.length===1) partes.push(parte(resto[0],comp.indexOf(resto[0])));
+  else if(resto.length) partes.push({nome:"Outras "+resto.length+" obras",v:sum(resto,e=>e[1]),cor:"var(--ink-3)",itens:resto.map(parte)});
+  SEG_PARTES = partes; SEG_TOTAL = s.custo;
+  const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
+  const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span><i style="background:${p.cor}"></i>${esc(p.nome)} · ${pct(p.v/s.custo)}</span>`).join("");
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
     <article class="card kpi">
@@ -1053,6 +1068,41 @@ function destacar(n){
     el.addEventListener("animationend",function f(e){ if(e.target!==el) return; el.classList.remove("novo"); el.removeEventListener("animationend",f); }); });
 }
 
+/* ---------- balão da barra do custo confirmado ---------- */
+let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, segTimer=null;
+function esconderSeg(){ clearTimeout(segTimer); segAtual=-1; const t=$("stip"); if(t){t.hidden=true;t.classList.remove("toque");} }
+function mostrarSeg(i,toque){
+  const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
+  const vw=document.documentElement.clientWidth, vh=window.innerHeight, its=p.itens||[];
+  // Lista longa de "Outras": divide em colunas para caber na tela.
+  const maxLin=Math.max(4,Math.floor((vh-110)/22)), maxCol=Math.max(1,Math.floor((vw-40)/300)), cols=Math.min(maxCol,Math.ceil(its.length/maxLin)||1);
+  t.style.width=its.length?Math.min(cols*300,vw-16)+"px":"";
+  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(p.v/SEG_TOTAL)}</span></div>`+
+    (its.length?`<div class="lista" style="display:block;column-count:${cols}">${its.map(o=>`<div><span title="${esc(o.nome)}">${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(o.v/SEG_TOTAL)}</span></div>`).join("")}</div>`:"");
+  t.classList.toggle("toque",!!toque); t.hidden=false; segAtual=i;
+}
+function posSeg(x,y,toque){
+  const t=$("stip"), w=t.offsetWidth, h=t.offsetHeight, vw=document.documentElement.clientWidth, vh=window.innerHeight;
+  let l=toque?x-w/2:x+14; if(!toque&&l+w>vw-8) l=x-14-w; l=Math.max(8,Math.min(l,vw-8-w));
+  const d=toque?28:12; let c=y-h-d; if(c<8) c=y+(toque?28:18); c=Math.max(8,Math.min(c,vh-h-8));
+  t.style.left=l+"px"; t.style.top=c+"px";
+}
+function ligarSegbar(){
+  esconderSeg(); const bar=document.querySelector("#view .segbar"); if(!bar) return;
+  let tipo="";
+  bar.addEventListener("pointerdown",e=>{tipo=e.pointerType});
+  bar.addEventListener("pointermove",e=>{ if(e.pointerType!=="mouse") return;
+    const s=e.target.closest&&e.target.closest("[data-i]"); if(!s){esconderSeg();return;}
+    if(+s.dataset.i!==segAtual) mostrarSeg(+s.dataset.i,false);
+    posSeg(e.clientX,e.clientY,false); });
+  bar.addEventListener("pointerleave",e=>{ if(e.pointerType==="mouse") esconderSeg(); });
+  bar.addEventListener("click",e=>{ if(!tipo||tipo==="mouse") return;
+    const s=e.target.closest&&e.target.closest("[data-i]"); if(!s) return;
+    clearTimeout(segTimer); mostrarSeg(+s.dataset.i,true); posSeg(e.clientX,e.clientY,true);
+    if(!SEG_PARTES[+s.dataset.i].itens) segTimer=setTimeout(esconderSeg,3000); }); // a lista de "Outras" fica até tocar fora
+}
+document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#view .segbar,#stip"))) esconderSeg(); });
+
 /* ---------- shell ---------- */
 function ico(n){const p={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',print:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'}[n];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`}
 const TITLES={painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."]};
@@ -1079,6 +1129,7 @@ function render(){
   GRAF_ANIM=mov&&modo!=="auto"; // gráficos crescem ao abrir, trocar filtros ou chegar dado novo
   if(v==="painel"){ drawChart(); drawLines(); }
   GRAF_ANIM=false;
+  ligarSegbar();
   animarNumeros(mov);
   if(mov&&modo==="aba") entrada();
   document.querySelectorAll("[data-obra]").forEach(b=>b.addEventListener("click",()=>{S.obra=(S.obra===b.dataset.obra&&v==="painel")?"":b.dataset.obra;S.mes=null;if(v==="obras")location.hash="painel";else render()}));
