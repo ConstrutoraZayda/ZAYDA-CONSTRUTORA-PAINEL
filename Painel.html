@@ -95,11 +95,11 @@ button,select,input{font:inherit;color:inherit}
 .segbar span{border-radius:99px;min-width:6px;position:relative}
 .segbar span::after{content:"";position:absolute;inset:-8px 0} /* área maior para o toque, sem mudar o desenho */
 /* Balão da barra do custo confirmado: mesmo estilo do balão do gráfico, fixo na tela */
-#stip{position:fixed;left:0;top:0;min-width:0;transform:none;z-index:40;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
+#stip{position:fixed;left:0;top:0;min-width:0;transform:none;z-index:40;max-width:min(420px,90vw);max-height:calc(100vh - 16px);overflow:auto}
 #stip.toque{pointer-events:auto}
 .tip .lista{margin-top:8px;padding-top:8px;border-top:1px solid var(--line);column-gap:18px}
 .tip .lista div{break-inside:avoid;padding:2px 0}
-.tip .lista span:first-child{min-width:0;overflow:hidden;text-overflow:ellipsis}
+
 .legend{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:10px;font-size:12px;color:var(--ink-2)}
 .legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:6px;vertical-align:middle}
 .pend{display:grid;gap:6px;margin-top:12px}
@@ -117,7 +117,7 @@ button,select,input{font:inherit;color:inherit}
 .chartwrap .grid-l{stroke:var(--line);stroke-dasharray:3 4}
 .chartwrap .hit{fill:transparent;cursor:pointer}
 .chartwrap .seg.hov{opacity:1!important;stroke:var(--ink);stroke-width:1.5}
-#ctip{min-width:0;transform:none;z-index:5;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
+#ctip{min-width:0;transform:none;z-index:5;max-width:min(420px,90vw);max-height:calc(100vh - 16px);overflow:auto}
 #ctip.toque{pointer-events:auto}
 /* Gráfico de linhas: gasto acumulado */
 .lw{position:relative;min-height:300px}
@@ -127,7 +127,7 @@ button,select,input{font:inherit;color:inherit}
 .lw .xh{stroke:var(--ink-3);stroke-dasharray:2 3}
 .lw .ln{fill:none;stroke-width:2.4;stroke-linejoin:round;stroke-linecap:round}
 .lw .ln.dim{opacity:.18}
-.lw .tip{min-width:240px;transform:translate(-50%,0);z-index:5;max-width:calc(100vw - 16px);max-height:calc(100vh - 16px);overflow:auto}
+.lw .tip{min-width:240px;transform:translate(-50%,0);z-index:5;max-width:min(420px,90vw);max-height:calc(100vh - 16px);overflow:auto}
 .lw .tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
 .lleg{display:flex;flex-wrap:wrap;gap:6px 8px;margin-top:12px}
 .lleg button{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:99px;padding:5px 11px;font:inherit;font-size:12px;font-weight:600;cursor:pointer;max-width:100%}
@@ -139,6 +139,11 @@ button,select,input{font:inherit;color:inherit}
 .tip b{display:block;font-size:13px;margin-bottom:6px}
 .tip div{display:flex;justify-content:space-between;gap:12px;color:var(--ink-2)}
 .tip div span:last-child{font-weight:800;color:var(--ink)}
+/* Nome completo: quebra em mais de uma linha; valor e % numa linha só, à direita, ao lado da primeira linha do nome */
+.tip{width:max-content}
+.tip b,.tip div span:first-child{white-space:normal;overflow-wrap:anywhere;min-width:0}
+.tip div{align-items:flex-start}
+.tip div span:last-child{white-space:nowrap;flex:none}
 .dot{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
 /* Ranking */
 .rank{display:grid;gap:12px}
@@ -654,7 +659,7 @@ function vPainel(){
       <div class="segbar" aria-hidden="true">${seg}</div>
       <div class="legend">${s.custo>0?leg:'<span>Nenhum custo confirmado neste período.</span>'}</div>
     </article>
-    <article class="card kpi">
+    <article class="card kpi" data-ped="valor">
       <div class="lbl">${ico("doc")}Valor dos pedidos</div>
       <div class="val ref" ${nA("ref",s.ref,"brl")}>${brl(s.ref)}</div>
       <div class="foot"><b ${nA("pedidos",s.pedidos)}>${s.pedidos}</b> ${s.pedidos===1?"pedido":"pedidos"} no período, pelo preço de cada item no pedido</div>
@@ -665,7 +670,7 @@ function vPainel(){
         ${s.p.semPreco?`<a ${irPara("solicitacoes","")}><span>Itens sem preço (fora da soma)</span><b class="warn" ${nA("semPreco",s.p.semPreco)}>${s.p.semPreco}</b></a>`:""}
       </div>
     </article>
-    <article class="card kpi">
+    <article class="card kpi" data-ped="pend">
       <div class="lbl">${ico("alert")}Pendências</div>
       <div class="val" style="color:${s.pendTotal?"var(--amber)":"var(--ink)"}" ${nA("pendTotal",s.pendTotal)}>${s.pendTotal}</div>
       <div class="foot">${s.pendTotal?"Toque em um item para ver a lista":"Tudo em dia neste período"}</div>
@@ -681,7 +686,7 @@ function vPainel(){
       <div class="chartwrap" id="chart"></div>
       <div class="mdet" id="chartDet"></div>
     </article>
-    ${S.obra?`<article class="card">
+    ${S.obra?`<article class="card" data-ped="sol">
       <div class="cardhead"><div><h2>Solicitações desta obra</h2><div class="sub">Pedidos do período na revisão vigente${somente()}</div></div><a class="btn" href="#solicitacoes">Ver detalhes</a></div>
       ${pedidosObra(s)}
     </article>`:`<article class="card">
@@ -698,7 +703,7 @@ function vPainel(){
   </section>
 
   <section class="grid lower">
-    <article class="card">
+    <article class="card" data-ped="lista">
       <div class="cardhead"><div><h2>Pendências</h2><div class="sub">O que precisa de atenção no período. Toque para ver a lista.</div></div></div>
       <div class="plist">
         ${pendencias(s).map(x=>`<a ${irPara(x.v,x.f)} class="${x.n?"":"zero"}"><b>${x.t}</b><small>${x.d}</small><span class="q ${x.n?"has":"zero"}">${x.n}</span></a>`).join("")}
@@ -1021,7 +1026,7 @@ function drawLines(){
     const oI={}; L.forEach(l=>{const c=chave(l); if(grp(c)==="__OUTROS"&&l.data<=ends[i]) oI[c]=(oI[c]||0)+l.valor});
     const gI=Object.entries(oI).filter(e=>e[1]>0).map(([c,v])=>({nome:nome(c),v})).sort((a,b)=>b.v-a.v);
     const rotI=k=>k==="__OUTROS"?(S.obra?"Outros materiais":"Outras obras")+" ("+gI.length+")":rot(k);
-    tip.innerHTML=`<b>${passo==="d"?dbr(ends[i]):passo==="s"?"Até "+dbr(ends[i]):MESES[+ends[i].slice(5,7)-1]+" "+ends[i].slice(0,4)}</b>`+linhas.map(r=>`<div><span><i style="background:${cor(r.k,r.si)}"></i>${esc(rotI(r.k).length>34?rotI(r.k).slice(0,33)+"…":rotI(r.k))}</span><span>${brl(r.v)}</span></div>`).join("")+listaTip(tip,gI,totI);
+    tip.innerHTML=`<b>${passo==="d"?dbr(ends[i]):passo==="s"?"Até "+dbr(ends[i]):MESES[+ends[i].slice(5,7)-1]+" "+ends[i].slice(0,4)}</b>`+linhas.map(r=>`<div><span><i style="background:${cor(r.k,r.si)}"></i>${esc(rotI(r.k))}</span><span>${brl(r.v)}</span></div>`).join("")+listaTip(tip,gI,totI);
     tip.hidden=false; const tw=tip.offsetWidth, th=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
     tip.style.left=Math.max(tw/2+8-er.left,Math.min(Math.min(Math.max(x(i),130),W-130),vw-8-tw/2-er.left))+"px"; tip.style.top=Math.max(8-er.top,Math.min(18,window.innerHeight-8-th-er.top))+"px";};
   svg.addEventListener("mousemove",e=>{const r=svg.getBoundingClientRect(),px=(e.clientX-r.left)*W/r.width; let i=ends.length===1?0:Math.round((px-Lm)/iw*(ends.length-1)); i=Math.max(0,Math.min(nVis-1,i)); mostra(i)});
@@ -1087,12 +1092,14 @@ function destacar(n){
 /* ---------- balão da barra do custo confirmado ---------- */
 let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, segTimer=null;
 function esconderSeg(){ clearTimeout(segTimer); segAtual=-1; const t=$("stip"); if(t){t.hidden=true;t.classList.remove("toque");} }
-/* Lista do grupo "Outras" nos balões: cada item com valor e %; lista longa se divide em colunas para caber na tela. */
+/* Lista do grupo "Outras" nos balões: cada item com valor e %; até 420px (90% da tela no celular) e, se a lista for longa, em colunas para caber na tela. */
 function listaTip(t,its,total){
   const vw=document.documentElement.clientWidth, vh=window.innerHeight;
-  const maxLin=Math.max(4,Math.floor((vh-110)/22)), maxCol=Math.max(1,Math.floor((vw-40)/300)), cols=Math.min(maxCol,Math.ceil(its.length/maxLin)||1);
-  t.style.width=its.length?Math.min(cols*300,vw-16)+"px":"";
-  return its.length?`<div class="lista" style="display:block;column-count:${cols}">${its.map(o=>`<div><span title="${esc(o.nome)}">${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(total?o.v/total:0)}</span></div>`).join("")}</div>`:"";
+  const umaCol=Math.min(420,vw*0.9), carac=Math.max(14,Math.floor((umaCol-160)/6.2)); // caracteres do nome por linha, para estimar a altura
+  const altura=sum(its,o=>Math.ceil(o.nome.length/carac)*17+4), maxCol=Math.max(1,Math.floor((vw-40)/280)), cols=Math.min(maxCol,Math.ceil(altura/Math.max(80,vh-120))||1);
+  const larg=its.length?(cols===1?umaCol:Math.min(cols*420,vw-16))+"px":"";
+  t.style.width=larg; t.style.maxWidth=larg;
+  return its.length?`<div class="lista" style="display:block;column-count:${cols}">${its.map(o=>`<div><span>${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(total?o.v/total:0)}</span></div>`).join("")}</div>`:"";
 }
 function mostrarSeg(i,toque){
   const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
@@ -1124,6 +1131,7 @@ document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.tar
 /* ---------- shell ---------- */
 function ico(n){const p={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',print:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'}[n];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`}
 const TITLES={painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."]};
+function cliqueIr(e){e.preventDefault();const [v,f]=e.currentTarget.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v;window.scrollTo(0,0)}
 function render(){
   const modo=MODO, mov=!semMov(); MODO=null;
   const v=S.view; $("title").textContent=TITLES[v][0]; $("subtitle").textContent=TITLES[v][1];
@@ -1157,7 +1165,7 @@ function render(){
   const os=$("ordSel"); if(os) os.addEventListener("change",()=>{S.ord=os.value;render()});
   const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{S.busca="";S.sit="";S.ord="";render()});
   const al=$("addLanc"); if(al) al.href=D.planilhaUrl||"#";
-  document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();const [v,f]=a.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v;window.scrollTo(0,0)}));
+  document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr));
   document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();imprimirPedido(b.dataset.print)}));
 }
 function carregar(d){
@@ -1176,9 +1184,11 @@ function carregar(d){
 function boot(d){ carregar(d); setPreset(S.preset); route(); iniciarAoVivo(); }
 
 /* ---------- atualização automática (ao vivo) ---------- */
-const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura="";
-// Retrato dos dados para comparar: sem os horários que mudam sempre e sem diferença entre campo vazio e ausente (os dois canais de dados diferem nisso).
-const assinar=({geradoEm,sincronizadoEm,...dados})=>JSON.stringify(dados,(k,v)=>v==null?undefined:v);
+const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura={};
+// Retrato dos dados para comparar, em três partes: custo (lançamentos), pedidos (pedidos e itens) e o resto (obras etc.).
+// Sem os horários de leitura, sem diferença entre campo vazio e ausente e sem depender da ordem das chaves.
+const canon=x=>JSON.stringify(x,(k,v)=>{ if(v==null) return undefined; if(typeof v!=="object"||Array.isArray(v)) return v; const o={}; Object.keys(v).sort().forEach(c=>o[c]=v[c]); return o; });
+const assinar=({geradoEm,sincronizadoEm,lanc,itens,pedidos,...resto})=>({custo:canon(lanc),ped:canon([itens,pedidos]),resto:canon(resto)});
 function textoAtualizado(){
   const seg=Math.round((Date.now()-LIDO)/1000);
   const lido=seg<10?"agora":seg<60?"há "+seg+" s":"há "+Math.round(seg/60)+" min";
@@ -1194,10 +1204,14 @@ function atualizarAgora(manual){
   buscando=true; $("live").classList.remove("off");
   buscarDados(CODIGO).then(d=>{buscando=false;
       if(!d||d.acesso===false){ if(d&&d.motivo==="ERRO") return; esquecerCodigo(); telaAcesso(motivoTxt(d&&d.motivo)); return; }
-      const mudou=assinar(d)!==assinatura;
-      if(!mudou&&!manual){ D.sincronizadoEm=d.sincronizadoEm; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
-      const n=mudou?novidades(fotoVivo(D),fotoVivo(d)):null;
-      const y=window.scrollY; carregar(d); if(mudou||manual){renderMantendo(n); window.scrollTo(0,y);} })
+      const nova=assinar(d), mudouCusto=nova.custo!==assinatura.custo, mudouPed=nova.ped!==assinatura.ped, mudouResto=nova.resto!==assinatura.resto;
+      if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
+      const n=mudouCusto||mudouPed?novidades(fotoVivo(D),fotoVivo(d)):null;
+      const y=window.scrollY; carregar(d);
+      if(manual||mudouCusto) renderMantendo(n); // custo mudou (ou botão Atualizar): redesenha tudo
+      else if(mudouPed){ if(S.view==="painel") renderPedidos(n); else if(S.view!=="lancamentos") renderMantendo(n); } // só pedidos: gráficos de gasto ficam como estão
+      else if(S.view==="obras") renderMantendo(null); // só dados das obras: redesenha a lista de obras; no resto, entra no próximo redesenho
+      window.scrollTo(0,y); })
     .catch(()=>{buscando=false;$("live").classList.add("off");$("updated").textContent="Sem conexão com a planilha · tentando de novo";});
 }
 function iniciarAoVivo(){
@@ -1208,6 +1222,13 @@ function iniciarAoVivo(){
   setInterval(textoAtualizado,10000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-LIDO>5000)atualizarAgora(false)});
   window.addEventListener("focus",()=>{if(Date.now()-LIDO>5000)atualizarAgora(false)});
+}
+/* Só pedidos mudaram, na tela Painel: troca os cards de pedido (marcados com data-ped) e deixa os de gasto intactos. */
+function renderPedidos(n){
+  const t=document.createElement("div"); t.innerHTML=vPainel();
+  $("view").querySelectorAll("[data-ped]").forEach(el=>{ const novo=t.querySelector(`[data-ped="${el.dataset.ped}"]`); if(!novo) return;
+    el.replaceWith(novo); novo.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr)); });
+  animarNumeros(!semMov()); destacar(n);
 }
 /* Redesenha com os dados novos sem atrapalhar quem está usando: mantém pedidos abertos, o foco e o cursor da busca. */
 function renderMantendo(n){
