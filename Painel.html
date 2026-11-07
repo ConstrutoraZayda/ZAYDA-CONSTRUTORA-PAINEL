@@ -31,7 +31,7 @@ button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 html{-webkit-tap-highlight-color:transparent}
 a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-@media (hover:none),(pointer:coarse){a:active,button:active,summary:active{opacity:.7}}
+@media (hover:none),(pointer:coarse){a:active,button:active,summary:active{opacity:.7}#busca,#latBusca,#fObra,#fSku,#relObra{font-size:16px}}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh;min-height:100dvh}
 /* Sidebar */
 .side{background:var(--surface);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;height:100dvh}
@@ -700,13 +700,13 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
     </header>
 
     <div class="filters" id="filters">
-      <div class="field combo" id="cObra"><label for="fObra">OBRA</label><input id="fObra" type="text" autocomplete="off" spellcheck="false" placeholder="Todas · buscar código, rua ou cliente" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lObra"><button type="button" class="clr" id="xObra" aria-label="Mostrar todas as obras" hidden>×</button><ul class="pop" id="lObra" role="listbox" hidden></ul></div>
+      <div class="field combo" id="cObra"><label for="fObra">OBRA</label><input id="fObra" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Todas · buscar código, rua ou cliente" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lObra"><button type="button" class="clr" id="xObra" aria-label="Mostrar todas as obras" hidden>×</button><ul class="pop" id="lObra" role="listbox" hidden></ul></div>
       <div class="seg" role="group" aria-label="Período" id="fPreset">
         <button type="button" data-p="mes">Mês</button><button type="button" data-p="tri">Trimestre</button><button type="button" data-p="6m">6 meses</button><button type="button" data-p="ano">Ano</button><button type="button" data-p="tudo">Tudo</button>
       </div>
       <div class="field"><label for="fIni">DE</label><input type="date" id="fIni"></div>
       <div class="field"><label for="fFim">ATÉ</label><input type="date" id="fFim"></div>
-      <div class="field combo mat" id="cSku"><label for="fSku">MATERIAL</label><input id="fSku" type="text" autocomplete="off" spellcheck="false" placeholder="Todos · buscar nome ou código" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lSku"><button type="button" class="clr" id="xSku" aria-label="Mostrar todos os materiais" hidden>×</button><ul class="pop" id="lSku" role="listbox" hidden></ul></div>
+      <div class="field combo mat" id="cSku"><label for="fSku">MATERIAL</label><input id="fSku" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Todos · buscar nome ou código" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lSku"><button type="button" class="clr" id="xSku" aria-label="Mostrar todos os materiais" hidden>×</button><ul class="pop" id="lSku" role="listbox" hidden></ul></div>
       <button type="button" class="limparf" id="limparFiltros" title="Voltar para todas as obras, todos os materiais e 6 meses" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar filtros</button>
     </div>
     <div class="faviso" id="faviso" hidden></div>
@@ -723,7 +723,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
         <div id="relBoxMes"><label for="relMes">Mês</label><select id="relMes"></select></div>
         <label class="relop"><input type="radio" name="relTipo" value="obra">Relatório de uma obra</label>
         <div id="relBoxObra" hidden>
-          <div class="field combo" id="cRel"><label for="relObra">OBRA</label><input id="relObra" type="text" autocomplete="off" spellcheck="false" placeholder="Buscar código, rua ou cliente" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lRel"><button type="button" class="clr" id="xRel" aria-label="Limpar a obra escolhida" hidden>×</button><ul class="pop" id="lRel" role="listbox" hidden></ul></div>
+          <div class="field combo" id="cRel"><label for="relObra">OBRA</label><input id="relObra" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar código, rua ou cliente" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lRel"><button type="button" class="clr" id="xRel" aria-label="Limpar a obra escolhida" hidden>×</button><ul class="pop" id="lRel" role="listbox" hidden></ul></div>
           <label class="relop"><input type="radio" name="relPer" value="mes" checked>Um mês</label>
           <div id="relBoxMes2"><select id="relMes2" aria-label="Mês do relatório da obra"></select></div>
           <label class="relop"><input type="radio" name="relPer" value="filtro"><span id="relFiltroTxt"></span></label>
@@ -750,7 +750,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
     <aside class="lateral" id="latOutros" role="dialog" aria-modal="true" aria-labelledby="latTit" hidden>
       <header><h2 id="latTit"></h2><button type="button" class="lat-x" id="latX" aria-label="Fechar">×</button></header>
       <div class="lat-total" id="latTotal"></div>
-      <input type="search" id="latBusca" placeholder="Buscar por nome ou código" aria-label="Buscar na lista">
+      <input type="search" id="latBusca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar por nome ou código" aria-label="Buscar na lista">
       <div class="lat-lista" id="latLista"></div>
     </aside>
   </main>
@@ -1080,7 +1080,7 @@ function vOrc(){
   const m=S.busca?casa(S.busca):null, achou=x=>!m||m(x.o.id+" "+(x.o.endereco||x.o.casa));
   const lista=comOrc.filter(x=>achou(x)&&(!S.sit||x.sit===S.sit)).sort((a,b)=>ORDEM[a.sit]-ORDEM[b.sit]||b.usado-a.usado);
   const sem=todas.filter(x=>x.sit==="SEM"&&achou(x)&&(!S.sit||S.sit==="SEM")).sort((a,b)=>a.o.id.localeCompare(b.o.id,"pt-BR",{numeric:true}));
-  const tool=`<div class="toolbar obtool"><input type="search" id="busca" placeholder="Buscar código ou endereço" value="${esc(S.busca)}" aria-label="Buscar obras">
+  const tool=`<div class="toolbar obtool"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar código ou endereço" value="${esc(S.busca)}" aria-label="Buscar obras">
     <select id="sitSel" aria-label="Situação do orçamento"><option value="">Todas as situações</option>${["FORA","RISCO","DENTRO","SEM"].map(s=>`<option value="${s}" ${S.sit===s?"selected":""}>${ORC_SIT[s].t}</option>`).join("")}</select>
     <span class="muted" style="align-self:center">${lista.length} de ${comOrc.length} obras com orçamento</span>
     <div class="seg" id="orcVista" role="group" aria-label="Forma de ver a lista"><button type="button" data-vista="cartoes" aria-pressed="${!compacta}">Cartões</button><button type="button" data-vista="lista" aria-pressed="${compacta}">Lista compacta</button></div></div>`;
@@ -1114,7 +1114,7 @@ function vObras(){
   const pctOrd=dir=>(a,b)=>(a.pct==null)-(b.pct==null)||dir*((a.pct||0)-(b.pct||0))||cod(a,b);
   const ORD={codigo:cod, maiorCusto:(a,b)=>cus[b.id]-cus[a.id]||cod(a,b), menorCusto:(a,b)=>cus[a.id]-cus[b.id]||cod(a,b), maisEtapas:pctOrd(-1), menosEtapas:pctOrd(1)};
   lista=[...lista].sort(ORD[S.ord]||cod);
-  const tool=`<div class="toolbar obtool"><input type="search" id="busca" placeholder="Buscar código, rua ou cliente (ex.: OB-35, Santa Cecília, Alan)" value="${esc(S.busca)}" aria-label="Buscar obras">
+  const tool=`<div class="toolbar obtool"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar código, rua ou cliente (ex.: OB-35, Santa Cecília, Alan)" value="${esc(S.busca)}" aria-label="Buscar obras">
     <select id="sitSel" aria-label="Status da obra"><option value="">Todos os status</option>${sts.map(x=>`<option value="${esc(x)}" ${S.sit===x?"selected":""}>${esc(x)} (${nSt[x]})</option>`).join("")}</select>
     <select id="ordSel" aria-label="Ordenar por">${[["codigo","Código"],["maiorCusto","Maior custo"],["menorCusto","Menor custo"],["maisEtapas","Mais etapas concluídas"],["menosEtapas","Menos etapas concluídas"]].map(([k,t])=>`<option value="${k}" ${(S.ord||"codigo")===k?"selected":""}>Ordenar por: ${t}</option>`).join("")}</select>
     ${S.busca||S.sit||(S.ord&&S.ord!=="codigo")?`<button type="button" class="limpar" id="limparObras" title="Limpar busca, status e ordenação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar</button>`:""}
@@ -1154,7 +1154,7 @@ function vSol(){
   const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim]); if(chave!==S.solChave){S.solChave=chave;S.solN=50;}
   const seloSit=p=>!p.parcial?sitPill(p.sit):`<span class="pill parc">${ico("alert")}Parcial · atenção</span>${p.sit==="OBRA NÃO IDENTIFICADA"?sitPill(p.sit):""}`;
   const faltaBox=p=>`<div class="fbox" role="alert"><b>${ico("alert")}Materiais não entregues</b><div class="fl cab"><span>Material</span><span>Pedido</span><span>Entregue</span><span>Falta</span></div>${p.pend.map(i=>`<div class="fl"><span>${esc(i.material)}</span><span data-r="Pedido:">${qtd(i.qtdSol)} ${esc(i.un)}</span><span data-r="Entregue:">${qtd(i.entregue)} ${esc(i.un)}</span><strong data-r="Falta:">${qtd(i.saldo)} ${esc(i.un)}</strong></div>`).join("")}</div>`;
-  const tool = `<div class="toolbar"><input type="search" id="busca" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações"></div>`;
+  const tool = `<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações"></div>`;
   const chip=(v,t,n)=>`<button type="button" data-solsit="${v}" aria-pressed="${S.sit===v}">${t} <b>${n}</b></button>`;
   const chips=`<div class="chips" role="group" aria-label="Situação da entrega">${chip("","Todas",base.length)}${[["A ENTREGAR","A entregar"],["PARCIAL_FALTA","Parcial"],["COTACAO","Pendente de cotação"],["ENTREGUE","Entregue"],["OBRA NÃO IDENTIFICADA","Sem obra"]].map(([v,t])=>chip(v,t,base.filter(SIT_F[v]).length)).join("")}${S.sit==="FALTA"?chip("FALTA","Ainda falta entregar",base.filter(SIT_F.FALTA).length):""}</div>`;
   const valor=p=>sum(p.its,i=>i.valorRef), resumo=`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido":"pedidos"}</span><span>Valor total: <b>${brl(sum(list,valor))}</b></span><span><b>${list.filter(SIT_F["A ENTREGAR"]).length}</b> a entregar</span><span><b>${list.filter(p=>p.parcial).length}</b> ${list.filter(p=>p.parcial).length===1?"parcial":"parciais"}</span></div>`;
@@ -1209,7 +1209,7 @@ function vLanc(){
   const conf=L.filter(l=>l.situacao==="CUSTO CONFIRMADO"), total=sum(conf,l=>l.valor), ativos=L.filter(valido);
   // Mudou o que está filtrado ou a ordem: volta para os primeiros 50.
   const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim,S.lcOrd]); if(chave!==S.lcChave){S.lcChave=chave;S.lcN=50;}
-  const tool=`<div class="toolbar"><input type="search" id="busca" placeholder="Buscar lançamento, material ou pedido" value="${esc(S.busca)}" aria-label="Buscar lançamentos">
+  const tool=`<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar lançamento, material ou pedido" value="${esc(S.busca)}" aria-label="Buscar lançamentos">
     <select id="sitSel" aria-label="Situação"><option value="">Todas as situações</option>${["CUSTO CONFIRMADO","PENDENTE DE CUSTO","AGUARDANDO CONFERÊNCIA","CANCELADO"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"CUSTO CONFIRMADO":"Custo confirmado","PENDENTE DE CUSTO":"Pendente de custo","AGUARDANDO CONFERÊNCIA":"A conferir","CANCELADO":"Cancelado"}[x]}</option>`).join("")}</select>
     <a class="btn" id="addLanc" href="#" target="_blank" rel="noopener">Abrir planilha</a><button type="button" class="btn" id="lcCsv" ${L.length?"":"disabled"}>Baixar CSV</button></div>`;
   const resumo=`<div class="lc-res"><div><small>Total (custo confirmado)</small><b ${tA("lc",total)}>${brl(total)}</b></div><div><small>Entregas</small><b>${ativos.length}</b></div><div><small>Obras</small><b>${uniq(ativos.map(l=>l.obra).filter(o=>o!=="SEM VÍNCULO")).length}</b></div><div><small>Materiais diferentes</small><b>${uniq(ativos.map(l=>l.sku)).length}</b></div></div>`;
@@ -1659,6 +1659,31 @@ function irTopo(){ window.scrollTo(0,0); requestAnimationFrame(()=>window.scroll
 /* Atualização na mesma tela: a página não encolhe durante o redesenho, e a rolagem só é corrigida se tiver mudado de fato (corrigir à toa interrompe o dedo). */
 function manterRolagem(fn){ const v=$("view"), y=window.scrollY; v.style.minHeight=v.offsetHeight+"px"; try{ fn(); }finally{ v.style.minHeight=""; } if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y); }
 function cliqueIr(e){e.preventDefault();const [v,f]=e.currentTarget.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v}
+/* Busca da tela: o campo nunca é recriado enquanto se digita, porque isso quebra o teclado do celular. */
+const BUSCA_MS=200; let buscaTimer=0, buscaCompondo=false, VISTA_BUSCA="";
+function cancelarBusca(){ clearTimeout(buscaTimer); buscaTimer=0; buscaCompondo=false; }
+function ligarBusca(bs){
+  const aplicar=()=>{ buscaTimer=0; if(bs.isConnected&&bs.value!==S.busca){ S.busca=bs.value; render(); } };
+  const agendar=()=>{ clearTimeout(buscaTimer); buscaTimer=setTimeout(aplicar,BUSCA_MS); };
+  bs.addEventListener("compositionstart",()=>{ buscaCompondo=true; clearTimeout(buscaTimer); buscaTimer=0; });
+  bs.addEventListener("compositionend",()=>{ buscaCompondo=false; agendar(); });
+  bs.addEventListener("input",e=>{ if(buscaCompondo||e.isComposing) return; agendar(); });
+}
+/* Troca o conteúdo da caixa pelo HTML novo, deixando o campo e seus elementos de fora no lugar: tirar um campo em foco da página, mesmo por um instante, fecha o teclado. */
+function trocarMantendo(caixa,html,campo){
+  const t=document.createElement("template"); t.innerHTML=html;
+  const novo=t.content.querySelector("#busca"); if(!novo) return false;
+  const velha=[], nova=[];
+  for(let e=campo;e!==caixa;e=e.parentNode) velha.unshift(e);
+  for(let e=novo;e!==t.content;e=e.parentNode) nova.unshift(e);
+  if(velha.length!==nova.length) return false;
+  velha.forEach((fica,i)=>{
+    const pai=i?velha[i-1]:caixa, paiNovo=i?nova[i-1]:t.content, par=nova[i]; let depois=false;
+    [...pai.childNodes].forEach(n=>{ if(n!==fica) n.remove(); });
+    [...paiNovo.childNodes].forEach(n=>{ if(n===par){ depois=true; return; } if(depois) pai.appendChild(n); else pai.insertBefore(n,fica); });
+  });
+  return true;
+}
 function render(){
   const modo=MODO, mov=!semMov(); MODO=null;
   const v=S.view; $("title").textContent=TITLES[v][0]; $("subtitle").textContent=TITLES[v][1];
@@ -1678,7 +1703,10 @@ function render(){
   $("context").innerHTML=`Exibindo ${v==="obras"?"":`<b>${S.obra?esc(obraNome(S.obra))+" ("+esc(S.obra)+")":"todas as obras"}</b> · `}<b>${dbr(S.ini)}</b> a <b>${dbr(S.fim)}</b> · <b>${S.sku?esc(D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku):"todos os materiais"}</b>`;
   definirCores();
   const html={painel:vPainel,obras:vObras,orcamentos:vOrc,solicitacoes:vSol,lancamentos:vLanc}[v]();
-  $("view").innerHTML=html;
+  const campo=$("busca"), manter=campo&&VISTA_BUSCA===v&&(document.activeElement===campo||buscaTimer||buscaCompondo);
+  if(manter&&!buscaTimer&&!buscaCompondo&&campo.value!==S.busca) campo.value=S.busca; // mudou por fora da digitação, como no botão Limpar
+  if(!manter||!trocarMantendo($("view"),html,campo)) $("view").innerHTML=html;
+  VISTA_BUSCA=v;
   const st=stats(); const np=$("navPend"); np.hidden=!(st.p.semCusto+st.p.conferir); np.textContent=st.p.semCusto+st.p.conferir;
   GRAF_ANIM=mov&&modo!=="auto"&&modo!=="novo"; // gráficos crescem do zero ao abrir, trocar filtros ou telas e no botão Atualizar; dado novo faz transição (aplicarTrans)
   if(v==="painel"){ drawChart(); drawLines(); }
@@ -1688,7 +1716,7 @@ function render(){
   if(mov&&modo==="aba") entrada();
   document.querySelectorAll("[data-obra]").forEach(b=>b.addEventListener("click",()=>{S.obra=(S.obra===b.dataset.obra&&v==="painel")?"":b.dataset.obra;S.mes=null;if(v==="obras")location.hash="painel";else{render();irTopo()}}));
   document.querySelectorAll("[data-clear]").forEach(b=>b.addEventListener("click",()=>{S.obra="";S.mes=null;render();irTopo()}));
-  const bs=$("busca"); if(bs){bs.addEventListener("input",()=>{S.busca=bs.value;const p=bs.selectionStart;render();const n=$("busca");n.focus({preventScroll:true});n.setSelectionRange(p,p)})}
+  const bs=$("busca"); if(bs&&!bs._ligada){bs._ligada=true;ligarBusca(bs)}
   const ss=$("sitSel"); if(ss) ss.addEventListener("change",()=>{S.sit=ss.value;render()});
   const os=$("ordSel"); if(os) os.addEventListener("change",()=>{S.ord=os.value;render()});
   const ds=$("orcSem"); if(ds) ds.addEventListener("toggle",()=>{S.orcSem=ds.open});
@@ -1697,7 +1725,7 @@ function render(){
   document.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{S.orcVista=b.dataset.vista;try{localStorage.setItem("zaydaOrcVista",S.orcVista)}catch(e){}render()}));
   document.querySelectorAll("[data-orc]").forEach(b=>b.addEventListener("click",()=>abrirOrc(b.dataset.orc)));
   document.querySelectorAll("[data-irobra]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();abrirObra(a.dataset.irobra)}));
-  const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{S.busca="";S.sit="";S.ord="";render()});
+  const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{cancelarBusca();S.busca="";S.sit="";S.ord="";render()});
   const al=$("addLanc"); if(al) al.href=D.planilhaUrl||"#";
   document.querySelectorAll("[data-lcs]").forEach(b=>b.addEventListener("click",()=>{ const c=b.dataset.lcs, o=S.lcOrd; S.lcOrd=o&&o.c===c?{c,d:-o.d}:!o&&c==="data"?{c,d:1}:{c,d:c==="valor"||c==="data"?-1:1}; render(); }));
   document.querySelectorAll("[data-lcagr]").forEach(b=>b.addEventListener("click",()=>{S.lcOrd=null;render()}));
@@ -1773,16 +1801,14 @@ function renderPedidos(n){
     el.replaceWith(novo); novo.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr)); });
   animarNumeros(!semMov()); destacar(n);
 }
-/* Redesenha com os dados novos sem atrapalhar quem está usando: mantém pedidos abertos, o foco e o cursor da busca. */
+/* Redesenha com os dados novos sem atrapalhar quem está usando: mantém pedidos abertos; o campo de busca em foco fica intacto (render). */
 function renderMantendo(n,manual){
   const abertos=[...document.querySelectorAll("details.ped[open]")].map(d=>d.dataset.id);
-  const a=document.activeElement, foco=a&&a.id, ini=a&&a.selectionStart, fim=a&&a.selectionEnd;
   const foto=n&&!manual&&!semMov()?fotoTrans():null;
   MODO=manual?null:n?"novo":"auto"; render(); if(foto) aplicarTrans(foto); destacar(n);
   abertos.forEach(id=>{const d=document.querySelector(`details.ped[data-id="${CSS.escape(id)}"]`);if(d)d.open=true;});
-  if(foco==="busca"){const n=$("busca");if(n){n.focus({preventScroll:true});try{n.setSelectionRange(ini,fim)}catch(e){}}}
 }
-function route(){const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
+function route(){cancelarBusca();const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
   if(S.pedFoco){const d=document.querySelector(`details.ped[data-id="${CSS.escape(S.pedFoco)}"]`);if(d)d.open=true}irTopo()}}
 window.addEventListener("hashchange",route);
 /* Campo de busca com lista própria (obra e material) */
