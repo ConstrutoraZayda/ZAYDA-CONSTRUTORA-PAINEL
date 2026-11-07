@@ -1130,6 +1130,7 @@ function vObras(){
     </button>`}).join("")}</section>`;
 }
 
+const HORAS_ESPERA = 12; /* Solicitações: horas desde a criação para contar como espera longa */
 function vSol(){
   let I = S.pedFoco&&S.busca===S.pedFoco?D.itens.filter(i=>i.pedido===S.pedFoco):itensF(); // pedido aberto pelo link de Materiais e custos, mesmo fora do período
   if(S.busca){const m=casa(S.busca); I=I.filter(i=>m(i.pedido+" "+i.material+" "+i.sku+" "+i.obraTexto+" "+i.atendente+" "+i.obra+" "+obraNome(i.obra)+" "+((D.pedidos||{})[i.pedido]||{}).endereco))}
@@ -1154,11 +1155,14 @@ function vSol(){
   const valor=p=>sum(p.its,i=>i.valorRef), resumo=`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido":"pedidos"}</span><span>Valor total: <b>${brl(sum(list,valor))}</b></span><span><b>${list.filter(SIT_F["A ENTREGAR"]).length}</b> a entregar</span><span><b>${list.filter(p=>p.parcial).length}</b> ${list.filter(p=>p.parcial).length===1?"parcial":"parciais"}</span></div>`;
   if(!list.length) return tool+chips+resumo+`<div class="card empty"><b>Nenhuma solicitação encontrada</b>Ajuste o período, a obra ou a busca.</div>`;
   const criacao=p=>criadoEm(p.id)||p.f.data||"";
-  const espera=p=>{ const c=criacao(p), t=new Date(c.length>10?c.replace(" ","T"):c+"T00:00:00").getTime(); if(isNaN(t)) return ""; const hs=Math.floor((Date.now()-t)/36e5); if(hs<1) return "aguardando há menos de 1 hora"; if(hs<24) return "aguardando há "+hs+(hs===1?" hora":" horas"); const d=Math.floor(hs/24); return "aguardando há "+d+(d===1?" dia":" dias"); };
+  const horas=p=>{ const c=criacao(p); return (Date.now()-new Date(c.length>10?c.replace(" ","T"):c+"T00:00:00").getTime())/36e5; };
+  const esperaLonga=p=>horas(p)>=HORAS_ESPERA;
+  const espera=p=>{ if(!p.pend.length||!esperaLonga(p)) return ""; const hs=Math.floor(horas(p)); if(hs<1) return "aguardando há menos de 1 hora"; if(hs<24) return "aguardando há "+hs+(hs===1?" hora":" horas"); const d=Math.floor(hs/24); return "aguardando há "+d+(d===1?" dia":" dias"); };
+  const avisoEsp=p=>[espera(p),p.cotar?"com item a cotar":""].filter(Boolean).join(" · ");
   const linhaPed=(p,atn)=>`<details class="ped ped2" data-id="${esc(p.id)}"><summary>
      <div class="p-ped"><span class="pid">${esc(p.id)}</span>${p.f.rev>=2?`<span class="rev" title="Revisão vigente">R${p.f.rev}</span>`:""}<div class="who">${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)} · ${esc(p.f.atendente)} · entrega: ${esc(p.f.entregador)}</div>
        <div class="p-mat">${esc(p.its[0].material)} × ${qtd(p.its[0].qtdSol)} ${esc(p.its[0].un)}${p.its.length>1?` <span>+ ${p.its.length-1} ${p.its.length===2?"item":"itens"}</span>`:""}</div>
-       ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${atn?`<div class="p-esp">${espera(p)}${p.cotar?" · com item a cotar":""}</div>`:""}</div>
+       ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${atn&&avisoEsp(p)?`<div class="p-esp">${avisoEsp(p)}</div>`:""}</div>
      <div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted">“${esc(p.f.obraTexto)}”</span>`:`<span class="lc-ob" title="${esc(obraNome(p.f.obra))}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</span>`}</div>
      <div class="p-val"><b>${brl(valor(p))}</b></div>
      <div class="p-acao">${seloSit(p)}<button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir este pedido" aria-label="Imprimir o pedido ${esc(p.id)}">${ico("print")}</button></div></summary>
@@ -1174,7 +1178,7 @@ function vSol(){
      ${p.its.map(i=>`<tr><td class="mat">${esc(i.material)}<small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n">${qtd(i.entregue)}</td><td class="n"><b>${qtd(i.saldo)}</b></td><td class="n">${i.precoRef==null?'<span class="pill warn">A cotar</span>':brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td><td>${sitPill(i.situacao)}</td></tr>`).join("")}
      </tbody></table></div><div class="pedact"><span class="muted" style="margin-right:auto;align-self:center">Revisões anteriores ficam guardadas na planilha e não entram nos totais.</span><button type="button" class="btn primary" data-print="${esc(p.id)}">${ico("print")}Imprimir pedido</button></div></div></details>`;
   // Atenção primeiro (mais antigos antes); depois os demais, por dia de criação. 50 por vez, contando os dois blocos.
-  const atencao=list.filter(p=>SIT_F["A ENTREGAR"](p)||p.parcial||p.cotar), demais=list.filter(p=>!atencao.includes(p));
+  const atencao=list.filter(p=>p.parcial||(SIT_F["A ENTREGAR"](p)&&esperaLonga(p))||p.cotar), demais=list.filter(p=>!atencao.includes(p));
   const antigos=[...atencao].sort((a,b)=>criacao(a).localeCompare(criacao(b))||a.id.localeCompare(b.id));
   const visA=antigos.slice(0,S.solN), visD=demais.slice(0,Math.max(0,S.solN-visA.length)), resta=list.length-visA.length-visD.length;
   const porDia=relGrupo(demais,p=>criacao(p).slice(0,10)); let dia=null;
