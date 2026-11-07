@@ -31,7 +31,7 @@ button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 html{-webkit-tap-highlight-color:transparent}
 a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-@media (hover:none),(pointer:coarse){a:active,button:active,summary:active{opacity:.7}#busca,#latBusca,#fObra,#fSku,#relObra{font-size:16px}}
+@media (hover:none),(pointer:coarse){a:active,button:active,summary:active{opacity:.7}#busca,#latBusca,#fObra,#fSku,#relObra,#diaData,#relDia,#relDiaObra{font-size:16px}}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh;min-height:100dvh}
 /* Sidebar */
 .side{background:var(--surface);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;height:100dvh}
@@ -217,6 +217,9 @@ a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transpa
 .lc-tot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0}
 .lc-mais{display:flex;justify-content:center;margin-top:14px}
 #lcCsv:disabled{opacity:.5;cursor:not-allowed}
+.dia-nav{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:12px}
+.dia-nav .dia-seta{padding:7px 14px;font-size:18px;line-height:1.1}
+#diaAnt:disabled,#diaProx:disabled,#diaImp:disabled{opacity:.5;cursor:not-allowed}
 @media (max-width:700px){
   .lc-res{grid-template-columns:repeat(2,minmax(0,1fr))}
   .lc-tab,.lc-tab tbody,.lc-tab tfoot,.lc-tab thead{display:block}
@@ -728,6 +731,12 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
           <div id="relBoxMes2"><select id="relMes2" aria-label="Mês do relatório da obra"></select></div>
           <label class="relop"><input type="radio" name="relPer" value="filtro"><span id="relFiltroTxt"></span></label>
         </div>
+        <label class="relop"><input type="radio" name="relTipo" value="dia">Relatório do dia (entregas)</label>
+        <div id="relBoxDia" hidden>
+          <label for="relDia">Data</label><input id="relDia" type="date">
+          <div class="field combo" id="cRelDia"><label for="relDiaObra">OBRA</label><input id="relDiaObra" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Todas as obras" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lRelDia"><button type="button" class="clr" id="xRelDia" aria-label="Voltar para todas as obras" hidden>×</button><ul class="pop" id="lRelDia" role="listbox" hidden></ul></div>
+        </div>
+        <div class="orcm-e" id="relMsg" role="alert" hidden></div>
         <div class="orcm-b"><button type="button" class="btn" id="relCancelar">Cancelar</button><button type="submit" class="btn primary" id="relImprimir">Imprimir</button></div>
       </form>
     </div>
@@ -913,6 +922,7 @@ function vPainel(){
       </div>
     </article>
   </section>
+  ${S.obra?secaoDia():""}
 
   <section class="grid mid">
     <article class="card">
@@ -955,6 +965,48 @@ function vPainel(){
   </section>`;
 }
 /* Tabela: gasto de cada obra mês a mês (ou de cada material, com uma obra escolhida) */
+/* ---------- entregas por dia ---------- */
+/* Só entregas com custo confirmado, em todas as datas: os filtros do topo não valem aqui. */
+const entregasConf = obra => D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&l.data&&(!obra||l.obra===obra));
+const ordemDia = (a,b) => (!a.pedido)-(!b.pedido)||a.pedido.localeCompare(b.pedido,"pt-BR",{numeric:true})||a.material.localeCompare(b.material,"pt-BR")||a.id.localeCompare(b.id);
+const resumoDia = L => ({total:sum(L,l=>l.valor),n:L.length,mats:uniq(L.map(l=>l.sku||l.material)).length,peds:uniq(L.map(l=>l.pedido).filter(Boolean)).length});
+const arqDia = d => d.slice(8,10)+"-"+d.slice(5,7)+"-"+d.slice(0,4);
+/* Dia escolhido nesta obra; sem escolha, o último dia com entrega. */
+function estadoDia(){
+  const L=entregasConf(S.obra), dias=uniq(L.map(l=>l.data)).sort(), atual=S.dia&&S.dia.obra===S.obra?S.dia.data:dias[dias.length-1]||"";
+  return {L,dias,atual,ant:[...dias].reverse().find(d=>d<atual)||"",prox:dias.find(d=>d>atual)||"",doDia:L.filter(l=>l.data===atual).sort(ordemDia)};
+}
+function corpoDia(e){
+  const chips=`<div class="chips" role="group" aria-label="Dias mais recentes com entrega">${e.dias.slice(-7).reverse().map(d=>`<button type="button" data-dia="${d}" aria-pressed="${d===e.atual}">${dbr(d).slice(0,5)} · <b>${brl(sum(e.L.filter(l=>l.data===d),l=>l.valor))}</b></button>`).join("")}</div>`;
+  if(!e.doDia.length) return chips+`<div class="empty">Nenhuma entrega nesta obra em ${dbr(e.atual)}.</div>`;
+  const peds=new Set(D.itens.map(i=>i.pedido)), r=resumoDia(e.doDia);
+  const ped=l=>!l.pedido?'<span class="pill info">Excepcional</span>':peds.has(l.pedido)?`<a class="lc-ped" href="#solicitacoes" data-diaped="${esc(l.pedido)}">${esc(l.pedido)}</a>`:esc(l.pedido);
+  return chips+`<div class="lc-res"><div><small>Total do dia</small><b>${brl(r.total)}</b></div><div><small>Entregas</small><b>${r.n}</b></div><div><small>Materiais diferentes</small><b>${r.mats}</b></div><div><small>Pedidos</small><b>${r.peds}</b></div></div>
+  <div class="tw"><table class="lc-tab"><thead><tr><th>Material</th><th class="n">Qtd</th><th class="n">Custo unit.</th><th class="n">Valor</th><th>Pedido</th><th>Recebido por</th></tr></thead><tbody>${e.doDia.map(l=>{ const q=partesEntrega(l.obs).nome; return `<tr><td class="mat">${esc(l.material)}<small>${esc(l.sku)}</small></td><td class="n" data-r="Qtd">${qtd(l.qtd)} <span class="muted">${esc(l.un)}</span></td><td class="n" data-r="Custo unit.">${l.custo==null?'<span class="muted">—</span>':brl(l.custo)}</td><td class="n" data-r="Valor"><b>${brl(l.valor)}</b></td><td class="mono" data-r="Pedido">${ped(l)}</td><td data-r="Recebido por">${q?esc(q):'<span class="muted">—</span>'}</td></tr>`; }).join("")}</tbody>
+  <tfoot><tr class="lc-tot"><td colspan="3">TOTAL</td><td class="n">${brl(r.total)}</td><td colspan="2"></td></tr></tfoot></table></div>`;
+}
+function secaoDia(){
+  const e=estadoDia();
+  if(!e.dias.length) return `<section class="card" id="diaCard" style="margin-top:16px"><div class="cardhead"><div><h2>Entregas por dia</h2></div></div><div class="empty">Esta obra ainda não tem entregas confirmadas.</div></section>`;
+  return `<section class="card" id="diaCard" style="margin-top:16px"><div class="cardhead"><div><h2>Entregas por dia</h2><div class="sub">Todas as entregas confirmadas desta obra, em qualquer data. Os filtros do topo não valem aqui.</div></div><button type="button" class="btn" id="diaImp" ${e.doDia.length?"":"disabled"}>${ico("print")}Imprimir dia</button></div>
+  <div class="dia-nav"><button type="button" class="btn dia-seta" id="diaAnt" aria-label="Dia com entrega anterior" ${e.ant?"":"disabled"}>‹</button><div class="field"><label for="diaData">DATA</label><input type="date" id="diaData" value="${e.atual}"></div><button type="button" class="btn dia-seta" id="diaProx" aria-label="Dia com entrega seguinte" ${e.prox?"":"disabled"}>›</button></div>
+  <div id="diaCorpo">${corpoDia(e)}</div></section>`;
+}
+/* Trocar de dia redesenha só o conteúdo abaixo do campo de data, que fica no lugar para o calendário do celular não fechar. */
+function ligarDia(){
+  const c=$("diaCard"), i=$("diaData"); if(!c||!i) return;
+  const ir=d=>{ S.dia={obra:S.obra,data:d}; const e=estadoDia(); if(i.value!==d) i.value=d;
+    $("diaAnt").disabled=!e.ant; $("diaProx").disabled=!e.prox; $("diaImp").disabled=!e.doDia.length; $("diaCorpo").innerHTML=corpoDia(e); };
+  c.addEventListener("click",ev=>{ const b=ev.target.closest("[data-dia],[data-diaped],#diaAnt,#diaProx,#diaImp"); if(!b) return;
+    if(b.dataset.diaped){ ev.preventDefault(); S.irPed=b.dataset.diaped; location.hash="solicitacoes"; return; }
+    const e=estadoDia();
+    if(b.dataset.dia){ ir(b.dataset.dia); const n=c.querySelector(`[data-dia="${b.dataset.dia}"]`); if(n) n.focus({preventScroll:true}); }
+    else if(b.id==="diaAnt") ir(e.ant);
+    else if(b.id==="diaProx") ir(e.prox);
+    else imprimirFolha(folhaDia(S.obra,e.atual),"Zayda - Entregas "+S.obra+" "+arqDia(e.atual)+".pdf"); });
+  i.addEventListener("change",()=>{ if(i.value) ir(i.value); });
+  i.addEventListener("blur",()=>{ if(!i.value) i.value=estadoDia().atual; });
+}
 function tabelaMensal(s){
   const ms=months(), porObra=!S.obra;
   const chave=l=>porObra?l.obra:l.sku;
@@ -1702,6 +1754,7 @@ function render(){
   fa.querySelectorAll("[data-fx]").forEach(b=>b.addEventListener("click",()=>{S[b.dataset.fx]="";S.mes=null;render()}));
   $("context").innerHTML=`Exibindo ${v==="obras"?"":`<b>${S.obra?esc(obraNome(S.obra))+" ("+esc(S.obra)+")":"todas as obras"}</b> · `}<b>${dbr(S.ini)}</b> a <b>${dbr(S.fim)}</b> · <b>${S.sku?esc(D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku):"todos os materiais"}</b>`;
   definirCores();
+  if(S.dia&&S.dia.obra!==S.obra) S.dia=null; // outra obra abre no último dia com entrega
   const html={painel:vPainel,obras:vObras,orcamentos:vOrc,solicitacoes:vSol,lancamentos:vLanc}[v]();
   const campo=$("busca"), manter=campo&&VISTA_BUSCA===v&&(document.activeElement===campo||buscaTimer||buscaCompondo);
   if(manter&&!buscaTimer&&!buscaCompondo&&campo.value!==S.busca) campo.value=S.busca; // mudou por fora da digitação, como no botão Limpar
@@ -1736,6 +1789,7 @@ function render(){
   const lc=$("lcCsv"); if(lc) lc.addEventListener("click",baixarCsvLanc);
   document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr));
   document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();imprimirPedido(b.dataset.print)}));
+  ligarDia();
 }
 function carregar(d){
   assinatura=assinar(d); // antes dos ajustes abaixo, para comparar sempre os dados como vieram do servidor
@@ -1765,7 +1819,7 @@ function textoAtualizado(){
   $("updated").title=D.sincronizadoEm?"Última verificação do formulário: "+D.sincronizadoEm:"";
 }
 // Só não atualiza com a lista de obra/material aberta ou com o calendário em uso; na busca, o cursor é mantido.
-const listaAberta=()=>{const a=document.activeElement;return !!a&&(((a.id==="fObra"||a.id==="fSku")&&a.getAttribute("aria-expanded")==="true")||a.id==="fIni"||a.id==="fFim")};
+const listaAberta=()=>{const a=document.activeElement;return !!a&&(((a.id==="fObra"||a.id==="fSku")&&a.getAttribute("aria-expanded")==="true")||a.id==="fIni"||a.id==="fFim"||a.id==="diaData")};
 const ocupado=()=>{const a=document.activeElement;return a&&(a.id==="fObra"||a.id==="fSku"||a.id==="busca"||a.id==="fIni"||a.id==="fFim")};
 function atualizarAgora(manual){
   if(buscando||!(window.google&&google.script&&google.script.run)) return;
@@ -2045,6 +2099,24 @@ function folhaRelObra(id,ini,fim,periodo){
     `<h2>ENTREGAS NO PERÍODO</h2>`+(ent.length?relTabela(["Data","Pedido","Material",["Qtd","n"],"Un",["Valor unit.","n"],["Total","n"],"Recebido por"],ent.map(l=>{ const c=l.situacao==="CUSTO CONFIRMADO"; return [dbr(l.data),esc(l.pedido||"—"),esc(l.material),qtd(l.qtd),esc(l.un),c&&l.custo!=null?brl(l.custo):"—",c?brl(l.valor):"Sem custo confirmado",esc(partesEntrega(l.obs).nome||"—")]; }),["TOTAL (custo confirmado)","","","","","",brl(d.custo),""]):relVazio("Nenhuma entrega neste período."))+
     `<h2>MATERIAIS QUE AINDA FALTAM CHEGAR</h2>`+(faltam.length?relTabela(["Pedido","Material",["Quantidade pedida","n"],["Entregue","n"],["Falta","n"]],faltam.map(i=>[esc(i.pedido),esc(i.material),qtd(i.qtdSol)+" "+esc(i.un),qtd(i.entregue)+" "+esc(i.un),qtd(i.saldo)+" "+esc(i.un)])):relVazio("Nenhum material pendente nesta obra.")));
 }
+/* Relatório do dia: uma obra, ou todas agrupadas com subtotal e total geral. */
+function folhaDia(obra,dia){
+  const L=entregasConf(obra).filter(l=>l.data===dia), r=resumoDia(L), o=obra&&D.obras.find(x=>x.id===obra);
+  const tabela=(a,rot)=>relTabela(["Material",["Quantidade","n"],["Custo unit.","n"],["Valor","n"],"Pedido","Recebido por"],
+    [...a].sort(ordemDia).map(l=>[`<b>${esc(l.material)}</b><small>${esc(l.sku)}</small>`,qtd(l.qtd)+" "+esc(l.un),l.custo==null?"—":brl(l.custo),brl(l.valor),l.pedido?esc(l.pedido):"Excepcional",esc(partesEntrega(l.obs).nome||"—")]),
+    [rot,"","",brl(sum(a,l=>l.valor)),"",""]);
+  const nomeOb=id=>id==="SEM VÍNCULO"?"Sem obra identificada":esc(obraNome(id));
+  const cli=x=>x&&(x.cliente||x.empreendimento)||"";
+  const grupos=Object.entries(relGrupo(L,l=>l.obra)).sort((a,b)=>(a[0]==="SEM VÍNCULO")-(b[0]==="SEM VÍNCULO")||a[0].localeCompare(b[0],"pt-BR",{numeric:true}));
+  const dados=obra?`<div class="w2"><dt>OBRA</dt><dd>${obra==="SEM VÍNCULO"?"":`<small>${esc(obra)}</small>`}${nomeOb(obra)}</dd></div><div><dt>CLIENTE</dt><dd>${esc(cli(o)||"—")}</dd></div>`:`<div class="w2"><dt>OBRAS</dt><dd>Todas as obras (${grupos.length} com entrega neste dia)</dd></div>`;
+  const corpo=obra?`<h2>ENTREGAS</h2>${tabela(L,"TOTAL")}`:grupos.map(([id,a])=>`<h2>${id==="SEM VÍNCULO"?"":esc(id)+" · "}${nomeOb(id)}${cli(D.obras.find(x=>x.id===id))?" · "+esc(cli(D.obras.find(x=>x.id===id))):""}</h2>${tabela(a,"Subtotal da obra")}`).join("")+`<div class="tot"><div><span>TOTAL GERAL DO DIA</span><b>${brl(r.total)}</b></div></div>`;
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel">
+  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>Relatório do dia</h1><div class="id">${dbr(dia)}</div></div></div>
+  <dl class="blk">${dados}<div><dt>DATA</dt><dd>${dbr(dia)}</dd></div></dl>
+  <h2>RESUMO DO DIA</h2><div class="tot q4"><div><span>TOTAL DO DIA</span><b>${brl(r.total)}</b></div><div><span>ENTREGAS</span><b>${r.n}</b></div><div><span>MATERIAIS DIFERENTES</span><b>${r.mats}</b></div><div><span>PEDIDOS</span><b>${r.peds}</b></div></div>
+  ${corpo}
+  <div class="rod"><span></span><span>Impresso em ${relAgora()}</span></div></div></td></tr></tbody></table>`;
+}
 const ordemFalta = (a,b) => b.data.localeCompare(a.data)||a.pedido.localeCompare(b.pedido);
 /* Janela de escolha do relatório. */
 function relMeses(){
@@ -2054,18 +2126,22 @@ function relMeses(){
 }
 function relTipos(){
   const tipo=document.querySelector('[name="relTipo"]:checked').value, per=document.querySelector('[name="relPer"]:checked').value;
-  $("relBoxMes").hidden=tipo!=="mes"; $("relBoxObra").hidden=tipo!=="obra"; $("relBoxMes2").hidden=per!=="mes";
+  $("relBoxMes").hidden=tipo!=="mes"; $("relBoxObra").hidden=tipo!=="obra"; $("relBoxMes2").hidden=per!=="mes"; $("relBoxDia").hidden=tipo!=="dia"; $("relMsg").hidden=true;
   $("relImprimir").disabled=tipo==="obra"&&!REL_OBRA; // só imprime com uma obra escolhida
 }
 let REL_OBRA="";
 // Mesmo campo de busca do filtro OBRA do topo; aqui não redesenha o painel e abre sempre com a lista inteira.
 const CR=combo("relObra","lRel","xRel","",()=>REL_OBRA,v=>{REL_OBRA=v},{aoMudar:()=>{CR.sync();relTipos()},todasAoFocar:true,limite:Infinity});
+let REL_DIA_OBRA="";
+const CD=combo("relDiaObra","lRelDia","xRelDia","Todas as obras",()=>REL_DIA_OBRA,v=>{REL_DIA_OBRA=v},{aoMudar:()=>{CD.sync();relTipos()},todasAoFocar:true,limite:Infinity});
 function abrirRelatorio(){
   const ms=relMeses().map(k=>`<option value="${k}">${relMesAno(k)}</option>`).join("");
   $("relMes").innerHTML=ms; $("relMes2").innerHTML=ms;
   REL_OBRA=S.obra&&D.obras.some(o=>o.id===S.obra)?S.obra:"";
   CR.items=[...D.obras].sort((a,b)=>a.id.localeCompare(b.id,"pt-BR",{numeric:true})).map(o=>({v:o.id,cd:o.id,t:o.endereco||o.casa,sub:o.cliente||o.empreendimento||"",busca:o.id+" "+(o.endereco||o.casa)+" "+(o.cliente||o.empreendimento||"")}));
   CR.sync();
+  REL_DIA_OBRA=REL_OBRA; CD.items=CR.items; CD.sync();
+  $("relDia").value=S.dia&&S.dia.obra===REL_DIA_OBRA?S.dia.data:entregasConf(REL_DIA_OBRA).map(l=>l.data).sort().pop()||D.hoje;
   $("relFiltroTxt").textContent="Período do filtro atual ("+dbr(S.ini)+" a "+dbr(S.fim)+")";
   document.querySelector('[name="relTipo"][value="'+(REL_OBRA?"obra":"mes")+'"]').checked=true;
   relTipos(); $("relModal").hidden=false; $("relFundo").hidden=false; $("relCancelar").focus();
@@ -2075,7 +2151,11 @@ function imprimirRelatorio(e){
   e.preventDefault();
   const tipo=document.querySelector('[name="relTipo"]:checked').value; let html, nome;
   const mesArq=k=>k.slice(5,7)+"-"+k.slice(0,4), dataArq=t=>dbr(t).split("\x2f").join("-");
-  if(tipo==="mes"){ html=folhaRelMes($("relMes").value); nome="Zayda - Relatório "+mesArq($("relMes").value)+".pdf"; }
+  if(tipo==="dia"){ const dia=$("relDia").value, m=$("relMsg"), avisa=t=>{ m.textContent=t; m.hidden=false; };
+    if(!dia) return avisa("Escolha a data do relatório.");
+    if(!entregasConf(REL_DIA_OBRA).some(l=>l.data===dia)) return avisa("Nenhuma entrega "+(REL_DIA_OBRA?"nesta obra ":"")+"em "+dbr(dia)+".");
+    html=folhaDia(REL_DIA_OBRA,dia); nome="Zayda - Entregas "+(REL_DIA_OBRA?REL_DIA_OBRA+" ":"")+arqDia(dia)+".pdf"; }
+  else if(tipo==="mes"){ html=folhaRelMes($("relMes").value); nome="Zayda - Relatório "+mesArq($("relMes").value)+".pdf"; }
   else { const id=REL_OBRA; if(!id) return;
     if(document.querySelector('[name="relPer"]:checked').value==="mes"){ const k=$("relMes2").value, [ini,fim]=relDoMes(k); html=folhaRelObra(id,ini,fim,relMesAno(k)); nome="Zayda - Relatório "+id+" "+mesArq(k)+".pdf"; }
     else { html=folhaRelObra(id,S.ini,S.fim,dbr(S.ini)+" a "+dbr(S.fim)); nome="Zayda - Relatório "+id+" "+dataArq(S.ini)+" a "+dataArq(S.fim)+".pdf"; } }
@@ -2084,6 +2164,7 @@ function imprimirRelatorio(e){
 }
 $("btnRelatorio").addEventListener("click",abrirRelatorio);
 $("relForm").addEventListener("submit",imprimirRelatorio);
+$("relDia").addEventListener("input",()=>{$("relMsg").hidden=true});
 $("relCancelar").addEventListener("click",fecharRelatorio);
 $("relFundo").addEventListener("click",fecharRelatorio);
 document.querySelectorAll('[name="relTipo"],[name="relPer"]').forEach(x=>x.addEventListener("change",relTipos));
