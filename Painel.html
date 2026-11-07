@@ -1751,6 +1751,7 @@ function iniciarAoVivo(){
   setInterval(textoAtualizado,10000);
   document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-LIDO>5000)atualizarAgora(false)});
   window.addEventListener("focus",()=>{if(Date.now()-LIDO>5000)atualizarAgora(false)});
+  window.addEventListener("pageshow",()=>{if(Date.now()-LIDO>5000)atualizarAgora(false)});
 }
 /* Só pedidos mudaram, na tela Painel: troca os cards de pedido (marcados com data-ped) e deixa os de gasto intactos. */
 function renderPedidos(n){
@@ -1816,8 +1817,9 @@ const URL_API = "__URL_API__";
 const VERSAO_PAINEL = "__VERSAO_PAINEL__";
 /* Modo app: aberto pela página de entrada, que acrescenta app=1 no endereço. Nele, quem recarrega tudo é a página de entrada. */
 let MODO_APP = false;
+const ORIGEM_APP = "https:\/\/construtorazayda.github.io";
 try { google.script.url.getLocation(l=>{ MODO_APP = !!l.parameter && l.parameter.app==="1"; }); } catch(e) {}
-$("novaVerLink").addEventListener("click",e=>{ if(!MODO_APP) return; e.preventDefault(); window.top.postMessage({zayda:"recarregar"},"*"); });
+$("novaVerLink").addEventListener("click",e=>{ if(!MODO_APP) return; e.preventDefault(); window.top.postMessage({zayda:"recarregar"},ORIGEM_APP); });
 /* Versão publicada diferente da que está aberta: mostra a faixa (só uma vez; depois nada muda na tela). */
 function avisarVersao(d){
   const f=$("novaVer"); if(!f.hidden||!d.versaoPainel||!/^[0-9a-f]{8}$/.test(VERSAO_PAINEL)||d.versaoPainel===VERSAO_PAINEL) return; // sem assinatura válida (prévia ou erro), não avisa
@@ -1837,8 +1839,9 @@ const buscarEntregas = pedido => chamarApi({codigo:CODIGO,acao:"entregas",pedido
 /* ---------- impressão de um pedido ---------- */
 function aviso(t,ms){const a=$("aviso");a.textContent=t;a.hidden=!t;clearTimeout(aviso.t);if(t&&ms)aviso.t=setTimeout(()=>a.hidden=true,ms)}
 /* Celular, tablet ou app: o print() de dentro do iframe imprime a página de fora e sai em branco. O iPad pode se identificar como Mac, por isso não basta olhar o userAgent. */
-const imprimeEmJanela = () => navigator.maxTouchPoints>1 || (!!window.matchMedia&&matchMedia("(pointer: coarse)").matches) || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent) || MODO_APP;
-function imprimirFolha(html){
+const imprimeEmJanela = () => navigator.maxTouchPoints>1 || (!!window.matchMedia&&matchMedia("(pointer: coarse)").matches) || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+function imprimirFolha(html,nome){
+  if(MODO_APP) return gerarPdf(html,nome);
   if(imprimeEmJanela()) return abrirJanelaImpressao(html);
   $("printArea").innerHTML=html;
   const imgs=[...$("printArea").querySelectorAll("img")];
@@ -1862,9 +1865,62 @@ function abrirJanelaImpressao(html){
     w.document.close();
   }catch(e){ try{w.close()}catch(e2){} falhou(); }
 }
+/* Modo app: o PDF A4 é gerado aqui e entregue à página de entrada, que oferece imprimir ou compartilhar. */
+const LIBS_PDF=["https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/html2canvas\/1.4.1\/html2canvas.min.js","https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/jspdf\/2.5.1\/jspdf.umd.min.js"];
+let libsPdf=null, gerandoPdf=false;
+const carregarLibsPdf=()=>libsPdf=libsPdf||Promise.all(LIBS_PDF.map(src=>new Promise((ok,erro)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=erro;document.head.appendChild(s)}))).catch(e=>{libsPdf=null;throw e});
+/* Onde cortar as páginas: nunca no meio de uma linha ou bloco, nem com título ou cabeçalho de tabela sozinho no fim da página. */
+function cortesPdf(el){
+  const pag=794*297/210, m=794*11/210, base=el.getBoundingClientRect().top;
+  const pos=b=>{const r=b.getBoundingClientRect();return {t:r.top-base,b:r.bottom-base}};
+  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.rod,.av,h2")].map(pos), presos=[...el.querySelectorAll("h2,.tb thead")].map(pos);
+  const fim=blocos.length?Math.max(...blocos.map(x=>x.b))+m:el.offsetHeight, cortes=[]; let ini=0;
+  while(ini<fim){
+    const lim=ini+pag-(ini?2*m:m);
+    if(lim>=fim){cortes.push([ini,fim]);break}
+    let c=lim, mudou=true;
+    while(mudou){mudou=false;
+      blocos.forEach(x=>{if(x.t>ini&&x.t<c&&x.b>c){c=x.t;mudou=true}});
+      presos.forEach(x=>{if(x.t>ini&&x.t<c&&x.b<=c&&c-x.b<14){c=x.t;mudou=true}});
+    }
+    if(c<=ini) c=lim;
+    cortes.push([ini,c]); ini=c;
+  }
+  return cortes;
+}
+async function gerarPdf(html,nome){
+  if(gerandoPdf) return;
+  gerandoPdf=true; aviso("Gerando PDF…");
+  const el=$("printArea");
+  try{
+    await carregarLibsPdf();
+    el.innerHTML=html;
+    el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;background:#fff;font:500 10.5px/1.4 var(--f-ui);color:#111";
+    await Promise.all([...el.querySelectorAll("img")].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})));
+    if(document.fonts) await document.fonts.ready;
+    let cortes=[];
+    const escala=Math.min(2,Math.sqrt(16e6/(794*el.offsetHeight))); // o iPhone não desenha imagens acima de cerca de 16,7 milhões de pixels
+    const tela=await html2canvas(el,{scale:escala,backgroundColor:"#fff",logging:false,windowWidth:794,scrollX:0,scrollY:0,
+      ignoreElements:e=>e.id==="intro"||e.id==="acesso"||e.id==="aviso"||e.classList.contains("app"),
+      onclone:d=>{ d.documentElement.setAttribute("data-theme","light");
+        const s=d.createElement("style"); s.textContent="#printArea .tb{border-top:1px solid #dfe6e1;border-left:1px solid #dfe6e1}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}"; d.head.appendChild(s); // o html2canvas desenha em dobro as bordas de tabela coladas
+        cortes=cortesPdf(d.getElementById("printArea")); }});
+    const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), k=tela.width/794, mm=210/794;
+    cortes.forEach(([a,b],i)=>{
+      const c=document.createElement("canvas"); c.width=tela.width; c.height=Math.ceil((b-a)*k);
+      const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(tela,0,-a*k);
+      if(i) pdf.addPage();
+      pdf.addImage(c.toDataURL("image/jpeg",.92),"JPEG",0,i?11:0,210,(b-a)*mm);
+    });
+    const dados=pdf.output("arraybuffer");
+    window.top.postMessage({zayda:"pdf",nome:String(nome).replace(/[\x2f\x5c:*?<>|\x22]/g,"-"),dados},ORIGEM_APP,[dados]);
+    aviso("");
+  }catch(e){ console.error(e); aviso("Não foi possível gerar o PDF. Confira a internet e tente de novo.",6000); }
+  finally{ el.style.cssText=""; el.innerHTML=""; gerandoPdf=false; }
+}
 function imprimirPedido(id){
   const its=D.itens.filter(i=>i.pedido===id); if(!its.length) return;
-  imprimirFolha(folhaPedido(id,its));
+  imprimirFolha(folhaPedido(id,its),"Zayda - Pedido "+id+".pdf");
 }
 function folhaPedido(id,its){
   const P=(D.pedidos||{})[id]||{}, f=its[0], o=D.obras.find(x=>x.id===f.obra);
@@ -1976,13 +2032,14 @@ function abrirRelatorio(){
 function fecharRelatorio(){ $("relModal").hidden=true; $("relFundo").hidden=true; }
 function imprimirRelatorio(e){
   e.preventDefault();
-  const tipo=document.querySelector('[name="relTipo"]:checked').value; let html;
-  if(tipo==="mes") html=folhaRelMes($("relMes").value);
+  const tipo=document.querySelector('[name="relTipo"]:checked').value; let html, nome;
+  const mesArq=k=>k.slice(5,7)+"-"+k.slice(0,4), dataArq=t=>dbr(t).split("\x2f").join("-");
+  if(tipo==="mes"){ html=folhaRelMes($("relMes").value); nome="Zayda - Relatório "+mesArq($("relMes").value)+".pdf"; }
   else { const id=REL_OBRA; if(!id) return;
-    if(document.querySelector('[name="relPer"]:checked').value==="mes"){ const k=$("relMes2").value, [ini,fim]=relDoMes(k); html=folhaRelObra(id,ini,fim,relMesAno(k)); }
-    else html=folhaRelObra(id,S.ini,S.fim,dbr(S.ini)+" a "+dbr(S.fim)); }
+    if(document.querySelector('[name="relPer"]:checked').value==="mes"){ const k=$("relMes2").value, [ini,fim]=relDoMes(k); html=folhaRelObra(id,ini,fim,relMesAno(k)); nome="Zayda - Relatório "+id+" "+mesArq(k)+".pdf"; }
+    else { html=folhaRelObra(id,S.ini,S.fim,dbr(S.ini)+" a "+dbr(S.fim)); nome="Zayda - Relatório "+id+" "+dataArq(S.ini)+" a "+dataArq(S.fim)+".pdf"; } }
   fecharRelatorio();
-  imprimirFolha(html);
+  imprimirFolha(html,nome);
 }
 $("btnRelatorio").addEventListener("click",abrirRelatorio);
 $("relForm").addEventListener("submit",imprimirRelatorio);

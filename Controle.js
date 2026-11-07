@@ -686,20 +686,13 @@ function removerDadosDeTeste() {
 }
 
 /* ========================= PAINEL (APP DA WEB) ========================= */
-/** Assinatura curta do Painel.html publicado (MD5, 8 caracteres), guardada por 6 horas. /dev e /exec têm conteúdos diferentes
- *  e guardam em chaves separadas. recalcular=true (ao abrir o painel) regrava na hora, para valer logo depois de publicar. */
-function versaoPainel_(recalcular) {
+/** Assinatura curta do Painel.html publicado (MD5, 8 caracteres). Calculada a cada leitura, sem cache,
+ *  para uma Nova versão ser percebida logo depois de publicada. */
+function versaoPainel_() {
   try {
-    const cache = CacheService.getScriptCache();
-    const chave = 'VERSAO_PAINEL_' + (/\/dev$/.test(ScriptApp.getService().getUrl() || '') ? 'DEV' : 'EXEC');
-    let v = recalcular ? null : cache.get(chave);
-    if (!v) {
-      const conteudo = HtmlService.createHtmlOutputFromFile('Painel').getContent();
-      v = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, conteudo, Utilities.Charset.UTF_8)
-        .map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('').slice(0, 8);
-      cache.put(chave, v, 21600);
-    }
-    return v;
+    const conteudo = HtmlService.createHtmlOutputFromFile('Painel').getContent();
+    return Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, conteudo, Utilities.Charset.UTF_8)
+      .map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('').slice(0, 8);
   } catch (e) { Logger.log('Assinatura da versão não calculada: ' + e.message); return ''; }
 }
 
@@ -707,7 +700,7 @@ function doGet() {
   const url = ScriptApp.getService().getUrl() || '';
   const html = HtmlService.createHtmlOutputFromFile('Painel').getContent()
     .split('"__URL_API__"').join(JSON.stringify(url).replace(/\//g, '\\/')) // sem "//": o removedor de comentários do HtmlService pode cortar a URL ali
-    .split('"__VERSAO_PAINEL__"').join(JSON.stringify(versaoPainel_(true)));
+    .split('"__VERSAO_PAINEL__"').join(JSON.stringify(versaoPainel_()));
   return HtmlService.createHtmlOutput(html)
     .setTitle('Zayda | Painel de custos por obra')
     .setFaviconUrl('https://res.cloudinary.com/dovqcebdt/image/upload/v1793988690/favicon-zayda_jiggwc.png')
