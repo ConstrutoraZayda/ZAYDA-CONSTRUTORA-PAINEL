@@ -487,8 +487,8 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 /* Animações: cards entrando, colunas crescendo, linhas se desenhando e destaque ao vivo.
    Só valem sem "reduzir movimento"; os números dos cards do topo são animados no script (animarNumeros). */
 @media (prefers-reduced-motion:no-preference){
-  .entra{animation:entra .45s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms)}
-  @keyframes entra{from{opacity:0;transform:translateY(12px)}}
+  .entra{animation:entra .2s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:var(--d,0ms)}
+  @keyframes entra{from{opacity:0;transform:translateY(6px)}}
   svg.cresce .col{animation:cresce .6s cubic-bezier(.2,.7,.2,1) both;animation-delay:var(--d,0ms)}
   @keyframes cresce{from{transform:scaleY(0)}}
   svg.cresce .fade{animation:aparece .3s ease-out both;animation-delay:calc(var(--d,0ms) + .45s)}
@@ -1551,12 +1551,22 @@ function aplicarTrans(f){
     const alvo=sl.querySelector("#lhit");
     Object.keys(f.ln).forEach(k=>{ if(novas[k]) return; const a=f.ln[k], g=a.el.cloneNode(); g.removeAttribute("data-k"); sl.insertBefore(g,alvo); linha(g,a.p,a.p.map(c=>[c[0],base]),()=>g.remove()); }); }
 }
-/* Cards e linhas da lista entrando um depois do outro (no máximo 12). */
+/* Entrada de uma tela aberta: só o que aparece na primeira tela, linha por linha, da esquerda para a direita, em no máximo 300 ms. O resto já aparece pronto. */
+const ENTRA_MS=200, ENTRA_PASSO=25, ENTRA_ATRASO=100; let entraTimer=0;
+const fimEntra = el => { el.classList.remove("entra"); el.style.removeProperty("--d"); };
+function cancelarEntrada(){ clearTimeout(entraTimer); entraTimer=0; document.querySelectorAll(".entra").forEach(fimEntra); }
 function entrada(){
-  const v=$("view"); let els=[...v.querySelectorAll(".card, details.ped")];
+  const v=$("view"), topo=window.scrollY, alt=window.innerHeight; // a tela é levada ao topo logo depois de desenhada
+  let els=[...v.querySelectorAll(".card, details.ped, .orcl")];
   if(S.view==="lancamentos") els=els.concat([...v.querySelectorAll("tbody tr")]);
-  els.slice(0,12).forEach((el,i)=>{ el.style.setProperty("--d",i*45+"ms"); el.classList.add("entra");
-    el.addEventListener("animationend",function f(e){ if(e.target!==el) return; el.classList.remove("entra"); el.style.removeProperty("--d"); el.removeEventListener("animationend",f); }); });
+  const vis=els.map(el=>({el,r:el.getBoundingClientRect()})).filter(x=>x.r.height&&x.r.top+topo<alt);
+  // Quem contém outro item fica parado, para a transparência não somar.
+  const lista=vis.filter(a=>!vis.some(b=>b!==a&&a.el.contains(b.el))).sort((a,b)=>Math.round(a.r.top-b.r.top)||a.r.left-b.r.left);
+  const passo=lista.length>1?Math.min(ENTRA_PASSO,ENTRA_ATRASO/(lista.length-1)):0;
+  lista.forEach(({el},i)=>{ el.style.setProperty("--d",Math.round(i*passo)+"ms"); el.classList.add("entra");
+    const f=e=>{ if(e.target!==el) return; fimEntra(el); el.removeEventListener("animationend",f); el.removeEventListener("animationcancel",f); };
+    el.addEventListener("animationend",f); el.addEventListener("animationcancel",f); });
+  clearTimeout(entraTimer); entraTimer=setTimeout(()=>lista.forEach(x=>fimEntra(x.el)),ENTRA_MS+ENTRA_ATRASO+100); // reserva, se o fim da animação não chegar
 }
 /* Situação de cada pedido e de cada lançamento, para achar o que mudou na atualização automática. */
 function fotoVivo(d){
@@ -1862,9 +1872,11 @@ function renderMantendo(n,manual){
   MODO=manual?null:n?"novo":"auto"; render(); if(foto) aplicarTrans(foto); destacar(n);
   abertos.forEach(id=>{const d=document.querySelector(`details.ped[data-id="${CSS.escape(id)}"]`);if(d)d.open=true;});
 }
-function route(){cancelarBusca();const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
+function route(){cancelarBusca();cancelarEntrada();esconderSeg();esconderToque();const h=location.hash.replace("#","");S.view=TITLES[h]?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
   if(S.pedFoco){const d=document.querySelector(`details.ped[data-id="${CSS.escape(S.pedFoco)}"]`);if(d)d.open=true}irTopo()}}
 window.addEventListener("hashchange",route);
+/* Item do menu da tela em que já se está: não há troca de tela, só volta ao topo. */
+$("nav").addEventListener("click",e=>{ const a=e.target.closest("a[data-v]"); if(a&&location.hash==="#"+a.dataset.v) irTopo(); });
 /* Campo de busca com lista própria (obra e material) */
 function combo(inputId,listId,clrId,todos,get,set,op={}){
   const aoMudar=op.aoMudar||(()=>render()), limite=op.limite||80;
