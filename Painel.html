@@ -205,13 +205,16 @@ a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transpa
 .lc-sort{border:0;background:transparent;padding:0;font:inherit;font-weight:700;color:inherit;cursor:pointer;white-space:nowrap}
 @media (hover:hover) and (pointer:fine){.lc-sort:hover{color:var(--brand)}}
 .lc-tools .lc-sort{font-size:12px;color:var(--ink-2)}
-.lc-tab .lc-rec{font-family:var(--f-ui);font-size:11.5px;font-weight:600;color:var(--ink-2);margin-top:2px}
 .lc-tab td,.lc-tab th{padding-left:7px;padding-right:7px}
 .lc-tab .mat{min-width:140px}
 .lc-tab td.mono{white-space:normal;overflow-wrap:anywhere;min-width:92px;max-width:112px}
 .lc-ob{display:block;max-width:128px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .lc-ob b{font-family:var(--f-mono);font-weight:500;color:var(--brand)}
 .lc-ped{color:var(--brand);text-decoration:none}
+/* Materiais e custos: pedido com o código curto (uma linha) e mais espaço para o endereço da obra */
+.lc-tab td.lc-pedc{white-space:nowrap;min-width:0;max-width:none}
+@media (min-width:701px){.lc-tab td.lc-obc{max-width:0;min-width:142px;width:24%}.lc-tab td.lc-obc .lc-ob{max-width:none}}
+.lc-tab .ped-ob{padding:4px 0;margin:-4px 0}
 @media (hover:hover) and (pointer:fine){.lc-ped:hover{text-decoration:underline}}
 .lc-dia td{background:var(--surface-2);font-size:12.5px;font-weight:800;color:var(--ink-2);padding:7px 10px}
 .lc-tot td{font-weight:800;border-top:2px solid var(--line);border-bottom:0}
@@ -387,9 +390,10 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .p-main .p-obra .lc-ob{display:inline;max-width:none}
 /* Solicitações: código + endereço da obra abre a página da obra (área de toque maior sem mudar o layout) */
 .p-main .p-obra{padding:5px 3px;margin:-5px -3px}
-.p-main .p-obra .ped-ob{color:inherit;text-decoration:none;cursor:pointer;padding:5px 0;border-radius:4px}
-.p-main .p-obra .ped-ob:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
-@media (hover:hover) and (pointer:fine){.p-main .p-obra .ped-ob:hover{text-decoration:underline}}
+.ped-ob{color:inherit;text-decoration:none;cursor:pointer;border-radius:4px}
+.p-main .p-obra .ped-ob{padding:5px 0}
+.ped-ob:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+@media (hover:hover) and (pointer:fine){.ped-ob:hover{text-decoration:underline}}
 .p-dados{margin-top:3px;font-size:11.5px;color:var(--ink-3);line-height:1.5}
 .p-dados b{font-weight:600;color:var(--ink-2)}
 .p-dados .cod{font-family:var(--f-mono);font-weight:500;color:var(--ink-2);user-select:text;-webkit-user-select:text}
@@ -1345,10 +1349,10 @@ function vLanc(){
   const th=(c,t,cl)=>`<th class="lc-s ${cl||""}" ${o&&o.c===c?`aria-sort="${o.d>0?"ascending":"descending"}"`:""}><button type="button" class="lc-sort" data-lcs="${c}">${t}${o&&o.c===c?(o.d>0?" ▲":" ▼"):""}</button></th>`;
   const cols=(ag?0:1)+8;
   const linha=l=>{ const r=partesEntrega(l.obs).nome;
-    return `<tr data-lanc="${esc(l.id)}" title="${esc(l.id)}">${ag?"":`<td data-r="Data" style="white-space:nowrap">${dbr(l.data)}</td>`}<td class="mat" ${l.obs?`title="${esc(l.obs)}"`:""}>${esc(l.material)}<small>${esc(l.sku)}</small>${r?`<small class="lc-rec">Recebido por: ${esc(r)}</small>`:""}${l.alertas?`<span class="alert">${esc(l.alertas)}</span>`:""}</td>
+    return `<tr data-lanc="${esc(l.id)}" title="${esc(l.id)}">${ag?"":`<td data-r="Data" style="white-space:nowrap">${dbr(l.data)}</td>`}<td class="mat" ${l.obs?`title="${esc(l.obs)}"`:""}>${esc(l.material)}<small>${esc(l.sku)}</small>${l.alertas?`<span class="alert">${esc(l.alertas)}</span>`:""}</td>
     <td class="n" data-r="Qtd">${qtd(l.qtd)} <span class="muted">${esc(l.un)}</span></td><td class="n" data-r="Custo unit.">${l.custo==null?'<span class="muted">—</span>':brl(l.custo)}</td><td class="n" data-r="Valor"><b>${l.valor==null?'<span class="muted">—</span>':brl(l.valor)}</b></td>
-    <td data-r="Situação">${sitPill(l.situacao)}</td><td data-r="Obra">${l.obra==="SEM VÍNCULO"?'<span class="pill bad">Sem obra</span>':`<span class="lc-ob" title="${esc(obraNome(l.obra))}"><b>${esc(l.obra)}</b> ${esc(obraCurta(l.obra))}</span>`}</td>
-    <td class="mono" data-r="Pedido">${!l.pedido?'<span class="pill info">Excepcional</span>':peds.has(l.pedido)?`<a class="lc-ped" href="#solicitacoes" data-lcped="${esc(l.pedido)}">${esc(l.pedido)}</a>`:esc(l.pedido)}</td><td data-r="Recebido por">${r?esc(r):'<span class="muted">—</span>'}</td></tr>`; };
+    <td data-r="Situação">${sitPill(l.situacao)}</td><td class="lc-obc" data-r="Obra">${l.obra==="SEM VÍNCULO"?'<span class="pill bad">Sem obra</span>':`<a class="lc-ob ped-ob" href="#painel" data-pedobra="${esc(l.obra)}" title="${esc("Abrir a obra "+l.obra+" · "+obraNome(l.obra))}"><b>${esc(l.obra)}</b> ${esc(obraCurta(l.obra))}</a>`}</td>
+    <td class="mono lc-pedc" data-r="Pedido">${!l.pedido?'<span class="pill info">Excepcional</span>':peds.has(l.pedido)?`<a class="lc-ped" href="#solicitacoes" data-lcped="${esc(l.pedido)}" title="${esc(l.pedido)}">${esc(codigoCurto(l.pedido))}</a>`:`<span title="${esc(l.pedido)}">${esc(codigoCurto(l.pedido))}</span>`}</td><td data-r="Recebido por">${r?esc(r):'<span class="muted">—</span>'}</td></tr>`; };
   const vis=L.slice(0,S.lcN), dias=ag?Object.fromEntries(Object.entries(relGrupo(L,l=>l.data))):null; let ultimoDia=null;
   const corpo=vis.map(l=>{ let c=""; if(ag&&l.data!==ultimoDia){ ultimoDia=l.data; const a=dias[l.data], n=a.filter(valido).length;
       c=`<tr class="lc-dia"><td colspan="${cols}">${l.data?dbr(l.data):"Sem data"} · ${n} ${n===1?"entrega":"entregas"} · ${brl(sum(a,vale))}</td></tr>`; } return c+linha(l); }).join("");
