@@ -9,6 +9,7 @@
  *  1. Sincronização: copia PEDIDOS, ITENS_PEDIDO e CATALOGO da planilha do formulário
  *     para as abas ocultas _IMPORT_PEDIDOS, _IMPORT_ITENS e _IMPORT_CATALOGO.
  *     Pedidos cancelados ou encerrados (aba CANCELAMENTOS do formulário) vão para _IMPORT_CANCELAMENTOS.
+ *     Cada entrega (aba ENTREGAS, com quem entregou e quem recebeu) vai para _IMPORT_ENTREGAS.
  *     É uma cópia completa a cada execução (idempotente): rodar duas vezes não duplica nada.
  *     A planilha do formulário só é LIDA, nunca alterada.
  *     Também copia a aba OBRAS da planilha "Controle e Planejamento de Obras" (ID em
@@ -34,7 +35,7 @@ const CTRL = Object.freeze({
   destPedidos: '_IMPORT_PEDIDOS', destItens: '_IMPORT_ITENS', destCatalogo: '_IMPORT_CATALOGO',
   obras: 'OBRAS', solicitacoes: 'SOLICITACOES', lancamentos: 'MATERIAIS_E_CUSTOS',
   abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS', orcamentos: 'ORCAMENTOS',
-  abaCancelOrigem: 'CANCELAMENTOS', destCancel: '_IMPORT_CANCELAMENTOS',
+  abaCancelOrigem: 'CANCELAMENTOS', destCancel: '_IMPORT_CANCELAMENTOS', destEntregas: '_IMPORT_ENTREGAS',
   intervaloMinutos: 1, copiaCompletaMinutos: 15
 });
 
@@ -123,10 +124,12 @@ function lerOrigem_() {
                Number(valor_(r[6])) || 0, valor_(r[7]), valor_(r[8]), texto_(r[9]), dataHora_(r[10])]);
   // Entregas confirmadas no formulário (aba criada pelo formulário 1.2; pode ainda não existir).
   const shEnt = origem.getSheetByName(CTRL.abaEntregasOrigem);
-  const entregas = (shEnt ? valores(shEnt, 12) : [])
+  // Coluna N (ENTREGUE_POR, formulário 2.0): quem levou o material; nas entregas antigas fica vazia.
+  const entregas = (shEnt ? valores(shEnt, Math.min(14, shEnt.getMaxColumns())) : [])
     .filter(r => texto_(r[0]).indexOf(CTRL.prefixoEntrega) === 0 && valido([r[1]]))
     .map(r => ({id: texto_(r[0]), pedido: texto_(r[1]), sku: texto_(r[3]), qtd: Number(valor_(r[6])) || 0,
-                data: dataHora_(r[7]).slice(0, 10), email: texto_(r[8]), obs: texto_(r[10]), recebido: texto_(r[11])}));
+                data: dataHora_(r[7]).slice(0, 10), email: texto_(r[8]), obs: texto_(r[10]), recebido: texto_(r[11]),
+                produto: texto_(r[4]), un: texto_(r[5]), recebidoTxt: textoForm_(r[11]), obsTxt: textoForm_(r[10]), entreguePor: textoForm_(r[13])}));
   // Pedidos cancelados ou encerrados (aba criada pelo formulário 1.9 no 1º cancelamento; pode ainda não existir).
   // A PEDIDO_ID · B TIPO · C DATA_HORA · D EMAIL_LOGIN · E MOTIVO · F ITENS_NAO_ENTREGUES
   const shCanc = origem.getSheetByName(CTRL.abaCancelOrigem);
@@ -558,6 +561,25 @@ function escreverCancelamentos_(ss, linhas) {
   sh.getRange(2, 1, linhas.length, 6).setValues(linhas);
 }
 
+/** Grava cada entrega do formulário na aba oculta _IMPORT_ENTREGAS (cria se não existir), com quem entregou e quem recebeu.
+ *  Entrega sem ENTREGUE_POR (antiga) recebe o entregador do pedido (revisão mais alta). Os lançamentos não mudam. */
+function escreverEntregas_(ss, entregas, pedidos) {
+  const entregador = {}, rev = {};
+  pedidos.forEach(p => { if (!(p[0] in rev) || p[1] > rev[p[0]]) { rev[p[0]] = p[1]; entregador[p[0]] = p[6]; } });
+  const cab = ['ENTREGA_ID', 'PEDIDO_ID', 'SKU', 'PRODUTO', 'UNIDADE', 'QTD_ENTREGUE', 'DATA_ENTREGA', 'RECEBIDO_POR', 'ENTREGUE_POR', 'OBSERVACOES'];
+  let sh = ss.getSheetByName(CTRL.destEntregas);
+  if (!sh) { sh = ss.insertSheet(CTRL.destEntregas, ss.getNumSheets()); sh.hideSheet(); }
+  sh.getRange(1, 1, 1, cab.length).setValues([cab]).setFontWeight('bold');
+  const ultima = sh.getMaxRows();
+  if (ultima > 1) sh.getRange(2, 1, ultima - 1, cab.length).clearContent();
+  if (!entregas.length) return;
+  const linhas = entregas.map(e => [e.id, e.pedido, e.sku, e.produto, e.un, e.qtd, e.data, e.recebidoTxt, e.entreguePor || entregador[e.pedido] || '', e.obsTxt]);
+  if (sh.getMaxRows() < linhas.length + 1) sh.insertRowsAfter(sh.getMaxRows(), linhas.length + 1 - sh.getMaxRows());
+  sh.getRange(2, 1, linhas.length, cab.length).setNumberFormat('@');
+  sh.getRange(2, 6, linhas.length, 1).setNumberFormat('0.###');
+  sh.getRange(2, 1, linhas.length, cab.length).setValues(linhas);
+}
+
 /** Execução principal (também usada pelo acionador automático). */
 function sincronizarFormulario(esperaMs) {
   // Trava do script (não do documento): vale também quando a sincronização é chamada pelo painel (app da Web).
@@ -591,6 +613,7 @@ function sincronizarFormulario(esperaMs) {
     const cabP = ss.getSheetByName(CTRL.destPedidos).getRange('P1');
     if (texto_(cabP.getValue()) !== 'PONTO_REFERENCIA') cabP.setValue('PONTO_REFERENCIA');
     escreverCancelamentos_(ss, dados.cancelamentos);
+    escreverEntregas_(ss, dados.entregas, dados.pedidos);
     const novasEntregas = lancarEntregas_(ss, dados, ident);
     // Lista de obras para as sugestões de endereço do formulário (só regrava quando muda).
     if (obras.ativo) { try { escreverObrasFormulario_(obras.linhas); } catch (e) { avisoObras += ' · LISTA DE OBRAS DO FORMULÁRIO NÃO ATUALIZADA: ' + e.message; } }
@@ -856,6 +879,15 @@ function getDadosPainel(codigo) {
       entregador: texto_(r[6]), endereco: texto_(r[7]), casa: texto_(r[8]), obs: texto_(r[9]), status: texto_(r[12]),
       referencia: texto_(r[15])};
   });
+  // Entregas de cada pedido, com quem entregou e quem recebeu (_IMPORT_ENTREGAS), da mais antiga para a mais nova.
+  const shEnt = ss.getSheetByName(CTRL.destEntregas);
+  if (shEnt && shEnt.getLastRow() > 1) shEnt.getRange(2, 1, shEnt.getLastRow() - 1, 10).getValues().forEach(r => {
+    const id = texto_(r[1]);
+    if (!pedidos[id] || !texto_(r[0])) return;
+    (pedidos[id].entregas = pedidos[id].entregas || []).push({id: texto_(r[0]), sku: texto_(r[2]), material: texto_(r[3]), un: texto_(r[4]),
+      qtd: num_(r[5]) || 0, data: dataIso_(r[6]), recebidoPor: texto_(r[7]), entreguePor: texto_(r[8]), obs: texto_(r[9])});
+  });
+  Object.keys(pedidos).forEach(id => { if (pedidos[id].entregas) pedidos[id].entregas.sort((a, b) => a.data.localeCompare(b.data) || a.id.localeCompare(b.id)); });
   // Pedido cancelado ou encerrado no formulário (_IMPORT_CANCELAMENTOS). Vale o primeiro registro de cada pedido.
   const shC = ss.getSheetByName(CTRL.destCancel);
   if (shC && shC.getLastRow() > 1) shC.getRange(2, 1, shC.getLastRow() - 1, 6).getValues().forEach(r => {

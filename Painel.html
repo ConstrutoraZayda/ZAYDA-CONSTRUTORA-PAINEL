@@ -594,6 +594,21 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .pinfo dt{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
 .pinfo dd{margin:3px 0 0;font-weight:700;overflow-wrap:anywhere}
 .pinfo .w4{grid-column:1/-1}
+.pinfo dd .tamb{display:block;margin-top:2px}
+/* Histórico de entregas do pedido: tabela; no celular, um card por entrega */
+.hist{margin:14px 0 4px}
+.hist h3{margin:0 0 6px;font-size:13px;font-weight:800;color:var(--ink-2)}
+.hist table td{vertical-align:top}
+.hist tbody+tbody tr:first-child td{border-top:2px solid var(--line)}
+.hist .nome{white-space:nowrap}
+.hist .pill.sitc{margin-left:6px}
+.hist .obs{display:block;font-size:11.5px;color:var(--ink-3);white-space:normal}
+@media (max-width:700px){.hist table,.hist tbody,.hist tr,.hist td{display:block}.hist thead{display:none}
+ .hist tbody{margin-bottom:8px;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+ .hist tbody+tbody tr:first-child td{border-top:0}
+ .hist td{padding:2px 0;border:0;text-align:left}
+ .hist td[data-r]::before{content:attr(data-r);display:inline-block;min-width:96px;font-size:11px;font-weight:700;color:var(--ink-3)}
+ .hist tr+tr td.mat{border-top:1px dashed var(--line);margin-top:4px;padding-top:6px}}
 .pinfo dd small{font-weight:600;color:var(--ink-3);font-size:11.5px}
 @media (max-width:700px){.pinfo{grid-template-columns:1fr 1fr}}
 .pedact{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
@@ -819,6 +834,15 @@ function partesEntrega(obs){
   return {nome, obs:resto.join(" · ")};
 }
 /* Quem recebeu na obra e o que foi anotado em cada entrega confirmada no formulário. */
+/* Entregas do pedido (aba _IMPORT_ENTREGAS), sem as que foram canceladas em MATERIAIS_E_CUSTOS.
+   Agrupadas por data, quem entregou e quem recebeu: os itens da mesma entrega ficam juntos. */
+function entregasPedido(id){const canc=new Set(D.lanc.filter(l=>l.situacao==="CANCELADO").map(l=>l.id)),g=[],idx={};
+ (((D.pedidos||{})[id]||{}).entregas||[]).filter(e=>!canc.has(e.id)).forEach(e=>{const k=e.data+"|"+e.entreguePor.toUpperCase()+"|"+e.recebidoPor.toUpperCase();
+  let x=idx[k];if(!x){x=idx[k]={data:e.data,entreguePor:e.entreguePor,recebidoPor:e.recebidoPor,itens:[],obs:[]};g.push(x);}x.itens.push(e);if(e.obs&&!x.obs.includes(e.obs))x.obs.push(e.obs);});
+ return g;}
+const mesmoNome=(a,b)=>String(a||"").trim().toUpperCase()===String(b||"").trim().toUpperCase();
+/* Detalhe da coluna Entregue: "1 em 09/11 por JUNIOR, recebido por ADADSASD + 1 em 09/11 por PEDRO, recebido por LUCAS". */
+function tituloEntregue(id,sku){return entregasPedido(id).flatMap(g=>g.itens.filter(e=>e.sku===sku).map(e=>qtd(e.qtd)+" em "+dbr(e.data).slice(0,5)+(e.entreguePor?" por "+e.entreguePor:"")+(e.recebidoPor?", recebido por "+e.recebidoPor:""))).join(" + ");}
 function recebedores(id){
   const vistos={}; D.lanc.filter(l=>l.pedido===id&&l.situacao!=="CANCELADO").forEach(l=>{
     const n=partesEntrega(l.obs).nome; if(!n) return;
@@ -1257,17 +1281,17 @@ function vSol(){
        ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${dadosPed(p)}</div>
      <div class="p-val"><b>${brl(valor(p))}</b></div>
      <div class="p-sit">${atn?seloAtn(p):seloSit(p)}</div><button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir o pedido ${esc(codigoCurto(p.id))}" aria-label="Imprimir o pedido ${esc(codigoCurto(p.id))}">${ico("print")}</button></summary>
-     <div class="inner">${faixaFechado(p.id)}${p.parcial?faltaBox(p):""}${(()=>{const R=recebedores(p.id);return `<dl class="pinfo">
+     <div class="inner">${faixaFechado(p.id)}${p.parcial?faltaBox(p):""}${(()=>{const E=entregasPedido(p.id);return `<dl class="pinfo">
        <div><dt>Atendente</dt><dd>${esc(p.f.atendente||"—")}</dd></div>
-       <div><dt>Entregador</dt><dd>${esc(p.f.entregador||"—")}</dd></div>
-       <div><dt>Recebido na obra por</dt><dd>${R.length?R.map(r=>`${esc(r.nome)} <small>${dbr(r.data)}</small>`).join(", "):'<span class="muted">Ainda não entregue</span>'}</dd></div>
+       <div><dt>Entregador</dt><dd>${esc(p.f.entregador||"—")}${(()=>{const o=[];entregasPedido(p.id).forEach(g=>{if(g.entreguePor&&!mesmoNome(g.entreguePor,p.f.entregador)&&!o.some(n=>mesmoNome(n,g.entreguePor)))o.push(g.entreguePor);});return o.length?`<small class="tamb">Também entregou: ${o.map(esc).join(", ")}</small>`:"";})()}</dd></div>
+       <div><dt>Entregas</dt><dd>${E.length>=2?E.length+" entregas · última em "+dbr(E[E.length-1].data):E.length?"1 entrega em "+dbr(E[0].data)+(E[0].recebidoPor?" · recebido por "+esc(E[0].recebidoPor):""):'<span class="muted">Nenhuma entrega ainda</span>'}</dd></div>
        <div><dt>Pedido feito em</dt><dd>${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)}</dd></div>
        ${(()=>{const O=obsEntregas(p.id), P=(D.pedidos||{})[p.id]||{};return (O.length?`<div class="w4"><dt>Observações da entrega</dt><dd>${O.map(o=>`<small>${dbr(o.data)}</small> ${esc(o.obs)}`).join("<br>")}</dd></div>`:"")+
          (P.referencia?`<div class="w4"><dt>Ponto de referência</dt><dd>${esc(P.referencia)}</dd></div>`:"")+
          (P.obs?`<div class="w4"><dt>Observações do pedido</dt><dd>${esc(P.obs)}</dd></div>`:"")})()}</dl>`})()}
      <div class="tw"><table><thead><tr><th>Material</th><th>Un</th><th class="n">Pedido</th><th class="n">Entregue</th><th class="n">Falta</th><th class="n">Preço unit.</th><th class="n">Valor</th><th>Situação</th></tr></thead><tbody>
-     ${p.its.map(i=>`<tr><td class="mat">${esc(i.material)}<small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n">${qtd(i.entregue)}</td><td class="n"><b>${qtd("saldoReal" in i?i.saldoReal:i.saldo)}</b></td><td class="n">${i.precoRef==null?'<span class="pill warn">Sem preço</span>':brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td><td>${sitPill(i.situacao)}</td></tr>`).join("")}
-     </tbody></table></div><div class="pedact">${p.f.rev>=2?'<span class="muted" style="margin-right:auto;align-self:center">Revisões anteriores ficam guardadas na planilha e não entram nos totais.</span>':""}<button type="button" class="btn primary" data-print="${esc(p.id)}">${ico("print")}Imprimir pedido</button></div></div></details>`;
+     ${p.its.map(i=>`<tr><td class="mat">${esc(i.material)}<small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n"${(()=>{const t=tituloEntregue(p.id,i.sku);return t?` title="${esc(t)}"`:"";})()}>${qtd(i.entregue)}</td><td class="n"><b>${qtd("saldoReal" in i?i.saldoReal:i.saldo)}</b></td><td class="n">${i.precoRef==null?'<span class="pill warn">Sem preço</span>':brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td><td>${sitPill(i.situacao)}</td></tr>`).join("")}
+     </tbody></table></div>${(()=>{const E=entregasPedido(p.id);return E.length?`<div class="hist"><h3>Histórico de entregas</h3><div class="tw"><table><thead><tr><th>Data</th><th>Entregue por</th><th>Recebido por</th><th>Material</th><th class="n">Qtd</th></tr></thead>${E.map(g=>`<tbody>${g.itens.map((e,k)=>`<tr>${k?"":`<td rowspan="${g.itens.length}" data-r="Data">${dbr(g.data)}</td><td rowspan="${g.itens.length}" data-r="Entregue por"><span class="nome">${esc(g.entreguePor||"—")}</span>${g.entreguePor&&!mesmoNome(g.entreguePor,p.f.entregador)?'<span class="pill sitc">diferente do pedido</span>':""}</td><td rowspan="${g.itens.length}" data-r="Recebido por"><span class="nome">${esc(g.recebidoPor||"—")}</span>${g.obs.length?`<span class="obs">${g.obs.map(esc).join(" · ")}</span>`:""}</td>`}<td class="mat">${esc(e.material)}<small>${esc(e.sku)}</small></td><td class="n">${qtd(e.qtd)} ${esc(e.un)}</td></tr>`).join("")}</tbody>`).join("")}</table></div></div>`:"";})()}<div class="pedact">${p.f.rev>=2?'<span class="muted" style="margin-right:auto;align-self:center">Revisões anteriores ficam guardadas na planilha e não entram nos totais.</span>':""}<button type="button" class="btn primary" data-print="${esc(p.id)}">${ico("print")}Imprimir pedido</button></div></div></details>`;
   // Atenção primeiro (mais antigos antes); depois os demais, por dia de criação. 50 por vez, contando os dois blocos.
   const atencao=list.filter(p=>p.parcial||(SIT_F["A ENTREGAR"](p)&&esperaLonga(p))||p.cotar), demais=list.filter(p=>!atencao.includes(p));
   const antigos=[...atencao].sort((a,b)=>criacao(a).localeCompare(criacao(b))||a.id.localeCompare(b.id));
@@ -2099,6 +2123,7 @@ function folhaPedido(id,its){
   ${its.map((i,k)=>`<tr><td>${k+1}</td><td><b>${esc(i.material)}</b><small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n">${qtd(i.entregue)}</td><td class="n"><b>${qtd(Math.max(sal(i),0))}</b></td><td class="n">${i.precoRef==null?"A cotar":brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td></tr>`).join("")}
   </tbody></table>
   <div class="tot"><div><span>VALOR DO PEDIDO</span><b>${brl(valor)}</b></div><div><span>JÁ ENTREGUE</span><b>${brl(entV)}</b></div><div><span>FALTA ENTREGAR</span><b>${brl(faltaV)}</b></div></div>
+  ${(()=>{const E=entregasPedido(id);return E.length?`<h2>HISTÓRICO DE ENTREGAS</h2><table class="tb"><thead><tr><th>Data</th><th>Entregue por</th><th>Recebido por</th><th>Material</th><th class="n">Qtd</th></tr></thead><tbody>${E.map(g=>g.itens.map(e=>`<tr><td>${dbr(g.data)}</td><td>${esc(g.entreguePor||"—")}</td><td>${esc(g.recebidoPor||"—")}</td><td><b>${esc(e.material)}</b><small>${esc(e.sku)}</small></td><td class="n">${qtd(e.qtd)} ${esc(e.un)}</td></tr>`).join("")).join("")}</tbody></table>`:"";})()}
   <div class="linha"><div>Emitido por</div></div>
   <div class="rod"><span></span><span>Impresso em ${hj}</span></div>
   </td></tr></tbody></table>`;
