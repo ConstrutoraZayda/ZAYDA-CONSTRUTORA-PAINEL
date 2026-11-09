@@ -8,6 +8,7 @@
  * O que este script faz:
  *  1. Sincronização: copia PEDIDOS, ITENS_PEDIDO e CATALOGO da planilha do formulário
  *     para as abas ocultas _IMPORT_PEDIDOS, _IMPORT_ITENS e _IMPORT_CATALOGO.
+ *     Pedidos cancelados ou encerrados (aba CANCELAMENTOS do formulário) vão para _IMPORT_CANCELAMENTOS.
  *     É uma cópia completa a cada execução (idempotente): rodar duas vezes não duplica nada.
  *     A planilha do formulário só é LIDA, nunca alterada.
  *     Também copia a aba OBRAS da planilha "Controle e Planejamento de Obras" (ID em
@@ -33,6 +34,7 @@ const CTRL = Object.freeze({
   destPedidos: '_IMPORT_PEDIDOS', destItens: '_IMPORT_ITENS', destCatalogo: '_IMPORT_CATALOGO',
   obras: 'OBRAS', solicitacoes: 'SOLICITACOES', lancamentos: 'MATERIAIS_E_CUSTOS',
   abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS', orcamentos: 'ORCAMENTOS',
+  abaCancelOrigem: 'CANCELAMENTOS', destCancel: '_IMPORT_CANCELAMENTOS',
   intervaloMinutos: 1, copiaCompletaMinutos: 15
 });
 
@@ -63,6 +65,12 @@ function planilhaControle_() {
   return SpreadsheetApp.openById(id);
 }
 function texto_(v) { return String(v === null || v === undefined ? '' : v).trim(); }
+/** Texto digitado no formulário que a planilha possa ter virado hora ou data ("09:00", "10/11"). */
+function textoForm_(v) {
+  if (v instanceof Date && !isNaN(v)) return Utilities.formatDate(v, CTRL.fuso, 'yyyy-MM-dd') === '1899-12-30'
+    ? Utilities.formatDate(v, CTRL.fuso, 'HH:mm') : Utilities.formatDate(v, CTRL.fuso, 'dd/MM/yyyy');
+  return texto_(v);
+}
 
 /** Número a partir de número ou texto ("R$ 1.234,56", "17,00"). Vazio ou inválido -> ''. */
 function valor_(v) {
@@ -119,6 +127,11 @@ function lerOrigem_() {
     .filter(r => texto_(r[0]).indexOf(CTRL.prefixoEntrega) === 0 && valido([r[1]]))
     .map(r => ({id: texto_(r[0]), pedido: texto_(r[1]), sku: texto_(r[3]), qtd: Number(valor_(r[6])) || 0,
                 data: dataHora_(r[7]).slice(0, 10), email: texto_(r[8]), obs: texto_(r[10]), recebido: texto_(r[11])}));
+  // Pedidos cancelados ou encerrados (aba criada pelo formulário 1.9 no 1º cancelamento; pode ainda não existir).
+  // A PEDIDO_ID · B TIPO · C DATA_HORA · D EMAIL_LOGIN · E MOTIVO · F ITENS_NAO_ENTREGUES
+  const shCanc = origem.getSheetByName(CTRL.abaCancelOrigem);
+  const cancelamentos = (shCanc ? valores(shCanc, 6) : []).filter(valido)
+    .map(r => [texto_(r[0]), texto_(r[1]).toUpperCase(), dataHora_(r[2]), texto_(r[3]), textoForm_(r[4]), textoForm_(r[5])]);
   const catalogo = valores(aba(CTRL.celulaAbaCatalogo), 6)
     .filter(r => texto_(r[0]) && texto_(r[0]).toUpperCase() !== 'SKU')
     .map(r => [texto_(r[0]), texto_(r[1]), texto_(r[2]), texto_(r[3]), texto_(r[4]),
@@ -138,7 +151,7 @@ function lerOrigem_() {
   // Itens sem a linha correspondente em PEDIDOS (gravação interrompida) não são importados:
   // sem isso eles seriam tratados como revisão vigente e somariam em dobro.
   const itensValidos = itens.filter(i => chaves[i[0] + '|R' + i[1]]);
-  return {pedidos, itens: itensValidos, catalogo, dup, orfaos, entregas};
+  return {pedidos, itens: itensValidos, catalogo, dup, orfaos, entregas, cancelamentos};
 }
 /** Lê a aba OBRAS da planilha "Controle e Planejamento de Obras" (1 linha por casa, ID OB-xx).
  *  Origem: A ID · B CLIENTE · C ENDEREÇO · D PROTOCOLO · E DATA CONTRATO · F PRAZO · G ENTREGA PREVISTA ·
@@ -532,6 +545,19 @@ function escrever_(ss, nome, linhas, nCols) {
   }
 }
 
+/** Grava os pedidos cancelados/encerrados na aba oculta _IMPORT_CANCELAMENTOS (cria se não existir). */
+function escreverCancelamentos_(ss, linhas) {
+  let sh = ss.getSheetByName(CTRL.destCancel);
+  if (!sh) { sh = ss.insertSheet(CTRL.destCancel, ss.getNumSheets()); sh.hideSheet(); }
+  sh.getRange(1, 1, 1, 6).setValues([['PEDIDO_ID', 'TIPO', 'DATA_HORA', 'EMAIL_LOGIN', 'MOTIVO', 'ITENS_NAO_ENTREGUES']]).setFontWeight('bold');
+  const ultima = sh.getMaxRows();
+  if (ultima > 1) sh.getRange(2, 1, ultima - 1, 6).clearContent();
+  if (!linhas.length) return;
+  if (sh.getMaxRows() < linhas.length + 1) sh.insertRowsAfter(sh.getMaxRows(), linhas.length + 1 - sh.getMaxRows());
+  sh.getRange(2, 1, linhas.length, 6).setNumberFormat('@');
+  sh.getRange(2, 1, linhas.length, 6).setValues(linhas);
+}
+
 /** Execução principal (também usada pelo acionador automático). */
 function sincronizarFormulario(esperaMs) {
   // Trava do script (não do documento): vale também quando a sincronização é chamada pelo painel (app da Web).
@@ -564,6 +590,7 @@ function sincronizarFormulario(esperaMs) {
     escrever_(ss, CTRL.destPedidos, dados.pedidos.map((p, i) => p.concat([ident.porLinha[i], p.referencia || ''])), 16);
     const cabP = ss.getSheetByName(CTRL.destPedidos).getRange('P1');
     if (texto_(cabP.getValue()) !== 'PONTO_REFERENCIA') cabP.setValue('PONTO_REFERENCIA');
+    escreverCancelamentos_(ss, dados.cancelamentos);
     const novasEntregas = lancarEntregas_(ss, dados, ident);
     // Lista de obras para as sugestões de endereço do formulário (só regrava quando muda).
     if (obras.ativo) { try { escreverObrasFormulario_(obras.linhas); } catch (e) { avisoObras += ' · LISTA DE OBRAS DO FORMULÁRIO NÃO ATUALIZADA: ' + e.message; } }
@@ -828,6 +855,14 @@ function getDadosPainel(codigo) {
     pedidos[id] = {rev, criado: dataHora_(r[2]), atualizado: dataHora_(r[3]), email: texto_(r[4]), atendente: texto_(r[5]),
       entregador: texto_(r[6]), endereco: texto_(r[7]), casa: texto_(r[8]), obs: texto_(r[9]), status: texto_(r[12]),
       referencia: texto_(r[15])};
+  });
+  // Pedido cancelado ou encerrado no formulário (_IMPORT_CANCELAMENTOS). Vale o primeiro registro de cada pedido.
+  const shC = ss.getSheetByName(CTRL.destCancel);
+  if (shC && shC.getLastRow() > 1) shC.getRange(2, 1, shC.getLastRow() - 1, 6).getValues().forEach(r => {
+    const id = texto_(r[0]);
+    if (!pedidos[id] || pedidos[id].cancelamento) return;
+    pedidos[id].cancelamento = {tipo: texto_(r[1]).toUpperCase() === 'ENCERRADO' ? 'ENCERRADO' : 'CANCELADO', data: dataHora_(r[2]),
+      email: texto_(r[3]), motivo: texto_(r[4]), naoEntregues: texto_(r[5])};
   });
   // Orçamentos preenchidos na aba ORCAMENTOS (só as obras com valor).
   const orcamentos = {}, shOrc = ss.getSheetByName(CTRL.orcamentos);
