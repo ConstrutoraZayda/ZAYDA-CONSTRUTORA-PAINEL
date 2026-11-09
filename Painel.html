@@ -385,6 +385,11 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .p-main{min-width:0}
 .p-main .p-obra{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .p-main .p-obra .lc-ob{display:inline;max-width:none}
+/* Solicitações: código + endereço da obra abre a página da obra (área de toque maior sem mudar o layout) */
+.p-main .p-obra{padding:5px 3px;margin:-5px -3px}
+.p-main .p-obra .ped-ob{color:inherit;text-decoration:none;cursor:pointer;padding:5px 0;border-radius:4px}
+.p-main .p-obra .ped-ob:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+@media (hover:hover) and (pointer:fine){.p-main .p-obra .ped-ob:hover{text-decoration:underline}}
 .p-dados{margin-top:3px;font-size:11.5px;color:var(--ink-3);line-height:1.5}
 .p-dados b{font-weight:600;color:var(--ink-2)}
 .p-dados .cod{font-family:var(--f-mono);font-weight:500;color:var(--ink-2);user-select:text;-webkit-user-select:text}
@@ -1287,7 +1292,7 @@ function vSol(){
   const dadosPed=p=>{const P=(D.pedidos||{})[p.id]||{},em=String(P.email||"");
    return `<div class="p-dados">Usuário: <b title="${esc(em||"Sem e-mail")}" data-email="${esc(em)}">${esc(usuarioPedido(em))}</b> · <b>${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)}</b> · Nº do pedido: <b class="cod" title="${esc(p.id)}">${esc(codigoCurto(p.id))}</b> · Atendente: <b>${esc(p.f.atendente||"—")}</b> · Entregador: <b>${esc(p.f.entregador||"—")}</b> · <b>${p.nTodos} ${p.nTodos===1?"material":"materiais"}</b>${p.f.rev>=2?`<span class="rev" title="Revisão vigente">R${p.f.rev}</span>`:""}</div>`;};
   const linhaPed=(p,atn)=>`<details class="ped ped2" data-id="${esc(p.id)}"><summary>
-     <div class="p-main"><div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted" title="${esc(p.f.obraTexto)}">“${esc(p.f.obraTexto)}”</span>`:`<span class="lc-ob" title="${esc(p.f.obra+" · "+obraNome(p.f.obra))}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</span>`}</div>
+     <div class="p-main"><div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted" title="${esc(p.f.obraTexto)}">“${esc(p.f.obraTexto)}”</span>`:`<a class="lc-ob ped-ob" href="#painel" data-pedobra="${esc(p.f.obra)}" title="Abrir a obra ${esc(p.f.obra)}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</a>`}</div>
        ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${dadosPed(p)}</div>
      <div class="p-val"><b>${brl(valor(p))}</b></div>
      <div class="p-sit">${atn?seloAtn(p):seloSit(p)}</div><button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir o pedido ${esc(codigoCurto(p.id))}" aria-label="Imprimir o pedido ${esc(codigoCurto(p.id))}">${ico("print")}</button></summary>
@@ -1856,6 +1861,9 @@ function render(){
   document.querySelectorAll("[data-fsit]").forEach(b=>b.addEventListener("click",()=>{S.sit=S.sit===b.dataset.fsit?"":b.dataset.fsit;render()}));
   document.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{S.orcVista=b.dataset.vista;try{localStorage.setItem("zaydaOrcVista",S.orcVista)}catch(e){}render()}));
   document.querySelectorAll("[data-orc]").forEach(b=>b.addEventListener("click",()=>abrirOrc(b.dataset.orc)));
+  // Solicitações: a obra do pedido abre a página da obra sem abrir/fechar o detalhe (está dentro do <summary>)
+  document.querySelectorAll("[data-pedobra]").forEach(a=>{const ir=e=>{e.preventDefault();e.stopPropagation();abrirObra(a.dataset.pedobra)};
+    a.addEventListener("click",ir);a.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Spacebar")ir(e)});a.addEventListener("keyup",e=>{if(e.key===" ")e.preventDefault()});});
   document.querySelectorAll("[data-irobra]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();abrirObra(a.dataset.irobra)}));
   const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{cancelarBusca();S.busca="";S.sit="";S.ord="";render()});
   const al=$("addLanc"); if(al) al.href=D.planilhaUrl||"#";
