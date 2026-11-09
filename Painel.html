@@ -380,7 +380,18 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .sol-atn h2 span{font-size:12px}
 .sol-dia{margin:14px 2px 6px;font-size:12.5px;font-weight:800;color:var(--ink-2)}
 .ped.ped2{margin-bottom:6px}
-.ped.ped2 summary{grid-template-columns:minmax(0,1.7fr) minmax(0,1fr) auto auto;gap:6px 16px;padding:9px 14px}
+.ped.ped2 summary{grid-template-columns:minmax(0,1fr) 120px 230px 36px;gap:6px 16px;padding:9px 14px}
+/* Solicitações: valores e selos na mesma posição em todas as linhas. */
+.p-main{min-width:0}
+.p-main .p-obra{font-size:14px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.p-main .p-obra .lc-ob{display:inline;max-width:none}
+.p-dados{margin-top:3px;font-size:11.5px;color:var(--ink-3);line-height:1.5}
+.p-dados b{font-weight:600;color:var(--ink-2)}
+.p-dados .cod{font-family:var(--f-mono);font-weight:500;color:var(--ink-2);user-select:text;-webkit-user-select:text}
+.p-dados .rev{margin-left:6px}
+.ped.ped2 .p-val{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+.p-sit{display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center;justify-content:flex-start;min-width:0}
+.pill.sitc{background:transparent;color:var(--ink-3);border:1px solid var(--line);font-size:10.5px;font-weight:700;padding:2px 7px}
 .p-mat{font-size:12.5px;font-weight:600;margin-top:2px;overflow-wrap:anywhere}
 .p-mat span{color:var(--ink-3);white-space:nowrap}
 .p-ent{display:flex;align-items:center;gap:8px;margin-top:3px}
@@ -392,7 +403,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .p-obra .lc-ob{max-width:100%}
 .p-val{white-space:nowrap;text-align:right}
 .p-acao{display:flex;gap:8px;align-items:center;justify-content:flex-end}
-@media (max-width:900px){.ped.ped2 summary{grid-template-columns:auto minmax(0,1fr);padding:12px 14px}.p-ped,.p-obra{grid-column:1/-1}.p-val{text-align:left;align-self:center}}
+@media (max-width:700px){.ped.ped2 summary{grid-template-columns:auto minmax(0,1fr) auto;padding:12px 14px}.ped.ped2 .p-main{grid-column:1/-1}.ped.ped2 .p-val{text-align:left;align-self:center}.ped.ped2 .p-main .p-obra{white-space:normal}}
 /* Pedido parcial: selo, linha do que falta e quadro de materiais não entregues */
 .pill.parc{display:inline-flex;align-items:center;gap:4px;background:var(--laranja-soft);color:var(--laranja);border:1px solid var(--laranja-line)}
 .pill.parc svg{width:12px;height:12px;flex:none}
@@ -1197,6 +1208,10 @@ function vObras(){
 function textoFechado(id){const c=((D.pedidos||{})[id]||{}).cancelamento;if(!c)return "";const d=String(c.data||"");
  return (c.tipo==="ENCERRADO"?"Encerrado em ":"Cancelado em ")+dbr(d.slice(0,10))+(d.length>=16?" às "+d.slice(11,16):"")+(c.email?" por "+c.email:"")+(c.tipo==="ENCERRADO"&&c.naoEntregues?" · Não entregue: "+c.naoEntregues:"")+(c.motivo?" · Motivo: "+c.motivo:"");}
 function faixaFechado(id){const c=((D.pedidos||{})[id]||{}).cancelamento;return c?`<div class="sol-fech ${c.tipo==="ENCERRADO"?"enc":"canc"}" role="status">${esc(textoFechado(id))}</div>`:"";}
+/* Quem fez o pedido, pelo e-mail (EMAIL_LOGIN): zayda → Zayda, bsj → BSJ, senão o que vem antes do @. */
+function usuarioPedido(email){const e=String(email||"").trim();if(!e)return "—";const m=e.toLowerCase();return m.includes("zayda")?"Zayda":m.includes("bsj")?"BSJ":e.split("@")[0];}
+/* Código curto do pedido: o último trecho do ID, depois do último "-" (o ID completo fica no title). */
+function codigoCurto(id){const s=String(id||"");return s.slice(s.lastIndexOf("-")+1)||s;}
 const HORAS_ESPERA = 12; /* Solicitações: horas desde a criação para contar como espera longa */
 function vSol(){
   let I = S.pedFoco&&S.busca===S.pedFoco?D.itens.filter(i=>i.pedido===S.pedFoco):itensF(); // pedido aberto pelo link de Materiais e custos, mesmo fora do período
@@ -1208,7 +1223,7 @@ function vSol(){
     const sit = fe==="CANCELADO"?"PEDIDO_CANCELADO":fe==="ENCERRADO"?"PEDIDO_ENCERRADO":semObra?"OBRA NÃO IDENTIFICADA":ent===0?"A ENTREGAR":its.every(i=>i.saldo<=0)?"ENTREGUE":"PARCIAL";
     // Parcial: olha todos os itens do pedido, mesmo com busca ou filtro de material escondendo algum.
     const todos=(fe?D.itensTodos:D.itens).filter(i=>i.pedido===id), pend=fe?[]:todos.filter(i=>i.saldo>0), parcial=!fe&&todos.some(i=>i.entregue>0)&&pend.length>0;
-    return {id,its,sit,f:its[0],parcial,pend,nTodos:todos.length,cotar:!fe&&todos.some(i=>i.precoRef==null)};
+    return {id,its,sit,f:its[0],fe,parcial,pend,nTodos:todos.length,cotar:!fe&&todos.some(i=>i.precoRef==null)};
    }).sort(ordemPedido);};
   let list = agrupar(buscar(I));
   const cancelados = agrupar(buscar(D.itensTodos.filter(i=>i.fechado==="CANCELADO"&&inP(i.data)&&okO(i.obra)&&okS(i.sku))));
@@ -1221,21 +1236,27 @@ function vSol(){
   const faltaBox=p=>`<div class="fbox" role="alert"><b>${ico("alert")}Materiais não entregues</b><div class="fl cab"><span>Material</span><span>Pedido</span><span>Entregue</span><span>Falta</span></div>${p.pend.map(i=>`<div class="fl"><span>${esc(i.material)}</span><span data-r="Pedido:">${qtd(i.qtdSol)} ${esc(i.un)}</span><span data-r="Entregue:">${qtd(i.entregue)} ${esc(i.un)}</span><strong data-r="Falta:">${qtd(i.saldo)} ${esc(i.un)}</strong></div>`).join("")}</div>`;
   const tool = `<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações"></div>`;
   const chip=(v,t,n)=>`<button type="button" data-solsit="${v}" aria-pressed="${S.sit===v}">${t} <b>${n}</b></button>`;
-  const chips=`<div class="chips" role="group" aria-label="Situação da entrega">${chip("","Todas",base.length)}${[["A ENTREGAR","A entregar"],["PARCIAL_FALTA","Parcial"],["COTACAO","Pendente de cotação"],["ENTREGUE","Entregue"],["OBRA NÃO IDENTIFICADA","Sem obra"],["PEDIDO_ENCERRADO","Encerrados"]].map(([v,t])=>chip(v,t,base.filter(SIT_F[v]).length)).join("")}${chip("PEDIDO_CANCELADO","Cancelados",cancelados.length)}${S.sit==="FALTA"?chip("FALTA","Ainda falta entregar",base.filter(SIT_F.FALTA).length):""}</div>`;
+  const chips=`<div class="chips" role="group" aria-label="Situação da entrega">${chip("","Todas",base.length)}${[["A ENTREGAR","A entregar"],["PARCIAL_FALTA","Parcial"],["COTACAO","Sem preço"],["ENTREGUE","Entregue"],["OBRA NÃO IDENTIFICADA","Sem obra"],["PEDIDO_ENCERRADO","Encerrados"]].map(([v,t])=>chip(v,t,base.filter(SIT_F[v]).length)).join("")}${chip("PEDIDO_CANCELADO","Cancelados",cancelados.length)}${S.sit==="FALTA"?chip("FALTA","Ainda falta entregar",base.filter(SIT_F.FALTA).length):""}</div>`;
   const valor=p=>sum(p.its,i=>i.valorRef), resumo=S.sit==="PEDIDO_CANCELADO"?`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido cancelado":"pedidos cancelados"}</span></div>`:`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido":"pedidos"}</span><span>Valor total: <b>${brl(sum(list,valor))}</b></span><span><b>${list.filter(SIT_F["A ENTREGAR"]).length}</b> a entregar</span><span><b>${list.filter(p=>p.parcial).length}</b> ${list.filter(p=>p.parcial).length===1?"parcial":"parciais"}</span></div>`;
   if(!list.length) return tool+chips+resumo+`<div class="card empty"><b>Nenhuma solicitação encontrada</b>Ajuste o período, a obra ou a busca.</div>`;
   const criacao=p=>criadoEm(p.id)||p.f.data||"";
   const horas=p=>{ const c=criacao(p); return (Date.now()-new Date(c.length>10?c.replace(" ","T"):c+"T00:00:00").getTime())/36e5; };
   const esperaLonga=p=>horas(p)>=HORAS_ESPERA;
   const espera=p=>{ if(!p.pend.length||!esperaLonga(p)) return ""; const hs=Math.floor(horas(p)); if(hs<1) return "aguardando há menos de 1 hora"; if(hs<24) return "aguardando há "+hs+(hs===1?" hora":" horas"); const d=Math.floor(hs/24); return "aguardando há "+d+(d===1?" dia":" dias"); };
-  const avisoEsp=p=>[espera(p),p.cotar?"com item a cotar":""].filter(Boolean).join(" · ");
+  /* Precisam de atenção: o motivo é o selo principal (laranja); a situação normal fica pequena, em cinza. */
+  const ROT_SIT={"A ENTREGAR":"A entregar","ENTREGUE":"Entregue","PARCIAL":"Parcial","OBRA NÃO IDENTIFICADA":"Sem obra","PEDIDO_ENCERRADO":"Encerrado","PEDIDO_CANCELADO":"Cancelado"};
+  const motivos=p=>{const m=[];const sp=(p.fe?D.itensTodos:D.itens).filter(i=>i.pedido===p.id&&i.precoRef==null).length;
+   if(p.cotar&&sp)m.push("⚠ "+sp+(sp===1?" item sem preço":" itens sem preço"));
+   const e=espera(p);if(e)m.push("⏱ "+e.charAt(0).toUpperCase()+e.slice(1));
+   if(p.parcial)m.push("⚠ "+(p.pend.length===1?"Falta 1 item":"Faltam "+p.pend.length+" itens"));return m;};
+  const seloAtn=p=>{const m=motivos(p);return m.length?m.map(t=>`<span class="pill parc">${esc(t)}</span>`).join("")+`<span class="pill sitc">${ROT_SIT[p.parcial?"PARCIAL":p.sit]||esc(p.sit)}</span>`:seloSit(p);};
+  const dadosPed=p=>{const P=(D.pedidos||{})[p.id]||{},em=String(P.email||"");
+   return `<div class="p-dados">Usuário: <b title="${esc(em||"Sem e-mail")}" data-email="${esc(em)}">${esc(usuarioPedido(em))}</b> · <b>${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)}</b> · Nº do pedido: <b class="cod" title="${esc(p.id)}">${esc(codigoCurto(p.id))}</b> · Atendente: <b>${esc(p.f.atendente||"—")}</b> · Entregador: <b>${esc(p.f.entregador||"—")}</b> · <b>${p.nTodos} ${p.nTodos===1?"material":"materiais"}</b>${p.f.rev>=2?`<span class="rev" title="Revisão vigente">R${p.f.rev}</span>`:""}</div>`;};
   const linhaPed=(p,atn)=>`<details class="ped ped2" data-id="${esc(p.id)}"><summary>
-     <div class="p-ped"><span class="pid">${esc(p.id)}</span>${p.f.rev>=2?`<span class="rev" title="Revisão vigente">R${p.f.rev}</span>`:""}<div class="who">${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)} · ${esc(p.f.atendente)} · entrega: ${esc(p.f.entregador)}</div>
-       <div class="p-mat">${esc(p.its[0].material)} × ${qtd(p.its[0].qtdSol)} ${esc(p.its[0].un)}${p.its.length>1?` <span>+ ${p.its.length-1} ${p.its.length===2?"item":"itens"}</span>`:""}</div>
-       ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${atn&&avisoEsp(p)?`<div class="p-esp">${avisoEsp(p)}</div>`:""}</div>
-     <div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted">“${esc(p.f.obraTexto)}”</span>`:`<span class="lc-ob" title="${esc(obraNome(p.f.obra))}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</span>`}</div>
+     <div class="p-main"><div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted" title="${esc(p.f.obraTexto)}">“${esc(p.f.obraTexto)}”</span>`:`<span class="lc-ob" title="${esc(p.f.obra+" · "+obraNome(p.f.obra))}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</span>`}</div>
+       ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${dadosPed(p)}</div>
      <div class="p-val"><b>${brl(valor(p))}</b></div>
-     <div class="p-acao">${seloSit(p)}<button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir este pedido" aria-label="Imprimir o pedido ${esc(p.id)}">${ico("print")}</button></div></summary>
+     <div class="p-sit">${atn?seloAtn(p):seloSit(p)}</div><button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir o pedido ${esc(codigoCurto(p.id))}" aria-label="Imprimir o pedido ${esc(codigoCurto(p.id))}">${ico("print")}</button></summary>
      <div class="inner">${faixaFechado(p.id)}${p.parcial?faltaBox(p):""}${(()=>{const R=recebedores(p.id);return `<dl class="pinfo">
        <div><dt>Atendente</dt><dd>${esc(p.f.atendente||"—")}</dd></div>
        <div><dt>Entregador</dt><dd>${esc(p.f.entregador||"—")}</dd></div>
@@ -1245,8 +1266,8 @@ function vSol(){
          (P.referencia?`<div class="w4"><dt>Ponto de referência</dt><dd>${esc(P.referencia)}</dd></div>`:"")+
          (P.obs?`<div class="w4"><dt>Observações do pedido</dt><dd>${esc(P.obs)}</dd></div>`:"")})()}</dl>`})()}
      <div class="tw"><table><thead><tr><th>Material</th><th>Un</th><th class="n">Pedido</th><th class="n">Entregue</th><th class="n">Falta</th><th class="n">Preço unit.</th><th class="n">Valor</th><th>Situação</th></tr></thead><tbody>
-     ${p.its.map(i=>`<tr><td class="mat">${esc(i.material)}<small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n">${qtd(i.entregue)}</td><td class="n"><b>${qtd("saldoReal" in i?i.saldoReal:i.saldo)}</b></td><td class="n">${i.precoRef==null?'<span class="pill warn">A cotar</span>':brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td><td>${sitPill(i.situacao)}</td></tr>`).join("")}
-     </tbody></table></div><div class="pedact"><span class="muted" style="margin-right:auto;align-self:center">Revisões anteriores ficam guardadas na planilha e não entram nos totais.</span><button type="button" class="btn primary" data-print="${esc(p.id)}">${ico("print")}Imprimir pedido</button></div></div></details>`;
+     ${p.its.map(i=>`<tr><td class="mat">${esc(i.material)}<small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n">${qtd(i.entregue)}</td><td class="n"><b>${qtd("saldoReal" in i?i.saldoReal:i.saldo)}</b></td><td class="n">${i.precoRef==null?'<span class="pill warn">Sem preço</span>':brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td><td>${sitPill(i.situacao)}</td></tr>`).join("")}
+     </tbody></table></div><div class="pedact">${p.f.rev>=2?'<span class="muted" style="margin-right:auto;align-self:center">Revisões anteriores ficam guardadas na planilha e não entram nos totais.</span>':""}<button type="button" class="btn primary" data-print="${esc(p.id)}">${ico("print")}Imprimir pedido</button></div></div></details>`;
   // Atenção primeiro (mais antigos antes); depois os demais, por dia de criação. 50 por vez, contando os dois blocos.
   const atencao=list.filter(p=>p.parcial||(SIT_F["A ENTREGAR"](p)&&esperaLonga(p))||p.cotar), demais=list.filter(p=>!atencao.includes(p));
   const antigos=[...atencao].sort((a,b)=>criacao(a).localeCompare(criacao(b))||a.id.localeCompare(b.id));
@@ -1944,6 +1965,12 @@ let MODO_APP = false;
 const ORIGEM_APP = "https:\/\/construtorazayda.github.io";
 try { google.script.url.getLocation(l=>{ MODO_APP = !!l.parameter && l.parameter.app==="1"; }); } catch(e) {}
 document.addEventListener("touchstart",()=>{},{passive:true}); /* sem isto o iPhone não aplica :active */
+/* Solicitações: tocar e segurar no usuário mostra o e-mail completo; o toque não abre nem fecha o pedido. */
+let segurarT=0,segurou=false;
+document.addEventListener("touchstart",e=>{const u=e.target.closest&&e.target.closest("[data-email]");clearTimeout(segurarT);segurou=false;if(!u)return;segurarT=setTimeout(()=>{segurou=true;aviso(u.dataset.email||"Sem e-mail",4000);},500);},{passive:true});
+["touchend","touchmove","touchcancel"].forEach(t=>document.addEventListener(t,()=>clearTimeout(segurarT),{passive:true}));
+document.addEventListener("click",e=>{if(segurou&&e.target.closest&&e.target.closest("[data-email]")){e.preventDefault();e.stopPropagation();segurou=false;}},true);
+document.addEventListener("contextmenu",e=>{if(e.target.closest&&e.target.closest("[data-email]")&&matchMedia("(pointer:coarse)").matches)e.preventDefault();});
 $("novaVerLink").addEventListener("click",e=>{ if(!MODO_APP) return; e.preventDefault(); window.top.postMessage({zayda:"recarregar"},ORIGEM_APP); });
 /* Versão publicada diferente da que está aberta: mostra a faixa (só uma vez; depois nada muda na tela). */
 function avisarVersao(d){
