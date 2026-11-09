@@ -590,11 +590,15 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .ob-q-n{display:block;margin-top:10px;font-size:11.5px;color:var(--ink-3)}
 @media (max-width:700px){.ob-q .oc-met{grid-template-columns:1fr}.ob-q .oc-bar{grid-column:auto}}
 .obpct{margin-top:10px}.obpct .et-bar{margin-bottom:4px}.obpct small{font-size:11.5px;color:var(--ink-3);font-weight:600}
-.pinfo{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px 18px;margin:12px 0 14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.pinfo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px 18px;margin:12px 0 14px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .pinfo dt{font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
 .pinfo dd{margin:3px 0 0;font-weight:700;overflow-wrap:anywhere}
-.pinfo .w4{grid-column:1/-1}
-.pinfo dd .lin{display:block}
+.pinfo div{min-width:0}
+.pinfo .pi-linha{grid-column:1/-1}
+.pinfo .pi-sep{grid-column:1/-1;height:1px;background:var(--line)}
+.pinfo .pi-ref{grid-column:1/span 2}
+.pinfo .pi-obs{grid-column:3/span 3}
+.pinfo dd .lin,.pinfo dd.un{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .hist .compl{display:block;margin-top:3px;font-size:11px;color:var(--ink-3);white-space:nowrap}
 /* Histórico de entregas do pedido: tabela; no celular, um card por entrega */
 .hist{margin:14px 0 4px}
@@ -611,7 +615,8 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
  .hist td[data-r]::before{content:attr(data-r);display:inline-block;min-width:96px;font-size:11px;font-weight:700;color:var(--ink-3)}
  .hist tr+tr td.mat{border-top:1px dashed var(--line);margin-top:4px;padding-top:6px}}
 .pinfo dd small{font-weight:600;color:var(--ink-3);font-size:11.5px}
-@media (max-width:700px){.pinfo{grid-template-columns:1fr}}
+@media (max-width:1000px){.pinfo{grid-template-columns:repeat(3,minmax(0,1fr))}.pinfo .pi-ref{grid-column:1/span 1}.pinfo .pi-obs{grid-column:2/span 2}}
+@media (max-width:700px){.pinfo{grid-template-columns:repeat(2,minmax(0,1fr))}.pinfo .pi-ref,.pinfo .pi-obs{grid-column:1/-1}}
 .pedact{display:flex;justify-content:flex-end;gap:8px;margin-top:12px;flex-wrap:wrap}
 .ped summary .pr{border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:5px 8px;cursor:pointer;color:var(--ink-2);display:inline-flex;align-items:center}
 @media (hover:hover) and (pointer:fine){.ped summary .pr:hover{border-color:var(--brand);color:var(--brand)}}
@@ -844,7 +849,7 @@ function entregasPedido(id){const canc=new Set(D.lanc.filter(l=>l.situacao==="CA
 const ordEntrega=n=>n+"ª entrega";
 /* Quem entregou / quem recebeu: um nome só ("NOME" ou "NOME · N entregas") ou uma linha por entrega ("NOME · 1ª entrega · dd/mm"). */
 function pessoasEntrega(E,campo){const nomes=E.map(g=>g[campo]||"—"),um=nomes.every(n=>mesmoNome(n,nomes[0]));
- return {varios:!um,html:um?esc(nomes[0])+(E.length>=2?` <small>· ${E.length} entregas</small>`:""):nomes.map((n,k)=>`<span class="lin">${esc(n)} <small>· ${ordEntrega(k+1)} · ${dbr(E[k].data).slice(0,5)}</small></span>`).join("")};}
+ return {varios:!um,html:um?esc(nomes[0])+(E.length>=2?` <small>· ${E.length} entregas</small>`:""):nomes.map((n,k)=>`<span class="lin" title="${esc(n+" · "+ordEntrega(k+1)+" · "+dbr(E[k].data).slice(0,5))}">${esc(n)} <small>· ${ordEntrega(k+1)} · ${dbr(E[k].data).slice(0,5)}</small></span>`).join("")};}
 const mesmoNome=(a,b)=>String(a||"").trim().toUpperCase()===String(b||"").trim().toUpperCase();
 /* Detalhe da coluna Entregue: "1 em 09/11 por JUNIOR, recebido por ADADSASD + 1 em 09/11 por PEDRO, recebido por LUCAS". */
 function tituloEntregue(id,sku){return entregasPedido(id).flatMap(g=>g.itens.filter(e=>e.sku===sku).map(e=>qtd(e.qtd)+" em "+dbr(e.data).slice(0,5)+(e.entreguePor?" por "+e.entreguePor:"")+(e.recebidoPor?", recebido por "+e.recebidoPor:""))).join(" + ");}
@@ -1290,11 +1295,11 @@ function vSol(){
        <div><dt>Atendente</dt><dd>${esc(p.f.atendente||"—")}</dd></div>
        ${(()=>{if(!E.length)return `<div><dt>Entregador</dt><dd>${esc(p.f.entregador||"—")}</dd></div>`;const ep=pessoasEntrega(E,"entreguePor"),rp=pessoasEntrega(E,"recebidoPor");
         return `<div><dt>${ep.varios?"Entregadores":"Entregador"}</dt><dd>${ep.html}</dd></div><div><dt>Recebido por</dt><dd>${rp.html}</dd></div>`;})()}
-       <div><dt>Entregas</dt><dd>${E.length>=2?E.length+" entregas · última em "+dbr(E[E.length-1].data):E.length?"1 entrega em "+dbr(E[0].data)+(E[0].recebidoPor?" · recebido por "+esc(E[0].recebidoPor):""):'<span class="muted">Nenhuma entrega ainda</span>'}</dd></div>
-       <div><dt>Pedido feito em</dt><dd>${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)}</dd></div>
-       ${(()=>{const O=obsEntregas(p.id), P=(D.pedidos||{})[p.id]||{};return (O.length?`<div class="w4"><dt>Observações da entrega</dt><dd>${O.map(o=>`<small>${dbr(o.data)}</small> ${esc(o.obs)}`).join("<br>")}</dd></div>`:"")+
-         (P.referencia?`<div class="w4"><dt>Ponto de referência</dt><dd>${esc(P.referencia)}</dd></div>`:"")+
-         (P.obs?`<div class="w4"><dt>Observações do pedido</dt><dd>${esc(P.obs)}</dd></div>`:"")})()}</dl>`})()}
+       <div><dt>Entregas</dt>${(()=>{const t=E.length>=2?E.length+" entregas · última em "+dbr(E[E.length-1].data):E.length?"1 entrega em "+dbr(E[0].data)+(E[0].recebidoPor?" · recebido por "+E[0].recebidoPor:""):"";return t?`<dd class="un" title="${esc(t)}">${esc(t)}</dd>`:'<dd class="un"><span class="muted">Nenhuma entrega ainda</span></dd>';})()}</div>
+       <div><dt>Pedido feito em</dt>${(()=>{const t=criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data);return `<dd class="un" title="${esc(t)}">${esc(t)}</dd>`;})()}</div>
+       ${(()=>{const O=obsEntregas(p.id), P=(D.pedidos||{})[p.id]||{};const B=[P.referencia?`<div><dt>Ponto de referência</dt><dd>${esc(P.referencia)}</dd></div>`:"",P.obs?`<div><dt>Observações do pedido</dt><dd>${esc(P.obs)}</dd></div>`:""].filter(Boolean);
+         return (B.length||O.length?'<div class="pi-sep" aria-hidden="true"></div>':"")+(B.length===2?B[0].replace("<div>",'<div class="pi-ref">')+B[1].replace("<div>",'<div class="pi-obs">'):B.join("").replace("<div>",'<div class="pi-linha">'))+
+         (O.length?`<div class="pi-linha"><dt>Observações da entrega</dt><dd>${O.map(o=>`<small>${dbr(o.data)}</small> ${esc(o.obs)}`).join("<br>")}</dd></div>`:"")})()}</dl>`})()}
      <div class="tw"><table><thead><tr><th>Material</th><th>Un</th><th class="n">Pedido</th><th class="n">Entregue</th><th class="n">Falta</th><th class="n">Preço unit.</th><th class="n">Valor</th><th>Situação</th></tr></thead><tbody>
      ${p.its.map(i=>`<tr><td class="mat">${esc(i.material)}<small>${esc(i.sku)}</small></td><td>${esc(i.un)}</td><td class="n">${qtd(i.qtdSol)}</td><td class="n"${(()=>{const t=tituloEntregue(p.id,i.sku);return t?` title="${esc(t)}"`:"";})()}>${qtd(i.entregue)}</td><td class="n"><b>${qtd("saldoReal" in i?i.saldoReal:i.saldo)}</b></td><td class="n">${i.precoRef==null?'<span class="pill warn">Sem preço</span>':brl(i.precoRef)}</td><td class="n">${i.valorRef==null?"—":brl(i.valorRef)}</td><td>${sitPill(i.situacao)}</td></tr>`).join("")}
      </tbody></table></div>${(()=>{const E=entregasPedido(p.id);return E.length?`<div class="hist"><h3>Histórico de entregas</h3><div class="tw"><table><thead><tr><th>Data</th><th>Entregue por</th><th>Recebido por</th><th>Material</th><th class="n">Qtd</th></tr></thead>${E.map((g,gi)=>`<tbody>${g.itens.map((e,k)=>`<tr>${k?"":`<td rowspan="${g.itens.length}" data-r="Data">${dbr(g.data)}</td><td rowspan="${g.itens.length}" data-r="Entregue por"><span class="nome">${esc(g.entreguePor||"—")}</span><span class="pill sitc">${ordEntrega(gi+1)}</span>${gi?'<span class="compl">complementa a anterior</span>':""}</td><td rowspan="${g.itens.length}" data-r="Recebido por"><span class="nome">${esc(g.recebidoPor||"—")}</span>${g.obs.length?`<span class="obs">${g.obs.map(esc).join(" · ")}</span>`:""}</td>`}<td class="mat">${esc(e.material)}<small>${esc(e.sku)}</small></td><td class="n">${qtd(e.qtd)} ${esc(e.un)}</td></tr>`).join("")}</tbody>`).join("")}</table></div></div>`:"";})()}<div class="pedact">${p.f.rev>=2?'<span class="muted" style="margin-right:auto;align-self:center">Revisões anteriores ficam guardadas na planilha e não entram nos totais.</span>':""}<button type="button" class="btn primary" data-print="${esc(p.id)}">${ico("print")}Imprimir pedido</button></div></div></details>`;
