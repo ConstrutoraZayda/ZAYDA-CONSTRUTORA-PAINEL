@@ -692,6 +692,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 #printArea .rel h2{break-after:avoid}
 #printArea .rel .tot{margin:8px 0}
 #printArea .rel .tot.q4{grid-template-columns:repeat(4,1fr)}
+#printArea .rel .tot.q5{grid-template-columns:repeat(5,1fr)}
 #printArea .rel .tb thead{display:table-header-group}
 #printArea .rel .tb tr.t td{font-weight:800;background:#F5F8F6!important}
 #printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#555}
@@ -2221,12 +2222,21 @@ function folhaRelObra(id,ini,fim,periodo){
     `<h2>ENTREGAS NO PERÍODO</h2>`+(ent.length?relTabela(["Data","Pedido","Material",["Qtd","n"],"Un",["Valor unit.","n"],["Total","n"],"Recebido por"],ent.map(l=>{ const c=l.situacao==="CUSTO CONFIRMADO"; return [dbr(l.data),esc(l.pedido||"—"),esc(l.material),qtd(l.qtd),esc(l.un),c&&l.custo!=null?brl(l.custo):"—",c?brl(l.valor):"Sem custo confirmado",esc(partesEntrega(l.obs).nome||"—")]; }),["TOTAL (custo confirmado)","","","","","",brl(d.custo),""]):relVazio("Nenhuma entrega neste período."))+
     `<h2>MATERIAIS QUE AINDA FALTAM CHEGAR</h2>`+(faltam.length?relTabela(["Pedido","Material",["Quantidade pedida","n"],["Entregue","n"],["Falta","n"]],faltam.map(i=>[esc(i.pedido),esc(i.material),qtd(i.qtdSol)+" "+esc(i.un),qtd(i.entregue)+" "+esc(i.un),qtd(i.saldo)+" "+esc(i.un)])):relVazio("Nenhum material pendente nesta obra.")));
 }
+/* Quem entregou o material de um lançamento: "entregue por" da entrega (mesmo ID); sem esse dado, o entregador do pedido. */
+const entreguePorLanc = l => { const P=(D.pedidos||{})[l.pedido]||{}, e=(P.entregas||[]).find(x=>x.id===l.id); return (e&&e.entreguePor)||P.entregador||""; };
 /* Relatório do dia: uma obra, ou todas agrupadas com subtotal e total geral. */
 function folhaDia(obra,dia){
   const L=entregasConf(obra).filter(l=>l.data===dia), r=resumoDia(L), o=obra&&D.obras.find(x=>x.id===obra);
-  const tabela=(a,rot)=>relTabela(["Material",["Quantidade","n"],["Custo unit.","n"],["Valor","n"],"Pedido","Recebido por"],
-    [...a].sort(ordemDia).map(l=>[`<b>${esc(l.material)}</b><small>${esc(l.sku)}</small>`,qtd(l.qtd)+" "+esc(l.un),l.custo==null?"—":brl(l.custo),brl(l.valor),l.pedido?esc(l.pedido):"Excepcional",esc(partesEntrega(l.obs).nome||"—")]),
-    [rot,"","",brl(sum(a,l=>l.valor)),"",""]);
+  const tabela=(a,rot)=>relTabela(["Material",["Quantidade","n"],["Custo unit.","n"],["Valor","n"],"Pedido","Entregue por","Recebido por"],
+    [...a].sort(ordemDia).map(l=>[`<b>${esc(l.material)}</b><small>${esc(l.sku)}</small>`,qtd(l.qtd)+" "+esc(l.un),l.custo==null?"—":brl(l.custo),brl(l.valor),l.pedido?esc(l.pedido):"Excepcional",esc(entreguePorLanc(l)||"—"),esc(partesEntrega(l.obs).nome||"—")]),
+    [rot,"","",brl(sum(a,l=>l.valor)),"","",""]);
+  // Entregadores do dia: pedidos, entregas (pedido + quem recebeu), linhas de material e valor de cada um; maior valor primeiro.
+  const ent=Object.values(L.reduce((g,l)=>{ const nome=entreguePorLanc(l)||"—", k=nome.trim().toUpperCase(), x=g[k]=g[k]||{nome,peds:[],ents:new Set(),n:0,v:0};
+    if(l.pedido&&!x.peds.some(p=>p.id===l.pedido)) x.peds.push({id:l.pedido,obra:l.obra}); x.ents.add(l.pedido?l.pedido+"|"+String(partesEntrega(l.obs).nome||"").trim().toUpperCase():l.id); x.n++; x.v+=l.valor||0; return g; },{}))
+    .sort((a,b)=>b.v-a.v||a.nome.localeCompare(b.nome,"pt-BR"));
+  const pedTxt=x=>x.peds.length?x.peds.map(p=>obra?esc(p.id):(p.obra==="SEM VÍNCULO"?"Sem obra":esc(p.obra))+" · "+esc(p.id)).join(obra?" · ":"<br>"):"Excepcional";
+  const quadroEnt=`<h2>ENTREGADORES DO DIA</h2>`+relTabela(["Entregador","Pedidos que entregou",["Entregas","n"],["Materiais","n"],["Valor","n"]],
+    ent.map(x=>[`<b>${esc(x.nome)}</b>`,pedTxt(x),x.ents.size,x.n,brl(x.v)]),["TOTAL","",sum(ent,x=>x.ents.size),L.length,brl(r.total)]);
   const nomeOb=id=>id==="SEM VÍNCULO"?"Sem obra identificada":esc(obraNome(id));
   const cli=x=>x&&(x.cliente||x.empreendimento)||"";
   const grupos=Object.entries(relGrupo(L,l=>l.obra)).sort((a,b)=>(a[0]==="SEM VÍNCULO")-(b[0]==="SEM VÍNCULO")||a[0].localeCompare(b[0],"pt-BR",{numeric:true}));
@@ -2235,7 +2245,8 @@ function folhaDia(obra,dia){
   return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel">
   <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>Relatório do dia</h1><div class="id">${dbr(dia)}</div></div></div>
   <dl class="blk">${dados}<div><dt>DATA</dt><dd>${dbr(dia)}</dd></div></dl>
-  <h2>RESUMO DO DIA</h2><div class="tot q4"><div><span>TOTAL DO DIA</span><b>${brl(r.total)}</b></div><div><span>ENTREGAS</span><b>${r.n}</b></div><div><span>MATERIAIS DIFERENTES</span><b>${r.mats}</b></div><div><span>PEDIDOS</span><b>${r.peds}</b></div></div>
+  <h2>RESUMO DO DIA</h2><div class="tot q5"><div><span>TOTAL DO DIA</span><b>${brl(r.total)}</b></div><div><span>ENTREGAS</span><b>${r.n}</b></div><div><span>MATERIAIS DIFERENTES</span><b>${r.mats}</b></div><div><span>PEDIDOS</span><b>${r.peds}</b></div><div><span>ENTREGADORES</span><b>${ent.length}</b></div></div>
+  ${quadroEnt}
   ${corpo}
   <div class="rod"><span></span><span>Impresso em ${relAgora()}</span></div></div></td></tr></tbody></table>`;
 }
