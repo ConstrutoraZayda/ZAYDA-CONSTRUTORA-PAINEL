@@ -527,7 +527,8 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 body.nao-admin [data-orc]{display:none!important}
 .nav a[hidden]{display:none}
 /* Usuários */
-.usu-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.usu-resumo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.usu-resumo .usu-online .foot{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .usu-resumo .card{padding:14px 16px}
 .usu-resumo .lbl{font-size:12px;font-weight:700;color:var(--ink-2)}
 .usu-resumo .val{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
@@ -542,15 +543,21 @@ body.nao-admin [data-orc]{display:none!important}
 @media (hover:hover) and (pointer:fine){.usu-chips button:hover{border-color:var(--brand)}}
 .usu-grupo{padding:0;margin-bottom:16px}
 .usu-gh{padding:12px 18px;font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--ink-3);border-bottom:1px solid var(--line)}
-.usu-cab,.usu-lin{display:grid;grid-template-columns:minmax(190px,2.2fr) minmax(90px,1fr) 78px 178px 104px 112px 132px;gap:10px;align-items:center;padding:10px 18px}
+.usu-grupo,.usu-antigas{container-type:inline-size}
+.usu-cab,.usu-lin{display:grid;grid-template-columns:minmax(150px,2.2fr) minmax(72px,1fr) 64px 140px 86px 88px 118px 120px;gap:8px;align-items:center;padding:10px 16px}
 .usu-cab{padding-top:8px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
 .usu-lin+.usu-lin{border-top:1px solid var(--line)}
 .usu-lin>*{min-width:0}
 .usu-lin.inativo>:not(.c-act):not(.usu-conf){opacity:.55}
 .usu-p{display:flex;align-items:center;gap:10px}
-.usu-av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;letter-spacing:.02em;background:var(--brand-soft);color:var(--brand)}
+.usu-av{position:relative;flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;letter-spacing:.02em;background:var(--brand-soft);color:var(--brand)}
 .usu-av.bsj{background:var(--blue-soft);color:var(--blue)}
 .usu-av.off{background:var(--surface-2);color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
+.usu-av.on::after{content:"";position:absolute;right:-1px;bottom:-1px;width:11px;height:11px;border-radius:50%;background:#22A45D;box-shadow:0 0 0 2px var(--surface)}
+.c-at{font-size:13px;color:var(--ink-2)}
+.c-at .usu-on{display:block;color:var(--brand);font-weight:800;white-space:nowrap}
+.c-at small{display:block;font-size:12px;color:var(--ink-3)}
+.usu-visto{white-space:nowrap}
 .usu-p>span{min-width:0}
 .usu-p b{font-size:14px;font-weight:800;overflow-wrap:anywhere}
 .usu-p .pill{margin-left:6px;vertical-align:1px}
@@ -609,14 +616,23 @@ body.nao-admin [data-orc]{display:none!important}
 .usu-lat .acoes{display:flex;gap:8px;margin-top:auto;padding-top:6px}
 .usu-lat .acoes .btn{flex:1;min-height:44px}
 @media (prefers-reduced-motion:reduce){.usu-sw i,.usu-sw i::after,.usu-antigas>summary::before{transition:none}}
-@media (max-width:1100px){.usu-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1100px){.usu-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}.usu-resumo .usu-online{grid-column:1/-1}}
 @media (max-width:960px){
   .usu-cab{display:none}
-  .usu-lin{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"p p" "pf acc" "s ap" "u act";gap:10px 12px;padding:14px 16px}
-  .usu-lin .c-p{grid-area:p}.usu-lin .c-pf{grid-area:pf}.usu-lin .c-acc{grid-area:acc}.usu-lin .c-s{grid-area:s}.usu-lin .c-ap{grid-area:ap}.usu-lin .c-u{grid-area:u;align-self:center}.usu-lin .c-act{grid-area:act}
+  .usu-lin{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"p p" "at at" "pf acc" "s ap" "u act";gap:10px 12px;padding:14px 16px}
+  .usu-lin .c-p{grid-area:p}.usu-lin .c-at{grid-area:at;margin-top:-4px;padding-left:46px}.usu-lin .c-pf{grid-area:pf}.usu-lin .c-acc{grid-area:acc}.usu-lin .c-s{grid-area:s}.usu-lin .c-ap{grid-area:ap}.usu-lin .c-u{grid-area:u;align-self:center}.usu-lin .c-act{grid-area:act}
+  .usu-lin .c-at .usu-on,.usu-lin .c-at small{display:inline}.usu-lin .c-at small{margin-left:6px}
   .usu-lin .c-s,.usu-lin .c-ap{white-space:nowrap}
   .usu-lin [data-r]::before{content:attr(data-r) " ";font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin-right:4px}
   .usu-gh{padding:12px 16px}
+}
+@container (max-width:925px){
+  .usu-cab{display:none}
+  .usu-lin{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"p p" "at at" "pf acc" "s ap" "u act";gap:10px 12px;padding:14px 16px}
+  .usu-lin .c-p{grid-area:p}.usu-lin .c-at{grid-area:at;margin-top:-4px;padding-left:46px}.usu-lin .c-pf{grid-area:pf}.usu-lin .c-acc{grid-area:acc}.usu-lin .c-s{grid-area:s}.usu-lin .c-ap{grid-area:ap}.usu-lin .c-u{grid-area:u;align-self:center}.usu-lin .c-act{grid-area:act}
+  .usu-lin .c-at .usu-on,.usu-lin .c-at small{display:inline}.usu-lin .c-at small{margin-left:6px}
+  .usu-lin .c-s,.usu-lin .c-ap{white-space:nowrap}
+  .usu-lin [data-r]::before{content:attr(data-r) " ";font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin-right:4px}
 }
 @media (max-width:420px){.usu-resumo{gap:8px}.usu-resumo .card{padding:12px}.usu-resumo .val{font-size:24px}.usu-tool input[type=search]{min-width:0;flex-basis:100%}}
 .err{background:var(--red-soft);color:var(--red);border-radius:12px;padding:14px 16px;font-weight:700;margin-bottom:16px}
@@ -2467,7 +2483,7 @@ function respUsu(r){ if(r&&r.acesso===false){ fecharUsu(); esquecerCodigo(); tel
 function carregarUsuarios(){
   USU.carregando=true;
   apiUsu("usuarios","listarUsuarios",{},[]).then(r=>{ USU.carregando=false; if(!respUsu(r)) return;
-      if(!r.ok){ USU.erro=r.motivo||"Não foi possível ler os usuários."; } else { USU.lista=r.usuarios; USU.eu=r.eu; USU.dono=r.dono; USU.erro=""; }
+      if(!r.ok){ USU.erro=r.motivo||"Não foi possível ler os usuários."; } else { USU.lista=r.usuarios; USU.eu=r.eu; USU.dono=r.dono; USU.erro=""; USU.agoraServ=Number(r.agora)||0; USU.agoraLocal=Date.now(); }
       if(S.view==="usuarios") render(); })
     .catch(e=>{ USU.carregando=false; USU.erro="Erro do Google: "+(e&&e.message?e.message:e); if(S.view==="usuarios") render(); });
 }
@@ -2483,9 +2499,50 @@ function acoesUsu(u){
   if(u.email!==USU.eu) a.push(u.ativo?["desativar","Desativar acesso","perigo"]:["ativar","Reativar acesso",""]);
   return a;
 }
+/* Quem está online: última atividade no painel ou no formulário nos últimos 2 minutos (relógio do servidor). */
+const ONLINE_MS=120000;
+const agoraUsu=()=>USU.agoraServ?USU.agoraServ+(Date.now()-USU.agoraLocal):Date.now();
+const FMT_SP=new Intl.DateTimeFormat("pt-BR",{timeZone:"America/Sao_Paulo",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit",hourCycle:"h23"});
+const partesSP=ms=>{const o={};FMT_SP.formatToParts(new Date(ms)).forEach(p=>{o[p.type]=p.value});return o};
+const quandoSP=ms=>{ if(!ms) return "nunca"; const p=partesSP(ms); return p.day+"/"+p.month+"/"+p.year+" às "+p.hour+":"+p.minute; };
+const onlineUsu=u=>{ const n=agoraUsu(); return {p:!!u.ultimoPainel&&n-u.ultimoPainel<=ONLINE_MS, f:!!u.ultimoFormulario&&n-u.ultimoFormulario<=ONLINE_MS}; };
+const onlineLista=()=>(USU.lista||[]).filter(u=>{const o=onlineUsu(u);return o.p||o.f}).map(u=>u.nome||u.email);
+function ativUsu(u){
+  const o=onlineUsu(u), n=agoraUsu(), title="Último no painel: "+quandoSP(u.ultimoPainel)+" · Último no formulário: "+quandoSP(u.ultimoFormulario);
+  if(o.p||o.f) return {on:true,title,html:'<span class="usu-on">● Online agora</span><small>'+(o.p&&o.f?"Painel e Formulário":o.p?"Painel":"Formulário")+'</small>'};
+  const ult=Math.max(u.ultimoPainel||0,u.ultimoFormulario||0);
+  if(!ult) return {on:false,title,html:'<span class="usu-nada">Nunca acessou</span>'};
+  const d=n-ult; let t;
+  if(d<3600000) t="Visto há "+Math.max(1,Math.floor(d/60000))+" min";
+  else { const p=partesSP(ult), dia=x=>x.year+x.month+x.day, hm=p.hour+":"+p.minute;
+    t=dia(p)===dia(partesSP(n))?"Hoje às "+hm:dia(p)===dia(partesSP(n-86400000))?"Ontem às "+hm:p.day+"/"+p.month+" às "+hm; }
+  return {on:false,title,html:'<span class="usu-visto">'+t+'</span>'};
+}
+/* Atualiza só a atividade, as bolinhas e o cartão "Online agora", sem redesenhar a tela. */
+function pintarAtividadeUsu(){
+  if(S.view!=="usuarios"||!USU.lista) return;
+  USU.lista.forEach(u=>{ const l=document.querySelector('.usu-lin[data-email="'+CSS.escape(u.email)+'"]'); if(!l) return;
+    const a=ativUsu(u), c=l.querySelector(".c-at"), av=l.querySelector(".usu-av");
+    if(c){ if(c.innerHTML!==a.html) c.innerHTML=a.html; if(c.title!==a.title) c.title=a.title; }
+    if(av) av.classList.toggle("on",a.on); });
+  const box=$("usuOnline"); if(box){ const on=onlineLista(), v=box.querySelector(".val"), f=box.querySelector(".foot"), t=on.length?on.join(", "):"ninguém no momento";
+    if(v.textContent!==String(on.length)) v.textContent=on.length; if(f.textContent!==t){ f.textContent=t; f.title=on.join(", "); } }
+}
+function atualizarPresencaUsu(){
+  if(USU.vivo||!USU.lista||USU.carregando) return; USU.vivo=true;
+  apiUsu("usuarios","listarUsuarios",{},[]).then(r=>{ USU.vivo=false; if(!respUsu(r)||!r||!r.ok||!USU.lista) return;
+      USU.agoraServ=Number(r.agora)||0; USU.agoraLocal=Date.now();
+      const por={}; (r.usuarios||[]).forEach(x=>{por[x.email]=x});
+      USU.lista.forEach(u=>{ const x=por[u.email]; if(x){ u.ultimoPainel=x.ultimoPainel; u.ultimoFormulario=x.ultimoFormulario; } });
+      pintarAtividadeUsu(); })
+    .catch(()=>{ USU.vivo=false; });
+}
+/* Com a tela Usuários aberta e visível: a cada 30 s; ao voltar a ficar visível, na hora. Fora dela, nada. */
+setInterval(()=>{ if(S.view==="usuarios"&&document.visibilityState==="visible") atualizarPresencaUsu(); },30000);
+document.addEventListener("visibilitychange",()=>{ if(document.visibilityState==="visible"&&S.view==="usuarios") atualizarPresencaUsu(); });
 function linhaUsu(u){
   const k=esc(u.email), dono=u.email===USU.dono;
-  const av=`<span class="usu-av${!u.ativo?" off":u.empresa==="BSJ"?" bsj":""}" aria-hidden="true">${esc(iniciais(u))}</span>`;
+  const at=ativUsu(u), av=`<span class="usu-av${!u.ativo?" off":u.empresa==="BSJ"?" bsj":""}${at.on?" on":""}" aria-hidden="true">${esc(iniciais(u))}</span>`;
   const acesso=(on,t)=>`<span class="pill ${on?"ok":"off"}" title="${esc(t+(on?": com acesso":": sem acesso"))}">${t}</span>`;
   const senha=!u.painel?`<span class="usu-nada" aria-label="Não usa o painel">—</span>`:u.temPin?`<span class="usu-sen ok">✓ Definida</span>`:`<span class="usu-sen espera">⏳ 1º acesso</span>`;
   const ap=u.aparelhos>0?`<span class="usu-ap"><i aria-hidden="true">●</i>${u.aparelhos} ${u.aparelhos===1?"aparelho":"aparelhos"}</span>`:`<span class="usu-nada">—</span>`;
@@ -2501,9 +2558,10 @@ function linhaUsu(u){
     <div class="c-acc usu-sels">${acesso(u.formulario,"Formulário")}${acesso(u.painel,"Painel")}</div>
     <div class="c-s" data-r="Senha">${senha}</div>
     <div class="c-ap" data-r="Aparelhos">${ap}</div>
+    <div class="c-at" title="${esc(at.title)}">${at.html}</div>
     <div class="c-act"><button type="button" class="btn" data-usu="editar" data-u="${k}">Editar</button>${menu}</div>${conf}</div>`;
 }
-const CAB_USU=`<div class="usu-cab" aria-hidden="true"><span>Pessoa</span><span>Usuário</span><span>Perfil</span><span>Acessos</span><span>Senha</span><span>Aparelhos</span><span style="text-align:right">Ações</span></div>`;
+const CAB_USU=`<div class="usu-cab" aria-hidden="true"><span>Pessoa</span><span>Usuário</span><span>Perfil</span><span>Acessos</span><span>Senha</span><span>Aparelhos</span><span>Atividade</span><span style="text-align:right">Ações</span></div>`;
 function vUsuarios(){
   if(!USU.lista&&!USU.carregando&&!USU.erro) carregarUsuarios();
   if(!USU.lista) return `<section class="card"><div class="loading">${USU.erro?esc(USU.erro)+` <button type="button" class="btn" data-usu="recarregar">Tentar de novo</button>`:"Carregando usuários…"}</div></section>`;
@@ -2511,7 +2569,8 @@ function vUsuarios(){
   const ativos=pessoas.filter(u=>u.ativo), comPainel=ativos.filter(u=>u.painel), pend=comPainel.filter(u=>u.usuario&&!u.temPin).length;
   const nAp=USU.lista.reduce((s,u)=>s+(u.aparelhos||0),0);
   const cartao=(l,v,f,cl)=>`<div class="card"><div class="lbl">${l}</div><div class="val${cl?" "+cl:""}">${v}</div><div class="foot">${f}</div></div>`;
-  const resumo=`<section class="usu-resumo">${cartao("Pessoas ativas",ativos.length,"de "+pessoas.length+" cadastradas")}${cartao("Com acesso ao painel",comPainel.length,"pessoas ativas com Painel")}${cartao("Senhas pendentes",pend,"1º acesso ainda não feito",pend>0?"espera":"")}${cartao("Aparelhos conectados",nAp,nAp===1?"aparelho com acesso salvo":"aparelhos com acesso salvo")}</section>`;
+  const on=onlineLista();
+  const resumo=`<section class="usu-resumo"><div class="card usu-online" id="usuOnline"><div class="lbl">Online agora</div><div class="val">${on.length}</div><div class="foot" title="${esc(on.join(", "))}">${on.length?esc(on.join(", ")):"ninguém no momento"}</div></div>${cartao("Pessoas ativas",ativos.length,"de "+pessoas.length+" cadastradas")}${cartao("Com acesso ao painel",comPainel.length,"pessoas ativas com Painel")}${cartao("Senhas pendentes",pend,"1º acesso ainda não feito",pend>0?"espera":"")}${cartao("Aparelhos conectados",nAp,nAp===1?"aparelho com acesso salvo":"aparelhos com acesso salvo")}</section>`;
   const FIL={todas:["Todas",u=>true],Zayda:["Zayda",u=>u.empresa==="Zayda"],BSJ:["BSJ",u=>u.empresa==="BSJ"],inativos:["Inativos",u=>!u.ativo]};
   if(!FIL[USU.filtro]) USU.filtro="todas";
   const chips=`<div class="usu-chips" role="group" aria-label="Filtrar usuários">${Object.entries(FIL).map(([k,[t,f]])=>`<button type="button" data-usu="filtro" data-f="${k}" aria-pressed="${USU.filtro===k}">${t}<span>${pessoas.filter(f).length}</span></button>`).join("")}</div>`;

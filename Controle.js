@@ -983,7 +983,36 @@ function autenticar_(token) {
   const u = usuarioPorLogin_(reg.u);
   if (!podePainel_(u)) { props.deleteProperty('TOKEN_' + t); return {erro: {acesso: false, motivo: 'DESATIVADO'}}; }
   if (Date.now() - Number(reg.uso || 0) > 3600000) { reg.uso = Date.now(); props.setProperty('TOKEN_' + t, JSON.stringify(reg)); } // último uso, no máximo 1 gravação por hora
+  marcarVisto_(u.usuario);
   return {u};
+}
+/** Presença no painel: horário no cache ("visto_<usuario>", 6 h) a cada chamada autenticada e,
+ *  no máximo a cada 5 minutos por usuário, também em "ULTIMO_PAINEL_<usuario>" (sobrevive ao cache). */
+function marcarVisto_(usuario) {
+  try {
+    const agora = String(Date.now()), cache = CacheService.getScriptCache();
+    cache.put('visto_' + usuario, agora, 21600);
+    if (!cache.get('vistoGravado_' + usuario)) {
+      PropertiesService.getScriptProperties().setProperty('ULTIMO_PAINEL_' + usuario, agora);
+      cache.put('vistoGravado_' + usuario, '1', 300);
+    }
+  } catch (e) {}
+}
+/** Último horário (ms) de cada e-mail na aba _PRESENCA da planilha do formulário (B = yyyy-MM-dd HH:mm:ss, fuso de São Paulo). */
+function presencaFormulario_() {
+  const out = {};
+  try {
+    const sh = origemPlanilha_().getSheetByName('_PRESENCA');
+    if (!sh || sh.getLastRow() < 2) return out;
+    sh.getRange(2, 1, sh.getLastRow() - 1, 2).getValues().forEach(r => {
+      const email = texto_(r[0]).toLowerCase(); if (!email) return;
+      let ms = 0;
+      if (r[1] instanceof Date) ms = r[1].getTime();
+      else if (/^\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}$/.test(texto_(r[1]))) ms = Utilities.parseDate(texto_(r[1]), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss').getTime();
+      if (ms > (out[email] || 0)) out[email] = ms;
+    });
+  } catch (e) { Logger.log('Presença do formulário não lida: ' + e.message); }
+  return out;
 }
 
 /** Login com usuário + senha. 5 erros seguidos no mesmo usuário bloqueiam por 15 minutos.
@@ -1078,10 +1107,15 @@ function auditarUsuario_(quem, alvo, descricao) {
 }
 function listarUsuarios(token) {
   const a = adminZayda_(token); if (a.erro) return a.erro;
-  const aparelhos = contarTokens_();
-  return {ok: true, eu: a.u.email, dono: DONO_SISTEMA, usuarios: usuariosPainel_().map(u => ({email: u.email, nome: u.nome, usuario: u.usuario,
+  const aparelhos = contarTokens_(), lista = usuariosPainel_();
+  // Presença: painel (cache, senão propriedades) e formulário (aba _PRESENCA), em milissegundos; 0 = nunca.
+  const logins = lista.map(u => u.usuario).filter(Boolean), props = PropertiesService.getScriptProperties().getProperties();
+  let vistos = {}; try { vistos = logins.length ? CacheService.getScriptCache().getAll(logins.map(l => 'visto_' + l)) : {}; } catch (e) {}
+  const form = presencaFormulario_();
+  const ultimoPainel = l => !l ? 0 : Math.max(Number(vistos['visto_' + l] || 0), Number(props['ULTIMO_PAINEL_' + l] || 0)) || 0;
+  return {ok: true, eu: a.u.email, dono: DONO_SISTEMA, agora: Date.now(), usuarios: lista.map(u => ({email: u.email, nome: u.nome, usuario: u.usuario,
     empresa: u.empresa, perfil: u.perfil, formulario: u.formulario, painel: u.painel, ativo: u.ativo, obs: u.obs,
-    temPin: temPin_(u.usuario), aparelhos: aparelhos[u.usuario] || 0}))};
+    temPin: temPin_(u.usuario), aparelhos: aparelhos[u.usuario] || 0, ultimoPainel: ultimoPainel(u.usuario), ultimoFormulario: form[u.email] || 0}))};
 }
 /** Inclui ou altera uma linha da aba USUARIOS (gravada como texto) e ajusta o acesso de editor à planilha do formulário. */
 function salvarUsuario(token, dados) {
