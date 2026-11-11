@@ -498,12 +498,19 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .acesso .msg{color:var(--red);font-weight:700;font-size:13px;min-height:1em}
 .acesso button{border:0;border-radius:10px;padding:12px 16px;font-weight:800;background:var(--brand);color:#fff;cursor:pointer}
 .acesso button:disabled{opacity:.6;cursor:wait}
-/* Acesso individual: usuário + PIN, primeiro acesso, criar e trocar PIN */
+/* Acesso individual: usuário + senha, primeiro acesso, criar e trocar a senha */
 .acesso .ac-g{display:grid;gap:10px}
 .acesso .ac-g[hidden]{display:none}
 .acesso .ac-lnks{display:flex;flex-wrap:wrap;gap:6px 16px}
 .acesso button.lnk{background:none;border:0;padding:4px 0;color:var(--brand);font-weight:700;font-size:13px;text-decoration:underline;cursor:pointer}
 .acesso button.lnk[hidden]{display:none}
+.acesso .ac-pw{position:relative}
+.acesso .ac-pw input{padding-right:52px}
+.acesso .ac-pw button.olho{position:absolute;right:4px;top:50%;transform:translateY(-50%);display:grid;place-items:center;width:44px;height:40px;padding:0;border-radius:8px;background:transparent;color:var(--ink-3);cursor:pointer}
+.acesso .ac-pw button.olho:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.acesso .ac-pw button.olho svg{width:20px;height:20px}
+.acesso .ac-pw button.olho .fechado,.acesso .ac-pw button.olho[aria-pressed="true"] .aberto{display:none}
+.acesso .ac-pw button.olho[aria-pressed="true"] .fechado{display:block}
 /* Conta na barra lateral; botões de orçamento só para Admin; menu Usuários só para Admin da Zayda */
 .sidecard .sc-conta{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
 .sidecard .sc-conta[hidden]{display:none}
@@ -764,19 +771,19 @@ body.nao-admin [data-orc]{display:none!important}
 <div class="acesso" id="acesso" hidden>
   <form id="formAcesso" autocomplete="off" novalidate>
     <h1>Painel de custos</h1>
-    <p id="acTexto">Entre com seu usuário e o seu PIN.</p>
+    <p id="acTexto">Entre com seu usuário e sua senha.</p>
     <div class="ac-g" id="ac_entrar"><input type="text" id="acUsuario" placeholder="Usuário" aria-label="Usuário" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
-      <input type="password" id="acPin" placeholder="PIN (6 dígitos)" aria-label="PIN" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password"></div>
+      <input type="password" id="acPin" placeholder="Senha" aria-label="Senha" maxlength="32" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <div class="ac-g" id="ac_primeiro" hidden><input type="text" id="acUsuario2" placeholder="Usuário" aria-label="Usuário" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false">
       <input type="password" id="acCodigo" placeholder="Código de acesso" aria-label="Código de acesso" autocomplete="off"></div>
-    <div class="ac-g" id="ac_criar" hidden><input type="password" id="acPin1" placeholder="Novo PIN (6 dígitos)" aria-label="Novo PIN" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password">
-      <input type="password" id="acPin2" placeholder="Repita o PIN" aria-label="Repita o PIN" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>
-    <div class="ac-g" id="ac_trocar" hidden><input type="password" id="acPinAtual" placeholder="PIN atual" aria-label="PIN atual" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="current-password">
-      <input type="password" id="acPinNovo1" placeholder="Novo PIN (6 dígitos)" aria-label="Novo PIN" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password">
-      <input type="password" id="acPinNovo2" placeholder="Repita o novo PIN" aria-label="Repita o novo PIN" inputmode="numeric" pattern="[0-9]*" maxlength="6" autocomplete="new-password"></div>
+    <div class="ac-g" id="ac_criar" hidden><input type="password" id="acPin1" placeholder="Nova senha" aria-label="Nova senha" maxlength="32" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input type="password" id="acPin2" placeholder="Repita a senha" aria-label="Repita a senha" maxlength="32" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="ac-g" id="ac_trocar" hidden><input type="password" id="acPinAtual" placeholder="Senha atual" aria-label="Senha atual" maxlength="64" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input type="password" id="acPinNovo1" placeholder="Nova senha" aria-label="Nova senha" maxlength="32" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false">
+      <input type="password" id="acPinNovo2" placeholder="Repita a nova senha" aria-label="Repita a nova senha" maxlength="32" autocomplete="new-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <div class="msg" id="acessoMsg" role="alert"></div>
     <button type="submit" id="btnEntrar">Entrar</button>
-    <div class="ac-lnks"><button type="button" class="lnk" id="acPrimeiroLnk">Primeiro acesso</button><button type="button" class="lnk" id="acVoltarLnk" hidden>Voltar para usuário e PIN</button><button type="button" class="lnk" id="acCancelarLnk" hidden>Cancelar</button></div>
+    <div class="ac-lnks"><button type="button" class="lnk" id="acPrimeiroLnk">Primeiro acesso</button><button type="button" class="lnk" id="acVoltarLnk" hidden>Voltar para usuário e senha</button><button type="button" class="lnk" id="acCancelarLnk" hidden>Cancelar</button></div>
   </form>
 </div>
 <div class="app">
@@ -793,7 +800,7 @@ body.nao-admin [data-orc]{display:none!important}
         <a href="#usuarios" data-v="usuarios" id="navUsuarios" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/></svg>Usuários</a>
       </nav>
     </div>
-    <div class="sidecard" id="sidecard"><div class="sc-info"><b>Como os dados chegam</b>Pedidos e entregas vêm do formulário e entram aqui sozinhos, em até 1 minuto. O custo de cada material é o preço do pedido.<br><a id="sheetLink" href="#" target="_blank" rel="noopener">Abrir planilha</a></div><div class="sc-conta" id="scConta" hidden><span class="eu" id="euTxt"></span><a href="#" id="trocarPinLnk">Trocar meu PIN</a><a href="#" id="sair" hidden>Sair deste aparelho</a></div></div>
+    <div class="sidecard" id="sidecard"><div class="sc-info"><b>Como os dados chegam</b>Pedidos e entregas vêm do formulário e entram aqui sozinhos, em até 1 minuto. O custo de cada material é o preço do pedido.<br><a id="sheetLink" href="#" target="_blank" rel="noopener">Abrir planilha</a></div><div class="sc-conta" id="scConta" hidden><span class="eu" id="euTxt"></span><a href="#" id="trocarPinLnk">Trocar minha senha</a><a href="#" id="sair" hidden>Sair deste aparelho</a></div></div>
   </aside>
 
   <main class="main">
@@ -2369,7 +2376,7 @@ const CAMPOS_USU=["email","nome","usuario","empresa","perfil","formulario","pain
 function lerFormUsu(){ const f=$("usuForm"); if(!f||!USU.edit) return; CAMPOS_USU.forEach(c=>{ const x=f.elements[c]; if(x) USU.edit.dados[c]=x.value; }); }
 function formUsu(){
   const d=USU.edit.dados, sel=(nome,ops,v)=>`<select name="${nome}">${ops.map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select>`, sn=v=>v===true||v==="Sim"?"Sim":"Não";
-  return `<section class="card"><div class="cardhead"><div><h2>${USU.edit.original?"Editar usuário":"Novo usuário"}</h2><div class="sub">O PIN não aparece aqui: cada pessoa cria o seu no primeiro acesso.</div></div></div>
+  return `<section class="card"><div class="cardhead"><div><h2>${USU.edit.original?"Editar usuário":"Novo usuário"}</h2><div class="sub">A senha não aparece aqui: cada pessoa cria a sua no primeiro acesso.</div></div></div>
   <form class="usu-form" id="usuForm" novalidate autocomplete="off">
    <label>E-mail<input name="email" type="email" value="${esc(d.email||"")}" autocapitalize="off" spellcheck="false"></label>
    <label>Nome<input name="nome" value="${esc(d.nome||"")}"></label>
@@ -2392,18 +2399,18 @@ function vUsuarios(){
   const acoes=u=>{
     if(u.email===USU.dono&&USU.eu!==USU.dono) return `<span class="muted">Dono do sistema</span>`;
     const c=USU.conf&&USU.conf.u===u.usuario?USU.conf.acao:"";
-    if(c){ const t={ativar:"Ativar "+u.nome+"?",desativar:"Desativar "+u.nome+"? Os aparelhos dele serão desconectados.",resetar:"Apagar o PIN de "+u.nome+"? Ele fará o primeiro acesso de novo.",desconectar:"Desconectar todos os aparelhos de "+u.nome+"?"}[c];
+    if(c){ const t={ativar:"Ativar "+u.nome+"?",desativar:"Desativar "+u.nome+"? Os aparelhos dele serão desconectados.",resetar:"Apagar a senha de "+u.nome+"? Ele fará o primeiro acesso de novo.",desconectar:"Desconectar todos os aparelhos de "+u.nome+"?"}[c];
       return `<div class="usu-conf" role="alert"><span>${esc(t)}</span><button type="button" class="btn primary" data-usu="confirmar"${USU.ocupado?" disabled":""}>${USU.ocupado?"Aguarde…":"Confirmar"}</button><button type="button" class="btn" data-usu="cancelar">Cancelar</button></div>`; }
     const b=(a,t)=>`<button type="button" class="btn oc-ed" data-usu="${a}" data-u="${esc(u.usuario)}">${t}</button>`;
-    return `<div class="usu-acoes">${b("editar","Editar")}${u.email===USU.eu?"":u.ativo?b("desativar","Desativar"):b("ativar","Ativar")}${b("resetar","Resetar PIN")}${b("desconectar","Desconectar aparelhos")}</div>`;
+    return `<div class="usu-acoes">${b("editar","Editar")}${u.email===USU.eu?"":u.ativo?b("desativar","Desativar"):b("ativar","Ativar")}${b("resetar","Resetar senha")}${b("desconectar","Desconectar aparelhos")}</div>`;
   };
   const linhas=USU.lista.map(u=>`<tr data-usuario="${esc(u.usuario)}"><td class="mat" data-r="Nome"><b>${esc(u.nome||"—")}</b></td><td data-r="Usuário">${esc(u.usuario||"—")}</td><td data-r="E-mail" class="usu-em">${esc(u.email)}</td>
     <td data-r="Empresa">${esc(u.empresa||"—")}</td><td data-r="Perfil">${esc(u.perfil||"—")}</td><td data-r="Formulário">${sn(u.formulario)}</td><td data-r="Painel">${sn(u.painel)}</td>
-    <td data-r="Ativo">${u.ativo?'<span class="pill ok">Sim</span>':'<span class="pill bad">Não</span>'}</td><td data-r="Tem PIN">${sn(u.temPin)}</td><td class="n" data-r="Aparelhos conectados">${u.aparelhos}</td>
+    <td data-r="Ativo">${u.ativo?'<span class="pill ok">Sim</span>':'<span class="pill bad">Não</span>'}</td><td data-r="Tem senha">${sn(u.temPin)}</td><td class="n" data-r="Aparelhos conectados">${u.aparelhos}</td>
     <td class="usu-ac">${acoes(u)}</td></tr>`).join("");
   return (USU.edit?formUsu():"")+`<section class="card"><div class="cardhead"><div><h2>${USU.lista.length} ${USU.lista.length===1?"usuário":"usuários"}</h2><div class="sub">Cadastro da aba USUARIOS da planilha do formulário. Só administradores da Zayda veem esta tela.</div></div>
     <div><button type="button" class="btn primary" data-usu="novo">Novo usuário</button></div></div>
-    <div class="tw"><table class="lc-tab usu-tab"><thead><tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Formulário</th><th>Painel</th><th>Ativo</th><th>Tem PIN</th><th class="n">Aparelhos conectados</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></section>`;
+    <div class="tw"><table class="lc-tab usu-tab"><thead><tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Formulário</th><th>Painel</th><th>Ativo</th><th>Tem senha</th><th class="n">Aparelhos conectados</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></section>`;
 }
 function ligarUsuarios(){
   const f=$("usuForm");
@@ -2428,12 +2435,12 @@ function ligarUsuarios(){
       USU.ocupado=true; render();
       p.then(r=>{ USU.ocupado=false; if(!respUsu(r)) return; USU.conf=null;
           if(!r.ok){ aviso(r.motivo||"Não foi possível concluir.",6000); render(); return; }
-          aviso({ativar:"Usuário ativado.",desativar:"Usuário desativado.",resetar:"PIN apagado.",desconectar:"Aparelhos desconectados."}[c.acao]+(r.desconectados?" ("+r.desconectados+" aparelho(s))":"")+(r.aviso||""),r.aviso?8000:3000);
+          aviso({ativar:"Usuário ativado.",desativar:"Usuário desativado.",resetar:"Senha apagada.",desconectar:"Aparelhos desconectados."}[c.acao]+(r.desconectados?" ("+r.desconectados+" aparelho(s))":"")+(r.aviso||""),r.aviso?8000:3000);
           USU.lista=null; render(); })
         .catch(e=>{ USU.ocupado=false; aviso("Erro do Google: "+(e&&e.message?e.message:e),6000); render(); }); }
   }));
 }
-/* ---------- acesso: usuário + PIN; o aparelho guarda só a sua chave (nunca código, PIN ou hash) ---------- */
+/* ---------- acesso: usuário + senha; o aparelho guarda só a sua chave (nunca código, senha ou hash) ---------- */
 const CHAVE_LOCAL="zaydaPainelToken"; let TOKEN="";
 try{localStorage.removeItem("zaydaPainelCodigo")}catch(e){} // código guardado pela versão antiga: deixa de valer
 const lerToken=()=>{try{return localStorage.getItem(CHAVE_LOCAL)||""}catch(e){return ""}};
@@ -2441,18 +2448,20 @@ const guardarToken=c=>{try{localStorage.setItem(CHAVE_LOCAL,c)}catch(e){}};
 const avisarApp=m=>{ if(MODO_APP) try{window.top.postMessage(m,ORIGEM_APP)}catch(e){} };
 /* Chave recusada ou aparelho desconectado: apaga a chave daqui e da página de entrada (modo app). */
 function esquecerCodigo(){TOKEN="";try{localStorage.removeItem(CHAVE_LOCAL)}catch(e){} avisarApp({zayda:"sair"});}
-const motivoTxt=m=>({ERRO:"Erro ao ler a planilha. Tente de novo em instantes.",INCORRETO:"Usuário ou PIN incorretos.",DESATIVADO:"Seu acesso ao painel está desativado. Fale com o administrador.",
-  BLOQUEADO_PIN:"Muitas tentativas. Tente de novo em 15 minutos.",SEM_PIN:"Este usuário ainda não tem PIN. Toque em Primeiro acesso.",COM_PIN:"Este usuário já tem PIN. Entre com usuário e PIN.",
+const motivoTxt=m=>({ERRO:"Erro ao ler a planilha. Tente de novo em instantes.",INCORRETO:"Usuário ou senha incorretos.",DESATIVADO:"Seu acesso ao painel está desativado. Fale com o administrador.",
+  BLOQUEADO_PIN:"Muitas tentativas. Tente de novo em 15 minutos.",SEM_PIN:"Este usuário ainda não tem senha. Toque em Primeiro acesso.",COM_PIN:"Este usuário já tem senha. Entre com usuário e senha.",
   CODIGO_INCORRETO:"Usuário ou código de acesso incorretos.",INVALIDO:"Código de acesso incorreto.",BLOQUEADO:"Muitas tentativas erradas com o código. Aguarde 10 minutos e tente de novo.",
-  SEM_CODIGO:"O código de acesso ainda não foi definido. Na planilha: Zayda > Código de acesso do painel.",PIN_FORMATO:"O PIN deve ter 6 dígitos.",TOKEN:"Sua sessão neste aparelho terminou. Entre de novo."})[m]||"";
+  SEM_CODIGO:"O código de acesso ainda não foi definido. Na planilha: Zayda > Código de acesso do painel.",PIN_FORMATO:MSG_SENHA,SENHA_FORMATO:MSG_SENHA,TOKEN:"Sua sessão neste aparelho terminou. Entre de novo."})[m]||"";
 let MODO_AC="entrar", PRIM=null;
-const AC_TXT={entrar:["Entre com seu usuário e o seu PIN.","Entrar"],primeiro:["Primeiro acesso: digite seu usuário e o código de acesso que o administrador passou.","Continuar"],
-  criar:["Crie seu PIN de 6 dígitos (só números). Digite duas vezes.","Criar PIN e entrar"],trocar:["Trocar meu PIN: digite o PIN atual e o novo duas vezes.","Trocar PIN"]};
+const MSG_SENHA="A senha deve ter de 8 a 32 caracteres, com pelo menos uma letra e um número.";
+const AC_TXT={entrar:["Entre com seu usuário e sua senha.","Entrar"],primeiro:["Primeiro acesso: digite seu usuário e o código de acesso que o administrador passou.","Continuar"],
+  criar:["Crie sua senha: de 8 a 32 caracteres, com pelo menos uma letra e um número. Repita a senha no segundo campo.","Criar senha e entrar"],trocar:["Trocar minha senha: digite a senha atual e a nova duas vezes.","Trocar senha"]};
 function telaAcesso(msg,modo){
   MODO_AC=modo||"entrar"; if(MODO_AC!=="trocar") clearInterval(timerVivo);
   const a=$("acesso"); a.hidden=false;
   ["entrar","primeiro","criar","trocar"].forEach(k=>$("ac_"+k).hidden=k!==MODO_AC);
-  $("acTexto").textContent=MODO_AC==="criar"&&PRIM&&PRIM.nome?"Olá, "+PRIM.nome+". "+AC_TXT.criar[0]:AC_TXT[MODO_AC][0];
+  $("acTexto").textContent=MODO_AC==="criar"&&PRIM&&PRIM.token?"O painel agora usa senha com letras e números. "+AC_TXT.criar[0]:MODO_AC==="criar"&&PRIM&&PRIM.nome?"Olá, "+PRIM.nome+". "+AC_TXT.criar[0]:AC_TXT[MODO_AC][0];
+  olhosFechados();
   $("acesso").querySelectorAll("input").forEach(i=>{ if(!(MODO_AC==="primeiro"&&i.id==="acUsuario2"&&i.value)) i.value=""; });
   $("acPrimeiroLnk").hidden=MODO_AC!=="entrar"; $("acVoltarLnk").hidden=MODO_AC==="entrar"||MODO_AC==="trocar"; $("acCancelarLnk").hidden=MODO_AC!=="trocar";
   $("acessoMsg").textContent=msg||""; $("btnEntrar").disabled=false; $("btnEntrar").textContent=AC_TXT[MODO_AC][1];
@@ -2479,36 +2488,50 @@ function entrar(c){
     }).catch(e=>{ if(minha!==tentativa) return; clearTimeout(limite);
       $("acesso").hidden=false; telaAcesso("Erro do Google: "+(e&&e.message?e.message:e)); });
 }
-const pinOk=p=>/^\d{6}$/.test(p);
+/* Senha: 8 a 32 caracteres, pelo menos uma letra e um número, sem espaço no início ou no fim (o servidor confere de novo). */
+const senhaOk=s=>s===s.trim()&&s.length>=8&&s.length<=32&&/[A-Za-z\u00C0-\u00FF]/.test(s)&&/\d/.test(s)&&/^[\x20-\x7E\u00C0-\u00FF]+$/.test(s);
+/* Olho para mostrar/ocultar cada campo de senha (botão: funciona com toque, mouse e teclado). */
+const OLHO='<svg class="aberto" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="fechado" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18M10.6 5.1A10.6 10.6 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-3.2 4.2M6.6 6.6C3.8 8.4 2 12 2 12s3.6 7 10 7c1.8 0 3.4-.5 4.7-1.3M9.9 9.9a3 3 0 0 0 4.2 4.2"/></svg>';
+document.querySelectorAll("#acesso input[type=password]").forEach(i=>{ const w=document.createElement("div"); w.className="ac-pw"; i.parentNode.insertBefore(w,i); w.appendChild(i);
+  const b=document.createElement("button"); b.type="button"; b.className="olho"; b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label","Mostrar senha"); b.innerHTML=OLHO; w.appendChild(b);
+  b.addEventListener("click",()=>{ const ver=i.type==="password"; i.type=ver?"text":"password"; b.setAttribute("aria-pressed",String(ver)); b.setAttribute("aria-label",ver?"Ocultar senha":"Mostrar senha"); }); });
+function olhosFechados(){ document.querySelectorAll("#acesso .ac-pw").forEach(w=>{ const i=w.querySelector("input"), b=w.querySelector(".olho"); i.type="password"; b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label","Mostrar senha"); }); }
 function acErro(t){ $("acessoMsg").textContent=t; $("btnEntrar").disabled=false; $("btnEntrar").textContent=AC_TXT[MODO_AC][1]; }
 function acChamar(corpo,funcao,args,ok){
   $("btnEntrar").disabled=true; $("btnEntrar").textContent="Verificando…"; $("acessoMsg").textContent="";
   chamarApi(corpo,funcao,args).then(r=>ok(r||{})).catch(e=>acErro("Erro do Google: "+(e&&e.message?e.message:e)));
 }
 $("formAcesso").addEventListener("submit",e=>{e.preventDefault();
-  const v=id=>$(id).value.trim();
-  if(MODO_AC==="entrar"){ const u=v("acUsuario"),p=v("acPin");
-    if(!u||!pinOk(p)) return acErro(!u?"Digite seu usuário.":"O PIN tem 6 dígitos.");
-    acChamar({acao:"entrar",usuario:u,pin:p},"entrarPainel",[u,p],r=>r.acesso&&r.token?entrar(r.token):acErro(motivoTxt(r.motivo)||"Acesso não liberado."));
+  const v=id=>$(id).value.trim(), sv=id=>$(id).value; // senha sem trim: espaço no início/fim é recusado
+  if(MODO_AC==="entrar"){ const u=v("acUsuario"),p=sv("acPin");
+    if(!u||!p) return acErro(!u?"Digite seu usuário.":"Digite sua senha.");
+    acChamar({acao:"entrar",usuario:u,senha:p},"entrarPainel",[u,p],r=>{
+      if(!(r.acesso&&r.token)) return acErro(motivoTxt(r.motivo)||"Acesso não liberado.");
+      if(r.novaSenha){ PRIM={token:r.token,atual:p}; return telaAcesso("","criar"); } // entrou com o PIN antigo: cria a senha nova antes de usar o painel
+      entrar(r.token); });
   } else if(MODO_AC==="primeiro"){ const u=v("acUsuario2"),c=v("acCodigo");
     if(!c) return acErro("Digite o código de acesso.");
     acChamar({acao:"verificarPrimeiro",usuario:u,codigo:c},"verificarPrimeiroAcesso",[u,c],r=>{
       if(r.acesso&&r.token) return entrar(r.token); // só o código mestre: recuperação do dono
       if(r.acesso&&r.criarPin){ PRIM={usuario:u,codigo:c,nome:r.nome}; return telaAcesso("","criar"); }
       acErro(motivoTxt(r.motivo)||"Acesso não liberado."); });
-  } else if(MODO_AC==="criar"){ const p1=v("acPin1"),p2=v("acPin2");
-    if(!pinOk(p1)) return acErro("O PIN deve ter 6 dígitos (só números).");
-    if(p1!==p2) return acErro("Os dois PINs não são iguais.");
-    acChamar({acao:"primeiro",usuario:PRIM.usuario,codigo:PRIM.codigo,pin:p1},"primeiroAcesso",[PRIM.usuario,PRIM.codigo,p1],r=>{
+  } else if(MODO_AC==="criar"){ const p1=sv("acPin1"),p2=sv("acPin2");
+    if(!senhaOk(p1)) return acErro(MSG_SENHA);
+    if(p1!==p2) return acErro("As duas senhas não são iguais.");
+    if(PRIM&&PRIM.token) return acChamar({token:PRIM.token,acao:"trocarSenha",senhaAtual:PRIM.atual,senhaNova:p1},"trocarSenha",[PRIM.token,PRIM.atual,p1],r=>{
+      if(r.acesso===false){ PRIM=null; return telaAcesso(motivoTxt(r.motivo)); }
+      if(!r.ok) return acErro(r.motivo||"Não foi possível criar a senha.");
+      const t=PRIM.token; PRIM=null; entrar(t); });
+    acChamar({acao:"primeiro",usuario:PRIM.usuario,codigo:PRIM.codigo,senha:p1},"primeiroAcesso",[PRIM.usuario,PRIM.codigo,p1],r=>{
       if(r.acesso&&r.token){ PRIM=null; return entrar(r.token); } acErro(motivoTxt(r.motivo)||"Acesso não liberado."); });
-  } else { const a=v("acPinAtual"),p1=v("acPinNovo1"),p2=v("acPinNovo2");
-    if(!pinOk(a)) return acErro("Digite o PIN atual (6 dígitos).");
-    if(!pinOk(p1)) return acErro("O PIN novo deve ter 6 dígitos (só números).");
-    if(p1!==p2) return acErro("Os dois PINs novos não são iguais.");
-    acChamar({token:TOKEN,acao:"trocarPin",pinAtual:a,pinNovo:p1},"trocarPin",[TOKEN,a,p1],r=>{
+  } else { const a=sv("acPinAtual"),p1=sv("acPinNovo1"),p2=sv("acPinNovo2");
+    if(!a) return acErro("Digite a senha atual.");
+    if(!senhaOk(p1)) return acErro(MSG_SENHA);
+    if(p1!==p2) return acErro("As duas senhas novas não são iguais.");
+    acChamar({token:TOKEN,acao:"trocarSenha",senhaAtual:a,senhaNova:p1},"trocarSenha",[TOKEN,a,p1],r=>{
       if(r.acesso===false) { esquecerCodigo(); return telaAcesso(motivoTxt(r.motivo)); }
-      if(!r.ok) return acErro(r.motivo||"Não foi possível trocar o PIN.");
-      $("acesso").hidden=true; aviso("PIN trocado.",3000); });
+      if(!r.ok) return acErro(r.motivo||"Não foi possível trocar a senha.");
+      $("acesso").hidden=true; aviso("Senha trocada.",3000); });
   }
 });
 $("acPrimeiroLnk").addEventListener("click",()=>{ $("acUsuario2").value=$("acUsuario").value.trim(); telaAcesso("","primeiro"); });

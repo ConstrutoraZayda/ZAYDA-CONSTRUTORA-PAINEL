@@ -763,9 +763,10 @@ function doPost(e) {
   try { corpo = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { corpo = {}; }
   let saida;
   const c = corpo;
-  try { saida = c.acao === 'entrar' ? entrarPainel(c.usuario, c.pin)
+  try { saida = c.acao === 'entrar' ? entrarPainel(c.usuario, c.senha !== undefined ? c.senha : c.pin)
     : c.acao === 'verificarPrimeiro' ? verificarPrimeiroAcesso(c.usuario, c.codigo)
-    : c.acao === 'primeiro' ? primeiroAcesso(c.usuario, c.codigo, c.pin)
+    : c.acao === 'primeiro' ? primeiroAcesso(c.usuario, c.codigo, c.senha !== undefined ? c.senha : c.pin)
+    : c.acao === 'trocarSenha' ? trocarSenha(c.token, c.senhaAtual, c.senhaNova)
     : c.acao === 'trocarPin' ? trocarPin(c.token, c.pinAtual, c.pinNovo)
     : c.acao === 'sair' ? sairAparelho(c.token)
     : c.acao === 'usuarios' ? listarUsuarios(c.token)
@@ -843,10 +844,10 @@ function validarCodigoPainel_(codigo) {
   return 'INVALIDO';
 }
 
-/* ===================== ACESSO INDIVIDUAL: USUÁRIO + PIN E CHAVE DO APARELHO =====================
+/* ===================== ACESSO INDIVIDUAL: USUÁRIO + SENHA E CHAVE DO APARELHO =====================
  * Cadastro na aba USUARIOS da planilha do formulário: A EMAIL · B NOME · C USUARIO · D EMPRESA · E PERFIL ·
- * F FORMULARIO · G PAINEL · H ATIVO · I OBSERVACAO. O PIN nunca vai para a planilha nem para o navegador:
- * fica nas propriedades do script ("PIN_<usuario>" = "sal:hash"). Cada aparelho conectado tem uma chave
+ * F FORMULARIO · G PAINEL · H ATIVO · I OBSERVACAO. A senha nunca vai para a planilha nem para o navegador:
+ * fica nas propriedades do script ("PIN_<usuario>" = "v2:repetições:sal:hash"; PIN antigo: "sal:hash"). Cada aparelho conectado tem uma chave
  * ("TOKEN_<chave>" = usuário, criação e último uso). O código mestre (CODIGO_PAINEL) serve para o primeiro
  * acesso e, sozinho, para a recuperação do dono. */
 const ABA_USUARIOS = 'USUARIOS';
@@ -887,22 +888,69 @@ const ehAdminZayda_ = u => ehAdmin_(u) && texto_(u.empresa).toUpperCase() === 'Z
 const publico_ = u => ({nome: u.nome || u.usuario, usuario: u.usuario, empresa: u.empresa, perfil: u.perfil, email: u.email,
   admin: ehAdmin_(u), adminZayda: ehAdminZayda_(u), dono: u.usuario === USUARIO_DONO});
 
+/* Senha guardada como "v2:<repetições>:<sal>:<hash>": SHA-256 de (sal + senha), repetido sobre o próprio hash até
+ * completar as repetições. O cálculo é feito aqui mesmo, em JavaScript (10.000 chamadas ao Utilities deixariam o login lento).
+ * PIN antigo ("<sal>:<hash>", um SHA-256 de PIN + sal) continua valendo no login; ao entrar, a pessoa cria a senha nova. */
+const REPETICOES_SENHA = 10000;
+const MSG_SENHA = 'A senha deve ter de 8 a 32 caracteres, com pelo menos uma letra e um número.';
+const senhaValida_ = s => typeof s === 'string' && s === s.trim() && s.length >= 8 && s.length <= 32 &&
+  /[A-Za-zÀ-ÿ]/.test(s) && /\d/.test(s) && /^[\x20-\x7EÀ-ÿ]+$/.test(s);
+function utf8_(s) { const e = unescape(encodeURIComponent(String(s))), out = []; for (let i = 0; i < e.length; i++) out.push(e.charCodeAt(i)); return out; }
+const SHA_K_ = (() => { const k = [], h = []; let n = 2;
+  const primo = x => { for (let d = 2; d * d <= x; d++) if (x % d === 0) return false; return true; };
+  while (k.length < 64) { if (primo(n)) { if (h.length < 8) h.push((Math.pow(n, 1 / 2) % 1) * 4294967296 | 0); k.push((Math.pow(n, 1 / 3) % 1) * 4294967296 | 0); } n++; }
+  return {k, h}; })();
+/** SHA-256 de uma lista de bytes (0–255); devolve 32 bytes. */
+function sha256_(m) {
+  const K = SHA_K_.k, l = m.length, n = ((l + 9 + 63) >> 6) << 4, w = new Array(n).fill(0), W = new Array(64);
+  for (let i = 0; i < l; i++) w[i >> 2] |= m[i] << (24 - (i % 4) * 8);
+  w[l >> 2] |= 0x80 << (24 - (l % 4) * 8);
+  w[n - 1] = l * 8;
+  const ror = (x, r) => (x >>> r) | (x << (32 - r));
+  let [h0, h1, h2, h3, h4, h5, h6, h7] = SHA_K_.h;
+  for (let j = 0; j < n; j += 16) {
+    for (let t = 0; t < 64; t++) {
+      if (t < 16) W[t] = w[j + t] | 0;
+      else { const a = W[t - 15], b = W[t - 2];
+        W[t] = (W[t - 16] + (ror(a, 7) ^ ror(a, 18) ^ (a >>> 3)) + W[t - 7] + (ror(b, 17) ^ ror(b, 19) ^ (b >>> 10))) | 0; }
+    }
+    let a = h0, b = h1, c = h2, d = h3, e = h4, f = h5, g = h6, h = h7;
+    for (let t = 0; t < 64; t++) {
+      const t1 = (h + (ror(e, 6) ^ ror(e, 11) ^ ror(e, 25)) + ((e & f) ^ (~e & g)) + K[t] + W[t]) | 0;
+      const t2 = ((ror(a, 2) ^ ror(a, 13) ^ ror(a, 22)) + ((a & b) ^ (a & c) ^ (b & c))) | 0;
+      h = g; g = f; f = e; e = (d + t1) | 0; d = c; c = b; b = a; a = (t1 + t2) | 0;
+    }
+    h0 = (h0 + a) | 0; h1 = (h1 + b) | 0; h2 = (h2 + c) | 0; h3 = (h3 + d) | 0; h4 = (h4 + e) | 0; h5 = (h5 + f) | 0; h6 = (h6 + g) | 0; h7 = (h7 + h) | 0;
+  }
+  const out = [];
+  [h0, h1, h2, h3, h4, h5, h6, h7].forEach(x => out.push((x >>> 24) & 255, (x >>> 16) & 255, (x >>> 8) & 255, x & 255));
+  return out;
+}
+function hashSenha_(senha, sal, repeticoes) {
+  let h = sha256_(utf8_(sal + senha));
+  for (let i = 1; i < repeticoes; i++) h = sha256_(h);
+  return h.map(b => ('0' + b.toString(16)).slice(-2)).join('');
+}
+/** PIN antigo (formato "sal:hash"). */
 function hashPin_(pin, sal) {
   return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(pin) + sal, Utilities.Charset.UTF_8)
     .map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
 }
-function guardarPin_(usuario, pin) {
+function guardarSenha_(usuario, senha) {
   const sal = Utilities.getUuid().replace(/-/g, '');
-  PropertiesService.getScriptProperties().setProperty('PIN_' + usuario, sal + ':' + hashPin_(pin, sal));
+  PropertiesService.getScriptProperties().setProperty('PIN_' + usuario, 'v2:' + REPETICOES_SENHA + ':' + sal + ':' + hashSenha_(senha, sal, REPETICOES_SENHA));
 }
-function pinConfere_(usuario, pin) {
+/** 'v2' (senha nova), 'antigo' (PIN antigo) ou '' (não confere). */
+function senhaConfere_(usuario, senha) {
   const v = PropertiesService.getScriptProperties().getProperty('PIN_' + usuario);
-  if (!v) return false;
-  const i = v.indexOf(':');
-  return hashPin_(pin, v.slice(0, i)) === v.slice(i + 1);
+  if (!v) return '';
+  const p = v.split(':');
+  if (p.length === 4 && p[0] === 'v2') { const n = Number(p[1]); return n > 0 && n <= 1000000 && hashSenha_(senha, p[2], n) === p[3] ? 'v2' : ''; }
+  if (p.length === 2) return hashPin_(senha, p[0]) === p[1] ? 'antigo' : '';
+  return '';
 }
 const temPin_ = usuario => !!PropertiesService.getScriptProperties().getProperty('PIN_' + usuario);
-const pinValido_ = p => /^\d{6}$/.test(texto_(p));
+const textoSenha_ = s => typeof s === 'string' ? s : (s === null || s === undefined ? '' : String(s)); // sem trim: espaços contam
 
 /** Chave do aparelho: aleatória e longa, guardada só no servidor e no aparelho. */
 function novoToken_(usuario) {
@@ -938,9 +986,10 @@ function autenticar_(token) {
   return {u};
 }
 
-/** Login com usuário + PIN. 5 erros seguidos no mesmo usuário bloqueiam por 15 minutos. */
-function entrarPainel(usuario, pin) {
-  const login = texto_(usuario).toLowerCase(), cache = CacheService.getScriptCache();
+/** Login com usuário + senha. 5 erros seguidos no mesmo usuário bloqueiam por 15 minutos.
+ *  Quem ainda tem o PIN antigo entra com ele e recebe novaSenha: true (o painel pede a senha nova). */
+function entrarPainel(usuario, senha) {
+  const login = texto_(usuario).toLowerCase(), cache = CacheService.getScriptCache(), s = textoSenha_(senha);
   if (!login) return {acesso: false, motivo: 'INCORRETO'};
   if (cache.get('PINBLOQ_' + login)) return {acesso: false, motivo: 'BLOQUEADO_PIN'};
   const u = login === USUARIO_DONO ? null : usuarioPorLogin_(login);
@@ -951,16 +1000,15 @@ function entrarPainel(usuario, pin) {
     Utilities.sleep(800);
     return {acesso: false, motivo: 'INCORRETO'};
   };
-  if (!u || !pinValido_(pin) || !temPin_(u.usuario) || !pinConfere_(u.usuario, texto_(pin))) {
-    if (u && !temPin_(u.usuario) && podePainel_(u)) return {acesso: false, motivo: 'SEM_PIN'};
-    return erro();
-  }
+  if (u && !temPin_(u.usuario) && podePainel_(u)) return {acesso: false, motivo: 'SEM_PIN'};
+  const confere = u && s && s.length <= 64 ? senhaConfere_(u.usuario, s) : '';
+  if (!confere) return erro();
   if (!podePainel_(u)) return {acesso: false, motivo: 'DESATIVADO'};
   cache.remove('PINERR_' + login);
-  return {acesso: true, token: novoToken_(u.usuario)};
+  return {acesso: true, token: novoToken_(u.usuario), novaSenha: confere === 'antigo'};
 }
 
-/** Primeiro acesso (passo 1): usuário válido, ainda sem PIN, com o código de acesso do painel.
+/** Primeiro acesso (passo 1): usuário válido, ainda sem senha, com o código de acesso do painel.
  *  Sem usuário, só o código mestre: recuperação do dono (entra direto). */
 function verificarPrimeiroAcesso(usuario, codigo) {
   const login = texto_(usuario).toLowerCase();
@@ -977,31 +1025,36 @@ function verificarPrimeiroAcesso(usuario, codigo) {
   if (temPin_(u.usuario)) return {acesso: false, motivo: 'COM_PIN'};
   return {acesso: true, criarPin: true, nome: u.nome};
 }
-/** Primeiro acesso (passo 2): cria o PIN de 6 dígitos e conecta o aparelho. */
-function primeiroAcesso(usuario, codigo, pin) {
+/** Primeiro acesso (passo 2): cria a senha e conecta o aparelho. */
+function primeiroAcesso(usuario, codigo, senha) {
   const v = verificarPrimeiroAcesso(usuario, codigo);
   if (!v.acesso || !v.criarPin) return v.acesso ? {acesso: false, motivo: 'CODIGO_INCORRETO'} : v;
-  if (!pinValido_(pin)) return {acesso: false, motivo: 'PIN_FORMATO'};
+  const s = textoSenha_(senha);
+  if (!senhaValida_(s)) return {acesso: false, motivo: 'SENHA_FORMATO'};
   const u = usuarioPorLogin_(usuario);
-  guardarPin_(u.usuario, texto_(pin));
+  guardarSenha_(u.usuario, s);
   return {acesso: true, token: novoToken_(u.usuario)};
 }
-function trocarPin(token, pinAtual, pinNovo) {
+/** Troca a senha (também usada para sair do PIN antigo: a senha atual pode ser o PIN). */
+function trocarSenha(token, senhaAtual, senhaNova) {
   const a = autenticar_(token); if (a.erro) return a.erro;
-  if (a.u.usuario === USUARIO_DONO) return {ok: false, motivo: 'A recuperação pelo código mestre não tem PIN.'};
-  if (!pinValido_(pinNovo)) return {ok: false, motivo: 'O PIN novo precisa ter 6 dígitos.'};
+  if (a.u.usuario === USUARIO_DONO) return {ok: false, motivo: 'A recuperação pelo código mestre não tem senha.'};
+  const nova = textoSenha_(senhaNova);
+  if (!senhaValida_(nova)) return {ok: false, motivo: MSG_SENHA};
   const cache = CacheService.getScriptCache(), login = a.u.usuario;
   if (cache.get('PINBLOQ_' + login)) return {ok: false, motivo: 'Muitas tentativas. Tente de novo em 15 minutos.'};
-  if (!pinConfere_(login, texto_(pinAtual))) {
+  if (!senhaConfere_(login, textoSenha_(senhaAtual))) {
     const n = Number(cache.get('PINERR_' + login) || 0) + 1;
     if (n >= 5) { cache.put('PINBLOQ_' + login, '1', 900); cache.remove('PINERR_' + login); return {ok: false, motivo: 'Muitas tentativas. Tente de novo em 15 minutos.'}; }
     cache.put('PINERR_' + login, String(n), 900);
-    return {ok: false, motivo: 'O PIN atual está incorreto.'};
+    return {ok: false, motivo: 'A senha atual está incorreta.'};
   }
   cache.remove('PINERR_' + login);
-  guardarPin_(login, texto_(pinNovo));
+  guardarSenha_(login, nova);
   return {ok: true};
 }
+/** Nome antigo, mantido para não quebrar chamadas já existentes. */
+function trocarPin(token, pinAtual, pinNovo) { return trocarSenha(token, pinAtual, pinNovo); }
 function sairAparelho(token) {
   const t = texto_(token);
   if (/^[0-9a-f]{96}$/.test(t)) PropertiesService.getScriptProperties().deleteProperty('TOKEN_' + t);
@@ -1063,7 +1116,7 @@ function salvarUsuario(token, dados) {
     sh.getRange(linha, 1, 1, 9).setNumberFormat('@').setValues([valores]);
     SpreadsheetApp.flush();
     limparCacheUsuarios_();
-    // Login trocado: o PIN e os aparelhos acompanham.
+    // Login trocado: a senha e os aparelhos acompanham.
     const props = PropertiesService.getScriptProperties();
     if (antes && antes.usuario && antes.usuario !== novo.usuario) {
       const pin = props.getProperty('PIN_' + antes.usuario);
@@ -1099,13 +1152,13 @@ function alvoGestao_(a, usuario) {
   if (alvo.email === DONO_SISTEMA && a.u.email !== DONO_SISTEMA) return {erro: {ok: false, motivo: 'A linha do dono do sistema não pode ser alterada pelo painel.'}};
   return {alvo};
 }
-/** Apaga o PIN e desconecta todos os aparelhos: a pessoa faz o primeiro acesso de novo. */
+/** Apaga a senha e desconecta todos os aparelhos: a pessoa faz o primeiro acesso de novo. */
 function resetarPin(token, usuario) {
   const a = adminZayda_(token); if (a.erro) return a.erro;
   const g = alvoGestao_(a, usuario); if (g.erro) return g.erro;
   PropertiesService.getScriptProperties().deleteProperty('PIN_' + g.alvo.usuario);
   const n = apagarTokens_(g.alvo.usuario);
-  auditarUsuario_(a.u, g.alvo.email, 'PIN do usuário ' + g.alvo.usuario + ' apagado; ' + n + ' aparelho(s) desconectado(s)');
+  auditarUsuario_(a.u, g.alvo.email, 'Senha do usuário ' + g.alvo.usuario + ' apagada; ' + n + ' aparelho(s) desconectado(s)');
   return {ok: true, desconectados: n};
 }
 function desconectarAparelhos(token, usuario) {
