@@ -314,10 +314,10 @@ function sincronizarOrcamentos_(ss, linhas) {
 
 /** Chamado pelo painel: grava o orçamento de uma obra (valor vazio = remover). Só toca D-H da linha da obra.
  *  Responde {ok:true, orcamento:{valor,data,obs}} ou {ok:false, motivo}. */
-function salvarOrcamento(codigo, obra, valor, data, obs) {
-  const acesso = validarCodigoPainel_(codigo);
-  if (acesso !== 'OK') return {ok: false, motivo: {INVALIDO: 'Código de acesso incorreto. Entre de novo no painel.',
-    BLOQUEADO: 'Muitas tentativas erradas. Aguarde 10 minutos e tente de novo.', SEM_CODIGO: 'O código de acesso do painel ainda não foi definido.'}[acesso] || 'Acesso não liberado.'};
+function salvarOrcamento(token, obra, valor, data, obs) {
+  const ac = autenticar_(token);
+  if (ac.erro) return {ok: false, acesso: false, motivo: ac.erro.motivo === 'DESATIVADO' ? 'Seu acesso ao painel está desativado.' : 'Sua sessão neste aparelho terminou. Entre de novo.'};
+  if (!ehAdmin_(ac.u)) return {ok: false, motivo: 'Somente administradores podem definir ou editar orçamentos.'};
   const id = texto_(obra).toUpperCase();
   let num = '';
   if (texto_(valor) !== '') {
@@ -346,7 +346,7 @@ function salvarOrcamento(codigo, obra, valor, data, obs) {
     if (texto_(sh.getRange(1, 7).getValue()) !== 'ALTERADO POR') sh.getRange(1, 7, 1, 2).setValues([['ALTERADO POR', 'ALTERADO EM']])
       .setFontWeight('bold').setBackground('#EDF6DD').setFontColor('#064B25');
     sh.getRange(linha, 6, 1, 3).setNumberFormat('@');
-    sh.getRange(linha, 4, 1, 5).setValues([[num, dataCel, nota, 'Painel', Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm')]]);
+    sh.getRange(linha, 4, 1, 5).setValues([[num, dataCel, nota, ac.u.nome || ac.u.usuario, Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm')]]);
     SpreadsheetApp.flush();
     return {ok: true, orcamento: {valor: num === '' ? null : num, data: dt, obs: nota}};
   } catch (e) { return {ok: false, motivo: 'Não foi possível salvar: ' + e.message}; }
@@ -762,9 +762,19 @@ function doPost(e) {
   let corpo = {};
   try { corpo = JSON.parse((e && e.postData && e.postData.contents) || '{}'); } catch (err) { corpo = {}; }
   let saida;
-  try { saida = corpo.acao === 'entregas' ? getEntregasPedido(corpo.codigo, corpo.pedido)
-    : corpo.acao === 'salvarOrcamento' ? salvarOrcamento(corpo.codigo, corpo.obra, corpo.valor, corpo.data, corpo.obs)
-    : getDadosPainel(corpo.codigo); }
+  const c = corpo;
+  try { saida = c.acao === 'entrar' ? entrarPainel(c.usuario, c.pin)
+    : c.acao === 'verificarPrimeiro' ? verificarPrimeiroAcesso(c.usuario, c.codigo)
+    : c.acao === 'primeiro' ? primeiroAcesso(c.usuario, c.codigo, c.pin)
+    : c.acao === 'trocarPin' ? trocarPin(c.token, c.pinAtual, c.pinNovo)
+    : c.acao === 'sair' ? sairAparelho(c.token)
+    : c.acao === 'usuarios' ? listarUsuarios(c.token)
+    : c.acao === 'salvarUsuario' ? salvarUsuario(c.token, c.dados)
+    : c.acao === 'resetarPin' ? resetarPin(c.token, c.usuario)
+    : c.acao === 'desconectar' ? desconectarAparelhos(c.token, c.usuario)
+    : c.acao === 'entregas' ? getEntregasPedido(c.token, c.pedido)
+    : c.acao === 'salvarOrcamento' ? salvarOrcamento(c.token, c.obra, c.valor, c.data, c.obs)
+    : getDadosPainel(c.token); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -833,10 +843,283 @@ function validarCodigoPainel_(codigo) {
   return 'INVALIDO';
 }
 
-/** Chamado pelo Painel.html com o código de acesso. Devolve só valores simples (sem objetos Date). */
-function getDadosPainel(codigo) {
-  const acesso = validarCodigoPainel_(codigo);
-  if (acesso !== 'OK') return {acesso: false, motivo: acesso};
+/* ===================== ACESSO INDIVIDUAL: USUÁRIO + PIN E CHAVE DO APARELHO =====================
+ * Cadastro na aba USUARIOS da planilha do formulário: A EMAIL · B NOME · C USUARIO · D EMPRESA · E PERFIL ·
+ * F FORMULARIO · G PAINEL · H ATIVO · I OBSERVACAO. O PIN nunca vai para a planilha nem para o navegador:
+ * fica nas propriedades do script ("PIN_<usuario>" = "sal:hash"). Cada aparelho conectado tem uma chave
+ * ("TOKEN_<chave>" = usuário, criação e último uso). O código mestre (CODIGO_PAINEL) serve para o primeiro
+ * acesso e, sozinho, para a recuperação do dono. */
+const ABA_USUARIOS = 'USUARIOS';
+const DONO_SISTEMA = 'vendas.zaydaimoveis1@gmail.com';
+const CAB_USUARIOS = ['EMAIL', 'NOME', 'USUARIO', 'EMPRESA', 'PERFIL', 'FORMULARIO', 'PAINEL', 'ATIVO', 'OBSERVACAO'];
+const USUARIO_DONO = '_dono'; // recuperação pelo código mestre, quando o dono não está na aba
+
+function simNao_(v) { return v === true || semAcento_(texto_(v)).toUpperCase() === 'SIM'; }
+function origemPlanilha_() {
+  return SpreadsheetApp.openById(texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaOrigemId).getValue()));
+}
+/** Usuários da aba USUARIOS (guardados por 2 minutos; o painel limpa a cada alteração). */
+function usuariosPainel_() {
+  const cache = CacheService.getScriptCache();
+  const c = cache.get('PAINEL_USUARIOS_V1');
+  if (c) return JSON.parse(c);
+  const sh = origemPlanilha_().getSheetByName(ABA_USUARIOS);
+  const lista = [];
+  if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().forEach((r, i) => {
+    const email = texto_(r[0]).toLowerCase();
+    if (!email) return;
+    lista.push({linha: i + 2, email, nome: texto_(r[1]), usuario: texto_(r[2]).toLowerCase(), empresa: texto_(r[3]), perfil: texto_(r[4]),
+      formulario: simNao_(r[5]), painel: simNao_(r[6]), ativo: simNao_(r[7]), obs: texto_(r[8])});
+  });
+  try { cache.put('PAINEL_USUARIOS_V1', JSON.stringify(lista), 120); } catch (e) {}
+  return lista;
+}
+function limparCacheUsuarios_() { try { CacheService.getScriptCache().remove('PAINEL_USUARIOS_V1'); } catch (e) {} }
+function usuarioPorLogin_(login) {
+  const u = texto_(login).toLowerCase();
+  if (!u) return null;
+  if (u === USUARIO_DONO) return {email: DONO_SISTEMA, nome: 'Dono do sistema', usuario: USUARIO_DONO, empresa: 'Zayda', perfil: 'Admin', painel: true, ativo: true};
+  return usuariosPainel_().find(x => x.usuario === u) || null;
+}
+const podePainel_ = u => !!u && u.painel && u.ativo;
+const ehAdmin_ = u => !!u && texto_(u.perfil).toUpperCase() === 'ADMIN';
+const ehAdminZayda_ = u => ehAdmin_(u) && texto_(u.empresa).toUpperCase() === 'ZAYDA';
+const publico_ = u => ({nome: u.nome || u.usuario, usuario: u.usuario, empresa: u.empresa, perfil: u.perfil, email: u.email,
+  admin: ehAdmin_(u), adminZayda: ehAdminZayda_(u), dono: u.usuario === USUARIO_DONO});
+
+function hashPin_(pin, sal) {
+  return Utilities.computeDigest(Utilities.DigestAlgorithm.SHA_256, String(pin) + sal, Utilities.Charset.UTF_8)
+    .map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
+}
+function guardarPin_(usuario, pin) {
+  const sal = Utilities.getUuid().replace(/-/g, '');
+  PropertiesService.getScriptProperties().setProperty('PIN_' + usuario, sal + ':' + hashPin_(pin, sal));
+}
+function pinConfere_(usuario, pin) {
+  const v = PropertiesService.getScriptProperties().getProperty('PIN_' + usuario);
+  if (!v) return false;
+  const i = v.indexOf(':');
+  return hashPin_(pin, v.slice(0, i)) === v.slice(i + 1);
+}
+const temPin_ = usuario => !!PropertiesService.getScriptProperties().getProperty('PIN_' + usuario);
+const pinValido_ = p => /^\d{6}$/.test(texto_(p));
+
+/** Chave do aparelho: aleatória e longa, guardada só no servidor e no aparelho. */
+function novoToken_(usuario) {
+  const t = (Utilities.getUuid() + Utilities.getUuid() + Utilities.getUuid()).replace(/-/g, '');
+  const agora = Date.now();
+  PropertiesService.getScriptProperties().setProperty('TOKEN_' + t, JSON.stringify({u: usuario, criado: agora, uso: agora}));
+  return t;
+}
+function apagarTokens_(usuario) {
+  const props = PropertiesService.getScriptProperties(), todas = props.getProperties();
+  let n = 0;
+  Object.keys(todas).forEach(k => {
+    if (k.indexOf('TOKEN_') !== 0) return;
+    try { if (JSON.parse(todas[k]).u === usuario) { props.deleteProperty(k); n++; } } catch (e) {}
+  });
+  return n;
+}
+function contarTokens_() {
+  const todas = PropertiesService.getScriptProperties().getProperties(), out = {};
+  Object.keys(todas).forEach(k => { if (k.indexOf('TOKEN_') === 0) try { const u = JSON.parse(todas[k]).u; out[u] = (out[u] || 0) + 1; } catch (e) {} });
+  return out;
+}
+/** Valida a chave do aparelho e confere de novo, a cada chamada, se o usuário continua com PAINEL Sim e ATIVO Sim. */
+function autenticar_(token) {
+  const t = texto_(token);
+  if (!/^[0-9a-f]{96}$/.test(t)) return {erro: {acesso: false, motivo: 'TOKEN'}};
+  const props = PropertiesService.getScriptProperties(), v = props.getProperty('TOKEN_' + t);
+  if (!v) return {erro: {acesso: false, motivo: 'TOKEN'}};
+  let reg; try { reg = JSON.parse(v); } catch (e) { return {erro: {acesso: false, motivo: 'TOKEN'}}; }
+  const u = usuarioPorLogin_(reg.u);
+  if (!podePainel_(u)) { props.deleteProperty('TOKEN_' + t); return {erro: {acesso: false, motivo: 'DESATIVADO'}}; }
+  if (Date.now() - Number(reg.uso || 0) > 3600000) { reg.uso = Date.now(); props.setProperty('TOKEN_' + t, JSON.stringify(reg)); } // último uso, no máximo 1 gravação por hora
+  return {u};
+}
+
+/** Login com usuário + PIN. 5 erros seguidos no mesmo usuário bloqueiam por 15 minutos. */
+function entrarPainel(usuario, pin) {
+  const login = texto_(usuario).toLowerCase(), cache = CacheService.getScriptCache();
+  if (!login) return {acesso: false, motivo: 'INCORRETO'};
+  if (cache.get('PINBLOQ_' + login)) return {acesso: false, motivo: 'BLOQUEADO_PIN'};
+  const u = login === USUARIO_DONO ? null : usuarioPorLogin_(login);
+  const erro = () => {
+    const n = Number(cache.get('PINERR_' + login) || 0) + 1;
+    if (n >= 5) { cache.put('PINBLOQ_' + login, '1', 900); cache.remove('PINERR_' + login); return {acesso: false, motivo: 'BLOQUEADO_PIN'}; }
+    cache.put('PINERR_' + login, String(n), 900);
+    Utilities.sleep(800);
+    return {acesso: false, motivo: 'INCORRETO'};
+  };
+  if (!u || !pinValido_(pin) || !temPin_(u.usuario) || !pinConfere_(u.usuario, texto_(pin))) {
+    if (u && !temPin_(u.usuario) && podePainel_(u)) return {acesso: false, motivo: 'SEM_PIN'};
+    return erro();
+  }
+  if (!podePainel_(u)) return {acesso: false, motivo: 'DESATIVADO'};
+  cache.remove('PINERR_' + login);
+  return {acesso: true, token: novoToken_(u.usuario)};
+}
+
+/** Primeiro acesso (passo 1): usuário válido, ainda sem PIN, com o código de acesso do painel.
+ *  Sem usuário, só o código mestre: recuperação do dono (entra direto). */
+function verificarPrimeiroAcesso(usuario, codigo) {
+  const login = texto_(usuario).toLowerCase();
+  const ac = validarCodigoPainel_(codigo);
+  if (!login) {
+    if (ac !== 'OK') return {acesso: false, motivo: ac === 'INVALIDO' ? 'CODIGO_INCORRETO' : ac};
+    const dono = usuariosPainel_().find(x => x.email === DONO_SISTEMA);
+    return {acesso: true, token: novoToken_(dono && podePainel_(dono) ? dono.usuario : USUARIO_DONO)};
+  }
+  if (ac !== 'OK') return {acesso: false, motivo: ac === 'INVALIDO' ? 'CODIGO_INCORRETO' : ac};
+  const u = usuarioPorLogin_(login);
+  if (!u || login === USUARIO_DONO) return {acesso: false, motivo: 'CODIGO_INCORRETO'};
+  if (!podePainel_(u)) return {acesso: false, motivo: 'DESATIVADO'};
+  if (temPin_(u.usuario)) return {acesso: false, motivo: 'COM_PIN'};
+  return {acesso: true, criarPin: true, nome: u.nome};
+}
+/** Primeiro acesso (passo 2): cria o PIN de 6 dígitos e conecta o aparelho. */
+function primeiroAcesso(usuario, codigo, pin) {
+  const v = verificarPrimeiroAcesso(usuario, codigo);
+  if (!v.acesso || !v.criarPin) return v.acesso ? {acesso: false, motivo: 'CODIGO_INCORRETO'} : v;
+  if (!pinValido_(pin)) return {acesso: false, motivo: 'PIN_FORMATO'};
+  const u = usuarioPorLogin_(usuario);
+  guardarPin_(u.usuario, texto_(pin));
+  return {acesso: true, token: novoToken_(u.usuario)};
+}
+function trocarPin(token, pinAtual, pinNovo) {
+  const a = autenticar_(token); if (a.erro) return a.erro;
+  if (a.u.usuario === USUARIO_DONO) return {ok: false, motivo: 'A recuperação pelo código mestre não tem PIN.'};
+  if (!pinValido_(pinNovo)) return {ok: false, motivo: 'O PIN novo precisa ter 6 dígitos.'};
+  const cache = CacheService.getScriptCache(), login = a.u.usuario;
+  if (cache.get('PINBLOQ_' + login)) return {ok: false, motivo: 'Muitas tentativas. Tente de novo em 15 minutos.'};
+  if (!pinConfere_(login, texto_(pinAtual))) {
+    const n = Number(cache.get('PINERR_' + login) || 0) + 1;
+    if (n >= 5) { cache.put('PINBLOQ_' + login, '1', 900); cache.remove('PINERR_' + login); return {ok: false, motivo: 'Muitas tentativas. Tente de novo em 15 minutos.'}; }
+    cache.put('PINERR_' + login, String(n), 900);
+    return {ok: false, motivo: 'O PIN atual está incorreto.'};
+  }
+  cache.remove('PINERR_' + login);
+  guardarPin_(login, texto_(pinNovo));
+  return {ok: true};
+}
+function sairAparelho(token) {
+  const t = texto_(token);
+  if (/^[0-9a-f]{96}$/.test(t)) PropertiesService.getScriptProperties().deleteProperty('TOKEN_' + t);
+  return {ok: true};
+}
+
+/* ===================== GESTÃO DE USUÁRIOS (só Admin da Zayda) ===================== */
+const SO_ADMIN_ZAYDA = 'Somente administradores da Zayda podem gerenciar usuários.';
+function adminZayda_(token) {
+  const a = autenticar_(token);
+  if (a.erro) return a;
+  if (!ehAdminZayda_(a.u)) return {erro: {ok: false, motivo: SO_ADMIN_ZAYDA}};
+  return a;
+}
+function auditarUsuario_(quem, alvo, descricao) {
+  try {
+    const sh = origemPlanilha_().getSheetByName('AUDITORIA');
+    if (sh) sh.appendRow([Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss'), quem.email, 'USUARIO', alvo, '',
+      descricao + ' (por ' + (quem.nome || quem.usuario) + ')']);
+  } catch (e) { Logger.log('Auditoria de usuário não gravada: ' + e.message); }
+}
+function listarUsuarios(token) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const aparelhos = contarTokens_();
+  return {ok: true, eu: a.u.email, dono: DONO_SISTEMA, usuarios: usuariosPainel_().map(u => ({email: u.email, nome: u.nome, usuario: u.usuario,
+    empresa: u.empresa, perfil: u.perfil, formulario: u.formulario, painel: u.painel, ativo: u.ativo, obs: u.obs,
+    temPin: temPin_(u.usuario), aparelhos: aparelhos[u.usuario] || 0}))};
+}
+/** Inclui ou altera uma linha da aba USUARIOS (gravada como texto) e ajusta o acesso de editor à planilha do formulário. */
+function salvarUsuario(token, dados) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  dados = dados || {};
+  const sn = v => (v === true || simNao_(v)) ? 'Sim' : 'Não';
+  const novo = {email: texto_(dados.email).toLowerCase(), nome: texto_(dados.nome), usuario: texto_(dados.usuario).toLowerCase(),
+    empresa: texto_(dados.empresa), perfil: texto_(dados.perfil), formulario: sn(dados.formulario), painel: sn(dados.painel),
+    ativo: sn(dados.ativo), obs: texto_(dados.obs)};
+  const original = texto_(dados.emailOriginal).toLowerCase();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(novo.email)) return {ok: false, motivo: 'Informe um e-mail válido.'};
+  if (!novo.nome) return {ok: false, motivo: 'Informe o nome.'};
+  if (!/^[a-z0-9._-]{2,30}$/.test(novo.usuario)) return {ok: false, motivo: 'O usuário deve ter de 2 a 30 letras sem acento, números, ponto, hífen ou sublinhado.'};
+  if (['Zayda', 'BSJ'].indexOf(novo.empresa) < 0) return {ok: false, motivo: 'Empresa deve ser Zayda ou BSJ.'};
+  if (['Admin', 'Pedidos'].indexOf(novo.perfil) < 0) return {ok: false, motivo: 'Perfil deve ser Admin ou Pedidos.'};
+  if ([novo.nome, novo.obs].some(t => /^[=+@-]/.test(t))) return {ok: false, motivo: 'Nome e observação não podem começar com =, +, - ou @.'};
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
+  try {
+    limparCacheUsuarios_();
+    const lista = usuariosPainel_(), antes = original ? lista.find(x => x.email === original) : null;
+    if (original && !antes) return {ok: false, motivo: 'Usuário não encontrado. Atualize a lista.'};
+    if ((antes && antes.email === DONO_SISTEMA) || (!antes && novo.email === DONO_SISTEMA) || (antes && novo.email === DONO_SISTEMA && antes.email !== DONO_SISTEMA))
+      return {ok: false, motivo: 'A linha do dono do sistema não pode ser alterada pelo painel.'};
+    if (lista.some(x => x !== antes && x.email === novo.email)) return {ok: false, motivo: 'Já existe um usuário com este e-mail.'};
+    if (lista.some(x => x !== antes && x.usuario === novo.usuario) || novo.usuario === USUARIO_DONO) return {ok: false, motivo: 'Já existe um usuário com este login.'};
+    if (antes && antes.email === a.u.email && (novo.ativo === 'Não' || novo.painel === 'Não')) return {ok: false, motivo: 'Você não pode desativar o seu próprio acesso.'};
+    const origem = origemPlanilha_(), sh = origem.getSheetByName(ABA_USUARIOS);
+    if (!sh) return {ok: false, motivo: 'A aba USUARIOS não foi encontrada na planilha do formulário.'};
+    const linha = antes ? antes.linha : Math.max(2, sh.getLastRow() + 1);
+    const valores = [novo.email, novo.nome, novo.usuario, novo.empresa, novo.perfil, novo.formulario, novo.painel, novo.ativo, novo.obs];
+    sh.getRange(linha, 1, 1, 9).setNumberFormat('@').setValues([valores]);
+    SpreadsheetApp.flush();
+    limparCacheUsuarios_();
+    // Login trocado: o PIN e os aparelhos acompanham.
+    const props = PropertiesService.getScriptProperties();
+    if (antes && antes.usuario && antes.usuario !== novo.usuario) {
+      const pin = props.getProperty('PIN_' + antes.usuario);
+      if (pin) { props.setProperty('PIN_' + novo.usuario, pin); props.deleteProperty('PIN_' + antes.usuario); }
+      const todas = props.getProperties();
+      Object.keys(todas).forEach(k => { if (k.indexOf('TOKEN_') === 0) try { const r = JSON.parse(todas[k]); if (r.u === antes.usuario) { r.u = novo.usuario; props.setProperty(k, JSON.stringify(r)); } } catch (e) {} });
+    }
+    let desconectados = 0;
+    if (novo.ativo === 'Não' || novo.painel === 'Não') desconectados = apagarTokens_(novo.usuario);
+    // Editor da planilha do formulário (o formulário roda como quem acessa). Nunca mexe no dono da planilha.
+    let avisoEditor = '';
+    const donoPlanilha = (() => { try { return texto_(origem.getOwner().getEmail()).toLowerCase(); } catch (e) { return ''; } })();
+    const editores = () => origem.getEditors().map(x => texto_(x.getEmail()).toLowerCase());
+    try {
+      if (antes && antes.email !== novo.email && antes.email !== donoPlanilha && antes.email !== DONO_SISTEMA && editores().indexOf(antes.email) >= 0) origem.removeEditor(antes.email);
+      const ed = editores();
+      if (novo.formulario === 'Sim' && novo.ativo === 'Sim') { if (ed.indexOf(novo.email) < 0) origem.addEditor(novo.email); }
+      else if (novo.email !== donoPlanilha && novo.email !== DONO_SISTEMA && ed.indexOf(novo.email) >= 0) origem.removeEditor(novo.email);
+    } catch (e) { avisoEditor = ' Atenção: não foi possível ajustar o acesso à planilha do formulário (' + e.message + ').'; }
+    const campos = ['email', 'nome', 'usuario', 'empresa', 'perfil', 'formulario', 'painel', 'ativo', 'obs'];
+    const rot = {email: 'e-mail', nome: 'nome', usuario: 'usuário', empresa: 'empresa', perfil: 'perfil', formulario: 'formulário', painel: 'painel', ativo: 'ativo', obs: 'observação'};
+    const sn2 = v => v === true ? 'Sim' : v === false ? 'Não' : v;
+    const mud = antes ? campos.filter(c => texto_(sn2(antes[c])) !== texto_(novo[c])).map(c => rot[c] + ': ' + (texto_(sn2(antes[c])) || '—') + ' → ' + (novo[c] || '—')) : [];
+    auditarUsuario_(a.u, novo.email, antes ? 'Usuário ' + novo.usuario + ' alterado: ' + (mud.join('; ') || 'sem mudança')
+      : 'Usuário ' + novo.usuario + ' incluído (' + novo.empresa + ', ' + novo.perfil + ', formulário ' + novo.formulario + ', painel ' + novo.painel + ', ativo ' + novo.ativo + ')');
+    return {ok: true, desconectados, aviso: avisoEditor};
+  } catch (e) { return {ok: false, motivo: 'Não foi possível salvar: ' + e.message}; }
+  finally { lock.releaseLock(); }
+}
+function alvoGestao_(a, usuario) {
+  const alvo = usuariosPainel_().find(x => x.usuario === texto_(usuario).toLowerCase());
+  if (!alvo) return {erro: {ok: false, motivo: 'Usuário não encontrado. Atualize a lista.'}};
+  if (alvo.email === DONO_SISTEMA && a.u.email !== DONO_SISTEMA) return {erro: {ok: false, motivo: 'A linha do dono do sistema não pode ser alterada pelo painel.'}};
+  return {alvo};
+}
+/** Apaga o PIN e desconecta todos os aparelhos: a pessoa faz o primeiro acesso de novo. */
+function resetarPin(token, usuario) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const g = alvoGestao_(a, usuario); if (g.erro) return g.erro;
+  PropertiesService.getScriptProperties().deleteProperty('PIN_' + g.alvo.usuario);
+  const n = apagarTokens_(g.alvo.usuario);
+  auditarUsuario_(a.u, g.alvo.email, 'PIN do usuário ' + g.alvo.usuario + ' apagado; ' + n + ' aparelho(s) desconectado(s)');
+  return {ok: true, desconectados: n};
+}
+function desconectarAparelhos(token, usuario) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const g = alvoGestao_(a, usuario); if (g.erro) return g.erro;
+  const n = apagarTokens_(g.alvo.usuario);
+  auditarUsuario_(a.u, g.alvo.email, n + ' aparelho(s) do usuário ' + g.alvo.usuario + ' desconectado(s)');
+  return {ok: true, desconectados: n};
+}
+
+/** Chamado pelo Painel.html com a chave do aparelho. Devolve só valores simples (sem objetos Date). */
+function getDadosPainel(token) {
+  const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
+  if (ac.erro) return ac.erro;
   sincronizarSeHouverNovidade_();
   const ss = planilhaControle_();
   const cat = {};
@@ -908,6 +1191,7 @@ function getDadosPainel(codigo) {
   const conf = ss.getSheetByName(CTRL.conf);
   return {
     acesso: true, pedidos, nomesEtapas, orcamentos,
+    usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: publico_(ac.u),
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
     modo: texto_(conf.getRange(CTRL.celulaModo).getValue()) || 'PRODUÇÃO',
@@ -918,9 +1202,9 @@ function getDadosPainel(codigo) {
 
 /** Entregas de um pedido, com nome e assinatura de quem recebeu (lidas da aba ENTREGAS do formulário).
  *  Chamado pelo painel só na hora de imprimir o pedido, para não pesar a carga do painel. */
-function getEntregasPedido(codigo, pedido) {
-  const acesso = validarCodigoPainel_(codigo);
-  if (acesso !== 'OK') return {acesso: false, motivo: acesso};
+function getEntregasPedido(token, pedido) {
+  const ac = autenticar_(token);
+  if (ac.erro) return ac.erro;
   const id = texto_(pedido).toUpperCase();
   const conf = planilhaControle_().getSheetByName(CTRL.conf);
   const sh = SpreadsheetApp.openById(texto_(conf.getRange(CTRL.celulaOrigemId).getValue())).getSheetByName(CTRL.abaEntregasOrigem);
