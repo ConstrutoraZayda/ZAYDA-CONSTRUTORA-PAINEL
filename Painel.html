@@ -527,18 +527,98 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 body.nao-admin [data-orc]{display:none!important}
 .nav a[hidden]{display:none}
 /* Usuários */
-.usu-form{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px 14px}
-.usu-form label{display:grid;gap:4px;min-width:0;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
-.usu-form input,.usu-form select{min-width:0;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:9px 11px;font:inherit;font-size:14px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink)}
-.usu-form .w3{grid-column:1/-1}
-.usu-form .acoes{grid-column:1/-1;display:flex;flex-wrap:wrap;gap:8px}
-.usu-msg{color:var(--red);font-weight:700;font-size:13px;min-height:1em}
-.usu-tab td{vertical-align:middle}
-.usu-tab .usu-em{min-width:190px;overflow-wrap:anywhere}
-.usu-tab td.usu-ac{min-width:250px}
-.usu-acoes{display:flex;flex-wrap:wrap;gap:6px}
-.usu-conf{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--laranja-line);background:var(--laranja-soft);border-radius:10px;font-weight:700}
-@media (max-width:700px){.usu-form{grid-template-columns:minmax(0,1fr)}.lc-tab tbody td.usu-ac{grid-column:1/-1}}
+.usu-resumo{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:16px}
+.usu-resumo .card{padding:14px 16px}
+.usu-resumo .lbl{font-size:12px;font-weight:700;color:var(--ink-2)}
+.usu-resumo .val{font-size:28px;font-weight:800;letter-spacing:-.03em;line-height:1.1;margin-top:6px}
+.usu-resumo .val.espera{color:var(--laranja)}
+.usu-resumo .foot{font-size:12px;color:var(--ink-3);margin-top:2px}
+.usu-tool{align-items:center}
+.usu-chips{display:flex;flex-wrap:wrap;gap:6px}
+.usu-chips button{border:1px solid var(--line);background:var(--surface);color:var(--ink-2);border-radius:99px;padding:6px 12px;min-height:36px;font-size:13px;font-weight:700;cursor:pointer;touch-action:manipulation}
+.usu-chips button span{margin-left:5px;color:var(--ink-3);font-weight:600}
+.usu-chips button[aria-pressed="true"]{background:var(--brand-soft);border-color:var(--brand);color:var(--brand)}
+.usu-chips button[aria-pressed="true"] span{color:var(--brand)}
+@media (hover:hover) and (pointer:fine){.usu-chips button:hover{border-color:var(--brand)}}
+.usu-grupo{padding:0;margin-bottom:16px}
+.usu-gh{padding:12px 18px;font-size:12px;font-weight:800;letter-spacing:.06em;color:var(--ink-3);border-bottom:1px solid var(--line)}
+.usu-cab,.usu-lin{display:grid;grid-template-columns:minmax(190px,2.2fr) minmax(90px,1fr) 78px 178px 104px 112px 132px;gap:10px;align-items:center;padding:10px 18px}
+.usu-cab{padding-top:8px;padding-bottom:8px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3)}
+.usu-lin+.usu-lin{border-top:1px solid var(--line)}
+.usu-lin>*{min-width:0}
+.usu-lin.inativo>:not(.c-act):not(.usu-conf){opacity:.55}
+.usu-p{display:flex;align-items:center;gap:10px}
+.usu-av{flex:none;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:800;letter-spacing:.02em;background:var(--brand-soft);color:var(--brand)}
+.usu-av.bsj{background:var(--blue-soft);color:var(--blue)}
+.usu-av.off{background:var(--surface-2);color:var(--ink-3);box-shadow:inset 0 0 0 1px var(--line)}
+.usu-p>span{min-width:0}
+.usu-p b{font-size:14px;font-weight:800;overflow-wrap:anywhere}
+.usu-p .pill{margin-left:6px;vertical-align:1px}
+.usu-p small{display:block;font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
+.usu-login{display:inline-block;max-width:100%;font-family:var(--f-mono);font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--ink-2);overflow-wrap:anywhere}
+.usu-sels{display:flex;flex-wrap:wrap;gap:4px}
+.usu-sen{font-size:13px;font-weight:700;white-space:nowrap}
+.usu-sen.ok{color:var(--brand)}
+.usu-sen.espera{color:var(--laranja)}
+.usu-ap{font-size:13px;color:var(--ink-2);white-space:nowrap}
+.usu-ap i{font-style:normal;color:var(--brand);margin-right:3px}
+.usu-nada{color:var(--ink-3)}
+.c-act{display:flex;justify-content:flex-end;align-items:center;gap:6px;position:relative}
+.c-act .btn{min-height:36px;padding:7px 12px}
+.usu-mais{min-width:40px;font-size:18px;line-height:1;letter-spacing:.05em}
+.usu-dono{font-size:12px;font-weight:700;color:var(--ink-3);white-space:nowrap}
+.usu-menu{position:absolute;top:calc(100% + 4px);right:0;z-index:30;min-width:220px;display:grid;padding:6px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.18)}
+.usu-menu button{display:block;width:100%;text-align:left;border:0;background:none;color:var(--ink);border-radius:8px;padding:10px 12px;min-height:42px;font-weight:700;cursor:pointer}
+.usu-menu button.perigo{color:var(--red)}
+@media (hover:hover) and (pointer:fine){.usu-menu button:hover{background:var(--surface-2)}}
+.usu-menu button:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.usu-conf{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--laranja-line);background:var(--laranja-soft);border-radius:10px;font-weight:700}
+.usu-conf span{flex:1 1 220px}
+.usu-vazio{padding:18px;color:var(--ink-3)}
+.usu-antigas{padding:0;margin-bottom:16px}
+.usu-antigas>summary{list-style:none;cursor:pointer;padding:14px 18px;font-weight:800;display:flex;gap:8px;align-items:baseline;flex-wrap:wrap}
+.usu-antigas>summary::-webkit-details-marker{display:none}
+.usu-antigas>summary::before{content:"▸";color:var(--ink-3);transition:transform .15s}
+.usu-antigas[open]>summary::before{transform:rotate(90deg)}
+.usu-antigas>summary small{font-weight:600;color:var(--ink-3)}
+.usu-antigas[open]>summary{border-bottom:1px solid var(--line)}
+/* painel lateral de novo/editar usuário (mesmo componente de "Outras obras") */
+.usu-lat form{flex:1;min-height:0;display:flex;flex-direction:column;gap:12px;overflow-y:auto;overscroll-behavior:contain;margin:0 -4px;padding:2px 4px}
+.usu-lat .sub{color:var(--ink-3);font-size:12px;margin-top:-4px}
+.usu-lat label.cp,.usu-lat fieldset{display:grid;gap:5px;min-width:0;margin:0;padding:0;border:0;font-size:11px;font-weight:700;letter-spacing:.04em;color:var(--ink-3);text-transform:uppercase}
+.usu-lat legend{padding:0;margin-bottom:5px}
+.usu-lat label.cp input{min-width:0;width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-size:15px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--ink)}
+.usu-segm{display:flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--surface-2)}
+.usu-segm label{flex:1;position:relative;display:block}
+.usu-segm input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.usu-segm span{display:block;text-align:center;padding:10px 8px;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--ink-2)}
+.usu-segm label+label span{border-left:1px solid var(--line)}
+.usu-segm input:checked+span{background:var(--brand);color:#fff}
+.usu-segm input:focus-visible+span{outline:2px solid var(--brand);outline-offset:-3px}
+.usu-sws{display:grid;gap:2px;border:1px solid var(--line);border-radius:10px;padding:4px 12px}
+.usu-sw{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:44px;font-size:14px;font-weight:700;color:var(--ink);cursor:pointer;position:relative;letter-spacing:0;text-transform:none}
+.usu-sw+.usu-sw{border-top:1px solid var(--line)}
+.usu-sw input{position:absolute;opacity:0;width:44px;height:26px;right:0;margin:0;cursor:pointer}
+.usu-sw i{flex:none;width:44px;height:26px;border-radius:99px;background:var(--hatch);position:relative;transition:background .15s}
+.usu-sw i::after{content:"";position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s}
+.usu-sw input:checked+i{background:var(--brand)}
+.usu-sw input:checked+i::after{transform:translateX(18px)}
+.usu-sw input:focus-visible+i{outline:2px solid var(--brand);outline-offset:2px}
+.usu-msg{color:var(--red);font-weight:700;font-size:13px}
+.usu-msg:empty{display:none}
+.usu-lat .acoes{display:flex;gap:8px;margin-top:auto;padding-top:6px}
+.usu-lat .acoes .btn{flex:1;min-height:44px}
+@media (prefers-reduced-motion:reduce){.usu-sw i,.usu-sw i::after,.usu-antigas>summary::before{transition:none}}
+@media (max-width:1100px){.usu-resumo{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:960px){
+  .usu-cab{display:none}
+  .usu-lin{grid-template-columns:auto minmax(0,1fr);grid-template-areas:"p p" "pf acc" "s ap" "u act";gap:10px 12px;padding:14px 16px}
+  .usu-lin .c-p{grid-area:p}.usu-lin .c-pf{grid-area:pf}.usu-lin .c-acc{grid-area:acc}.usu-lin .c-s{grid-area:s}.usu-lin .c-ap{grid-area:ap}.usu-lin .c-u{grid-area:u;align-self:center}.usu-lin .c-act{grid-area:act}
+  .usu-lin .c-s,.usu-lin .c-ap{white-space:nowrap}
+  .usu-lin [data-r]::before{content:attr(data-r) " ";font-size:11px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--ink-3);margin-right:4px}
+  .usu-gh{padding:12px 16px}
+}
+@media (max-width:420px){.usu-resumo{gap:8px}.usu-resumo .card{padding:12px}.usu-resumo .val{font-size:24px}.usu-tool input[type=search]{min-width:0;flex-basis:100%}}
 .err{background:var(--red-soft);color:var(--red);border-radius:12px;padding:14px 16px;font-weight:700;margin-bottom:16px}
 .loading{padding:60px;text-align:center;color:var(--ink-3)}
 @media (max-width:1180px){.kpis{grid-template-columns:1fr 1fr}.kpis .card:first-child{grid-column:1/-1}.mid,.bot,.lower{grid-template-columns:1fr}}
@@ -815,6 +895,7 @@ body.nao-admin [data-orc]{display:none!important}
     <header class="top">
       <div><h1 id="title">Painel de custos</h1><p id="subtitle">Custo confirmado dos materiais entregues em cada obra.</p></div>
       <div class="topright"><span class="chip" id="modeChip" hidden></span><span class="live" id="live" hidden><i></i>Ao vivo</span><span class="muted" id="updated"></span>
+        <button type="button" class="btn primary" id="btnNovoUsu" hidden>+ Novo usuário</button>
         <button type="button" class="btn" id="btnAtualizar" title="Buscar os dados da planilha agora" hidden>Atualizar</button>
         <button type="button" class="btn" id="btnRelatorio" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>Imprimir relatório</button></div>
     </header>
@@ -879,6 +960,8 @@ body.nao-admin [data-orc]{display:none!important}
       <input type="search" id="latBusca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar por nome ou código" aria-label="Buscar na lista">
       <div class="lat-lista" id="latLista"></div>
     </aside>
+    <div class="lat-fundo" id="usuFundo" hidden></div>
+    <aside class="lateral usu-lat" id="usuLat" role="dialog" aria-modal="true" aria-labelledby="usuLatTit" hidden></aside>
   </main>
 </div>
 
@@ -1869,7 +1952,7 @@ document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.tar
 
 /* ---------- shell ---------- */
 function ico(n){const p={coin:'<circle cx="12" cy="12" r="8"/><path d="M12 8v8M9.5 10.2c0-1 1.1-1.7 2.5-1.7s2.5.7 2.5 1.7-1.1 1.4-2.5 1.8-2.5.8-2.5 1.8 1.1 1.7 2.5 1.7 2.5-.7 2.5-1.7"/>',doc:'<path d="M7 3h7l4 4v14H7z"/><path d="M14 3v4h4M10 12h5M10 16h5"/>',alert:'<path d="M12 4l9 16H3z"/><path d="M12 10v4M12 17v.5"/>',print:'<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>'}[n];return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`}
-const TITLES={usuarios:["Usuários","Quem acessa o formulário e o painel."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
+const TITLES={usuarios:["Usuários","Quem acessa o formulário e o painel. Só administradores da Zayda veem esta tela."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
 /* Mesmo efeito de escolher a obra no filtro OBRA: tela Painel com a página da obra, no topo. */
 function abrirObra(id){ S.obra=id; S.mes=null; if(S.view==="painel"){ render(); irTopo(); } else location.hash="painel"; }
 /* Tela nova começa no topo: chamar depois de desenhar. O segundo passo cobre o que só ganha altura no quadro seguinte. */
@@ -1943,7 +2026,8 @@ function render(){
   document.querySelectorAll("[data-fsit]").forEach(b=>b.addEventListener("click",()=>{S.sit=S.sit===b.dataset.fsit?"":b.dataset.fsit;render()}));
   document.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{S.orcVista=b.dataset.vista;try{localStorage.setItem("zaydaOrcVista",S.orcVista)}catch(e){}render()}));
   document.querySelectorAll("[data-orc]").forEach(b=>b.addEventListener("click",()=>abrirOrc(b.dataset.orc)));
-  if(v==="usuarios") ligarUsuarios();
+  $("btnNovoUsu").hidden=v!=="usuarios"||!USU.lista;
+  if(v==="usuarios") ligarUsuarios(); else fecharUsu();
   // Solicitações: a obra do pedido abre a página da obra sem abrir/fechar o detalhe (está dentro do <summary>)
   document.querySelectorAll("[data-pedobra]").forEach(a=>{const ir=e=>{e.preventDefault();e.stopPropagation();abrirObra(a.dataset.pedobra)};
     a.addEventListener("click",ir);a.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Spacebar")ir(e)});a.addEventListener("keyup",e=>{if(e.key===" ")e.preventDefault()});});
@@ -2377,9 +2461,9 @@ function aplicarEu(){
   $("euTxt").textContent=eu?"Conectado como "+(eu.nome||eu.usuario)+(eu.empresa?" · "+eu.empresa:""):"";
   $("trocarPinLnk").hidden=!eu||!!eu.dono;
 }
-const USU={lista:null,eu:"",dono:"",carregando:false,erro:"",edit:null,conf:null,ocupado:false,msg:""};
+const USU={lista:null,eu:"",dono:"",carregando:false,erro:"",edit:null,conf:null,ocupado:false,msg:"",filtro:"todas",menu:"",antigas:false};
 const apiUsu=(acao,funcao,extra,args)=>chamarApi(Object.assign({token:TOKEN,acao},extra),funcao,[TOKEN].concat(args));
-function respUsu(r){ if(r&&r.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return false; } return true; }
+function respUsu(r){ if(r&&r.acesso===false){ fecharUsu(); esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return false; } return true; }
 function carregarUsuarios(){
   USU.carregando=true;
   apiUsu("usuarios","listarUsuarios",{},[]).then(r=>{ USU.carregando=false; if(!respUsu(r)) return;
@@ -2388,70 +2472,138 @@ function carregarUsuarios(){
     .catch(e=>{ USU.carregando=false; USU.erro="Erro do Google: "+(e&&e.message?e.message:e); if(S.view==="usuarios") render(); });
 }
 const CAMPOS_USU=["email","nome","usuario","empresa","perfil","formulario","painel","ativo","obs"];
-/* Guarda o que já foi digitado no formulário (a tela pode ser redesenhada pela atualização automática). */
-function lerFormUsu(){ const f=$("usuForm"); if(!f||!USU.edit) return; CAMPOS_USU.forEach(c=>{ const x=f.elements[c]; if(x) USU.edit.dados[c]=x.value; }); }
-function formUsu(){
-  const d=USU.edit.dados, sel=(nome,ops,v)=>`<select name="${nome}">${ops.map(o=>`<option${o===v?" selected":""}>${o}</option>`).join("")}</select>`, sn=v=>v===true||v==="Sim"?"Sim":"Não";
-  return `<section class="card"><div class="cardhead"><div><h2>${USU.edit.original?"Editar usuário":"Novo usuário"}</h2><div class="sub">A senha não aparece aqui: cada pessoa cria a sua no primeiro acesso.</div></div></div>
-  <form class="usu-form" id="usuForm" novalidate autocomplete="off">
-   <label>E-mail<input name="email" type="email" value="${esc(d.email||"")}" autocapitalize="off" spellcheck="false"></label>
-   <label>Nome<input name="nome" value="${esc(d.nome||"")}"></label>
-   <label>Usuário (login)<input name="usuario" value="${esc(d.usuario||"")}" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
-   <label>Empresa${sel("empresa",["Zayda","BSJ"],d.empresa)}</label>
-   <label>Perfil${sel("perfil",["Admin","Pedidos"],d.perfil)}</label>
-   <label>Formulário${sel("formulario",["Sim","Não"],sn(d.formulario))}</label>
-   <label>Painel${sel("painel",["Sim","Não"],sn(d.painel))}</label>
-   <label>Ativo${sel("ativo",["Sim","Não"],sn(d.ativo))}</label>
-   <label class="w3">Observação<input name="obs" value="${esc(d.obs||"")}"></label>
-   <div class="usu-msg w3" id="usuMsg" role="alert">${esc(USU.msg||"")}</div>
-   <div class="acoes"><button type="submit" class="btn primary"${USU.ocupado?" disabled":""}>${USU.ocupado?"Salvando…":"Salvar"}</button><button type="button" class="btn" data-usu="fechar">Cancelar</button></div>
-  </form></section>`;
+/* Conta antiga compartilhada: sem USUARIO e com a observação "Conta antiga compartilhada…" */
+const contaAntiga=u=>!u.usuario&&/^conta antiga compartilhada/i.test(String(u.obs||"").trim());
+const iniciais=u=>{ const p=String(u.nome||u.email||"?").trim().split(/\s+/).filter(Boolean); return ((p[0]||"?")[0]+(p.length>1?p[p.length-1][0]:"")).toUpperCase(); };
+/* Ações do menu "⋯" que valem para a pessoa (as que não se aplicam ficam ocultas). */
+function acoesUsu(u){
+  const a=[];
+  if(u.usuario&&u.painel&&u.temPin) a.push(["resetar","Resetar senha",""]);
+  if(u.usuario&&u.aparelhos>0) a.push(["desconectar","Desconectar aparelhos",""]);
+  if(u.email!==USU.eu) a.push(u.ativo?["desativar","Desativar acesso","perigo"]:["ativar","Reativar acesso",""]);
+  return a;
 }
+function linhaUsu(u){
+  const k=esc(u.email), dono=u.email===USU.dono;
+  const av=`<span class="usu-av${!u.ativo?" off":u.empresa==="BSJ"?" bsj":""}" aria-hidden="true">${esc(iniciais(u))}</span>`;
+  const acesso=(on,t)=>`<span class="pill ${on?"ok":"off"}" title="${esc(t+(on?": com acesso":": sem acesso"))}">${t}</span>`;
+  const senha=!u.painel?`<span class="usu-nada" aria-label="Não usa o painel">—</span>`:u.temPin?`<span class="usu-sen ok">✓ Definida</span>`:`<span class="usu-sen espera">⏳ 1º acesso</span>`;
+  const ap=u.aparelhos>0?`<span class="usu-ap"><i aria-hidden="true">●</i>${u.aparelhos} ${u.aparelhos===1?"aparelho":"aparelhos"}</span>`:`<span class="usu-nada">—</span>`;
+  const ops=acoesUsu(u), aberto=USU.menu===u.email&&!dono&&ops.length;
+  const menu=dono?`<span class="usu-dono" title="Dono do sistema">🔒 Dono</span>`:ops.length?`<button type="button" class="btn usu-mais" data-usu="menu" data-u="${k}" aria-haspopup="menu" aria-expanded="${aberto?"true":"false"}" aria-label="Mais ações para ${esc(u.nome||u.email)}">⋯</button>`
+    +(aberto?`<div class="usu-menu" role="menu">${ops.map(([a,t,c])=>`<button type="button" role="menuitem"${c?` class="${c}"`:""} data-usu="${a}" data-u="${k}">${t}</button>`).join("")}</div>`:""):"";
+  const c=USU.conf&&USU.conf.u===u.email?USU.conf.acao:"", nm=u.nome||u.email;
+  const conf=c?`<div class="usu-conf" role="alert"><span>${esc({ativar:"Reativar o acesso de "+nm+"?",desativar:"Desativar o acesso de "+nm+"? Os aparelhos dele serão desconectados.",resetar:"Apagar a senha de "+nm+"? Ele fará o primeiro acesso de novo.",desconectar:"Desconectar todos os aparelhos de "+nm+"?"}[c])}</span><button type="button" class="btn primary" data-usu="confirmar"${USU.ocupado?" disabled":""}>${USU.ocupado?"Aguarde…":"Confirmar"}</button><button type="button" class="btn" data-usu="cancelar">Cancelar</button></div>`:"";
+  return `<div class="usu-lin${u.ativo?"":" inativo"}" role="listitem" data-email="${k}">
+    <div class="c-p usu-p">${av}<span><b>${esc(u.nome||"—")}</b>${u.ativo?"":`<span class="pill bad">Inativo</span>`}<small>${esc(u.email)}</small></span></div>
+    <div class="c-u" data-r="Usuário">${u.usuario?`<code class="usu-login">${esc(u.usuario)}</code>`:`<span class="usu-nada">—</span>`}</div>
+    <div class="c-pf"><span class="pill ${u.perfil==="Admin"?"ok":"sem"}">${esc(u.perfil||"—")}</span></div>
+    <div class="c-acc usu-sels">${acesso(u.formulario,"Formulário")}${acesso(u.painel,"Painel")}</div>
+    <div class="c-s" data-r="Senha">${senha}</div>
+    <div class="c-ap" data-r="Aparelhos">${ap}</div>
+    <div class="c-act"><button type="button" class="btn" data-usu="editar" data-u="${k}">Editar</button>${menu}</div>${conf}</div>`;
+}
+const CAB_USU=`<div class="usu-cab" aria-hidden="true"><span>Pessoa</span><span>Usuário</span><span>Perfil</span><span>Acessos</span><span>Senha</span><span>Aparelhos</span><span style="text-align:right">Ações</span></div>`;
 function vUsuarios(){
-  lerFormUsu();
   if(!USU.lista&&!USU.carregando&&!USU.erro) carregarUsuarios();
   if(!USU.lista) return `<section class="card"><div class="loading">${USU.erro?esc(USU.erro)+` <button type="button" class="btn" data-usu="recarregar">Tentar de novo</button>`:"Carregando usuários…"}</div></section>`;
-  const sn=v=>v?"Sim":"Não";
-  const acoes=u=>{
-    if(u.email===USU.dono&&USU.eu!==USU.dono) return `<span class="muted">Dono do sistema</span>`;
-    const c=USU.conf&&USU.conf.u===u.usuario?USU.conf.acao:"";
-    if(c){ const t={ativar:"Ativar "+u.nome+"?",desativar:"Desativar "+u.nome+"? Os aparelhos dele serão desconectados.",resetar:"Apagar a senha de "+u.nome+"? Ele fará o primeiro acesso de novo.",desconectar:"Desconectar todos os aparelhos de "+u.nome+"?"}[c];
-      return `<div class="usu-conf" role="alert"><span>${esc(t)}</span><button type="button" class="btn primary" data-usu="confirmar"${USU.ocupado?" disabled":""}>${USU.ocupado?"Aguarde…":"Confirmar"}</button><button type="button" class="btn" data-usu="cancelar">Cancelar</button></div>`; }
-    const b=(a,t)=>`<button type="button" class="btn oc-ed" data-usu="${a}" data-u="${esc(u.usuario)}">${t}</button>`;
-    return `<div class="usu-acoes">${b("editar","Editar")}${u.email===USU.eu?"":u.ativo?b("desativar","Desativar"):b("ativar","Ativar")}${b("resetar","Resetar senha")}${b("desconectar","Desconectar aparelhos")}</div>`;
-  };
-  const linhas=USU.lista.map(u=>`<tr data-usuario="${esc(u.usuario)}"><td class="mat" data-r="Nome"><b>${esc(u.nome||"—")}</b></td><td data-r="Usuário">${esc(u.usuario||"—")}</td><td data-r="E-mail" class="usu-em">${esc(u.email)}</td>
-    <td data-r="Empresa">${esc(u.empresa||"—")}</td><td data-r="Perfil">${esc(u.perfil||"—")}</td><td data-r="Formulário">${sn(u.formulario)}</td><td data-r="Painel">${sn(u.painel)}</td>
-    <td data-r="Ativo">${u.ativo?'<span class="pill ok">Sim</span>':'<span class="pill bad">Não</span>'}</td><td data-r="Tem senha">${sn(u.temPin)}</td><td class="n" data-r="Aparelhos conectados">${u.aparelhos}</td>
-    <td class="usu-ac">${acoes(u)}</td></tr>`).join("");
-  return (USU.edit?formUsu():"")+`<section class="card"><div class="cardhead"><div><h2>${USU.lista.length} ${USU.lista.length===1?"usuário":"usuários"}</h2><div class="sub">Cadastro da aba USUARIOS da planilha do formulário. Só administradores da Zayda veem esta tela.</div></div>
-    <div><button type="button" class="btn primary" data-usu="novo">Novo usuário</button></div></div>
-    <div class="tw"><table class="lc-tab usu-tab"><thead><tr><th>Nome</th><th>Usuário</th><th>E-mail</th><th>Empresa</th><th>Perfil</th><th>Formulário</th><th>Painel</th><th>Ativo</th><th>Tem senha</th><th class="n">Aparelhos conectados</th><th></th></tr></thead><tbody>${linhas}</tbody></table></div></section>`;
+  const pessoas=USU.lista.filter(u=>!contaAntiga(u)), antigas=USU.lista.filter(contaAntiga);
+  const ativos=pessoas.filter(u=>u.ativo), comPainel=ativos.filter(u=>u.painel), pend=comPainel.filter(u=>u.usuario&&!u.temPin).length;
+  const nAp=USU.lista.reduce((s,u)=>s+(u.aparelhos||0),0);
+  const cartao=(l,v,f,cl)=>`<div class="card"><div class="lbl">${l}</div><div class="val${cl?" "+cl:""}">${v}</div><div class="foot">${f}</div></div>`;
+  const resumo=`<section class="usu-resumo">${cartao("Pessoas ativas",ativos.length,"de "+pessoas.length+" cadastradas")}${cartao("Com acesso ao painel",comPainel.length,"pessoas ativas com Painel")}${cartao("Senhas pendentes",pend,"1º acesso ainda não feito",pend>0?"espera":"")}${cartao("Aparelhos conectados",nAp,nAp===1?"aparelho com acesso salvo":"aparelhos com acesso salvo")}</section>`;
+  const FIL={todas:["Todas",u=>true],Zayda:["Zayda",u=>u.empresa==="Zayda"],BSJ:["BSJ",u=>u.empresa==="BSJ"],inativos:["Inativos",u=>!u.ativo]};
+  if(!FIL[USU.filtro]) USU.filtro="todas";
+  const chips=`<div class="usu-chips" role="group" aria-label="Filtrar usuários">${Object.entries(FIL).map(([k,[t,f]])=>`<button type="button" data-usu="filtro" data-f="${k}" aria-pressed="${USU.filtro===k}">${t}<span>${pessoas.filter(f).length}</span></button>`).join("")}</div>`;
+  const tool=`<div class="toolbar usu-tool"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar nome, usuário ou e-mail" value="${esc(S.busca)}" aria-label="Buscar usuários">${chips}</div>`;
+  const m=S.busca?casa(S.busca):null, achou=u=>!m||m((u.nome||"")+" "+(u.usuario||"")+" "+u.email), f=FIL[USU.filtro][1];
+  const ordem=(a,b)=>(b.ativo-a.ativo)||String(a.nome||a.email).localeCompare(String(b.nome||b.email),"pt-BR");
+  const vis=pessoas.filter(u=>f(u)&&achou(u)).sort(ordem);
+  const emp=[...new Set(["Zayda","BSJ"].concat(vis.map(u=>u.empresa||"")))];
+  const grupos=emp.map(e=>{ const g=vis.filter(u=>(u.empresa||"")===e); if(!g.length) return "";
+    return `<section class="card usu-grupo"><div class="usu-gh">${esc((e||"Sem empresa").toUpperCase())} · ${g.length}</div>${CAB_USU}<div role="list">${g.map(linhaUsu).join("")}</div></section>`; }).join("");
+  const antVis=antigas.filter(u=>f(u)&&achou(u)).sort(ordem);
+  const blocoAnt=antVis.length?`<details class="card usu-antigas" id="usuAntigas"${USU.antigas?" open":""}><summary>Contas compartilhadas antigas · ${antVis.length} <small>— desative quando todos tiverem conta própria</small></summary>${CAB_USU}<div role="list">${antVis.map(linhaUsu).join("")}</div></details>`:"";
+  return resumo+tool+(grupos||(!blocoAnt?`<section class="card usu-vazio">Nenhum usuário encontrado.</section>`:""))+blocoAnt;
 }
+/* Painel lateral do cadastro: o mesmo componente de "Outras obras", fora da tela (não é apagado pela atualização automática). */
+let usuVolta=null, usuTimer=0;
+function formUsu(){
+  const d=USU.edit.dados, sn=v=>v===true||v==="Sim";
+  const segm=(nome,rot,ops,v)=>`<fieldset><legend>${rot}</legend><div class="usu-segm">${ops.map(o=>`<label><input type="radio" name="${nome}" value="${o}"${o===v?" checked":""}><span>${o}</span></label>`).join("")}</div></fieldset>`;
+  const sw=(nome,rot)=>`<label class="usu-sw"><span>${rot}</span><input type="checkbox" role="switch" name="${nome}"${sn(d[nome])?" checked":""}><i aria-hidden="true"></i></label>`;
+  return `<header><div><h2 id="usuLatTit">${USU.edit.original?"Editar usuário":"Novo usuário"}</h2></div><button type="button" class="lat-x" id="usuX" aria-label="Fechar">×</button></header>
+  <div class="sub">A senha não aparece aqui: cada pessoa cria a sua no primeiro acesso.</div>
+  <form id="usuForm" novalidate autocomplete="off">
+   <label class="cp">E-mail<input name="email" type="email" value="${esc(d.email||"")}" autocapitalize="off" spellcheck="false"></label>
+   <label class="cp">Nome<input name="nome" value="${esc(d.nome||"")}"></label>
+   <label class="cp">Usuário (login)<input name="usuario" value="${esc(d.usuario||"")}" autocapitalize="off" autocorrect="off" spellcheck="false"></label>
+   ${segm("empresa","Empresa",["Zayda","BSJ"],d.empresa)}
+   ${segm("perfil","Perfil",["Admin","Pedidos"],d.perfil)}
+   <fieldset><legend>Acessos</legend><div class="usu-sws">${sw("formulario","Formulário")}${sw("painel","Painel")}${sw("ativo","Ativo")}</div></fieldset>
+   <label class="cp">Observação<input name="obs" value="${esc(d.obs||"")}"></label>
+   <div class="usu-msg" id="usuMsg" role="alert"></div>
+   <div class="acoes"><button type="button" class="btn" id="usuCancelar">Cancelar</button><button type="submit" class="btn primary" id="usuSalvar">Salvar</button></div>
+  </form>`;
+}
+function lerFormUsu(){ const f=$("usuForm"), d={}; if(!f) return d;
+  CAMPOS_USU.forEach(c=>{ const x=f.elements[c]; if(!x) return; d[c]=x.type==="checkbox"?(x.checked?"Sim":"Não"):x.value; }); return d; }
+function abrirUsu(edit){
+  USU.edit=edit; USU.msg=""; USU.ocupado=false; USU.conf=null; fecharMenuUsu();
+  const lat=$("usuLat"), fundo=$("usuFundo"); clearTimeout(usuTimer);
+  lat.innerHTML=formUsu();
+  $("usuX").addEventListener("click",fecharUsu); $("usuCancelar").addEventListener("click",fecharUsu);
+  $("usuForm").addEventListener("submit",salvarFormUsu);
+  if(lat.hidden){ usuVolta=document.activeElement; const barra=window.innerWidth-document.documentElement.clientWidth;
+    document.documentElement.style.overflow="hidden"; document.body.style.paddingRight=barra?barra+"px":""; }
+  lat.hidden=false; fundo.hidden=false; lat.getBoundingClientRect();
+  lat.classList.add("aberto"); fundo.classList.add("aberto");
+  (window.matchMedia&&matchMedia("(hover:hover) and (pointer:fine)").matches?$("usuForm").elements.email:$("usuX")).focus();
+}
+function fecharUsu(){
+  const lat=$("usuLat"), fundo=$("usuFundo"); USU.edit=null; USU.msg=""; if(!lat||lat.hidden) return;
+  lat.classList.remove("aberto"); fundo.classList.remove("aberto");
+  document.documentElement.style.overflow=""; document.body.style.paddingRight="";
+  clearTimeout(usuTimer); usuTimer=setTimeout(()=>{lat.hidden=true;fundo.hidden=true;lat.innerHTML="";},semMov()?0:260);
+  if(usuVolta&&usuVolta.isConnected&&usuVolta.focus) usuVolta.focus(); usuVolta=null;
+}
+function salvarFormUsu(e){
+  e.preventDefault(); if(USU.ocupado||!USU.edit) return;
+  const dados=Object.assign({},USU.edit.dados,lerFormUsu(),{emailOriginal:USU.edit.original||""});
+  const bt=$("usuSalvar"), msg=$("usuMsg"), fim=t=>{ USU.ocupado=false; if(bt){ bt.disabled=false; bt.textContent="Salvar"; } if(msg) msg.textContent=t; };
+  USU.ocupado=true; bt.disabled=true; bt.textContent="Salvando…"; msg.textContent="";
+  apiUsu("salvarUsuario","salvarUsuario",{dados},[dados]).then(r=>{ if(!respUsu(r)){ USU.ocupado=false; return; }
+      if(!r.ok){ fim(r.motivo||"Não foi possível salvar."); return; }
+      USU.ocupado=false; fecharUsu(); aviso("Usuário salvo."+(r.desconectados?" "+r.desconectados+" aparelho(s) desconectado(s).":"")+(r.aviso||""),r.aviso?8000:3000); USU.lista=null; if(S.view==="usuarios") render(); })
+    .catch(e=>fim("Erro do Google: "+(e&&e.message?e.message:e)));
+}
+$("usuFundo").addEventListener("click",fecharUsu);
+$("btnNovoUsu").addEventListener("click",()=>{ if(USU.lista) abrirUsu({original:"",dados:{empresa:"BSJ",perfil:"Pedidos",formulario:"Sim",painel:"Não",ativo:"Sim"}}); });
+/* Menu "⋯": fecha ao tocar/clicar fora ou com Esc, sem redesenhar a tela (o clique de fora continua valendo). */
+function fecharMenuUsu(){ if(!USU.menu) return; USU.menu=""; document.querySelectorAll(".usu-menu").forEach(m=>m.remove()); document.querySelectorAll('.usu-mais[aria-expanded="true"]').forEach(b=>b.setAttribute("aria-expanded","false")); }
+document.addEventListener("pointerdown",e=>{ if(USU.menu&&!(e.target.closest&&e.target.closest(".usu-menu,.usu-mais"))) fecharMenuUsu(); });
+document.addEventListener("keydown",e=>{ if(e.key!=="Escape") return;
+  if(USU.menu){ const b=document.querySelector('.usu-mais[aria-expanded="true"]'); fecharMenuUsu(); if(b) b.focus(); return; }
+  if(!$("usuLat").hidden) fecharUsu(); });
 function ligarUsuarios(){
-  const f=$("usuForm");
-  if(f) f.addEventListener("submit",e=>{ e.preventDefault(); if(USU.ocupado) return; lerFormUsu();
-    const d=USU.edit.dados, dados=Object.assign({},d,{emailOriginal:USU.edit.original||""});
-    USU.ocupado=true; USU.msg=""; render();
-    apiUsu("salvarUsuario","salvarUsuario",{dados},[dados]).then(r=>{ USU.ocupado=false; if(!respUsu(r)) return;
-        if(!r.ok){ USU.msg=r.motivo||"Não foi possível salvar."; render(); return; }
-        USU.edit=null; USU.msg=""; aviso("Usuário salvo."+(r.desconectados?" "+r.desconectados+" aparelho(s) desconectado(s).":"")+(r.aviso||""),r.aviso?8000:3000); USU.lista=null; render(); })
-      .catch(e=>{ USU.ocupado=false; USU.msg="Erro do Google: "+(e&&e.message?e.message:e); render(); }); });
-  document.querySelectorAll("[data-usu]").forEach(b=>b.addEventListener("click",()=>{ const a=b.dataset.usu, u=USU.lista&&USU.lista.find(x=>x.usuario===b.dataset.u);
+  const det=$("usuAntigas"); if(det) det.addEventListener("toggle",()=>{USU.antigas=det.open});
+  document.querySelectorAll("#view [data-usu]").forEach(b=>b.addEventListener("click",()=>{ const a=b.dataset.usu, u=USU.lista&&USU.lista.find(x=>x.email===b.dataset.u);
     if(a==="recarregar"){ USU.erro=""; render(); return; }
-    if(a==="novo"){ USU.conf=null; USU.msg=""; USU.edit={original:"",dados:{empresa:"BSJ",perfil:"Pedidos",formulario:"Sim",painel:"Não",ativo:"Sim"}}; render(); irTopo(); return; }
-    if(a==="fechar"){ USU.edit=null; USU.msg=""; render(); return; }
-    if(a==="editar"&&u){ USU.conf=null; USU.msg=""; USU.edit={original:u.email,dados:Object.assign({},u)}; render(); irTopo(); return; }
-    if(a==="cancelar"){ USU.conf=null; render(); return; }
-    if(["ativar","desativar","resetar","desconectar"].includes(a)&&u){ USU.conf={acao:a,u:u.usuario}; render(); return; }
-    if(a==="confirmar"&&USU.conf&&!USU.ocupado){ const c=USU.conf, alvo=USU.lista.find(x=>x.usuario===c.u); if(!alvo) return;
+    if(a==="filtro"){ USU.filtro=b.dataset.f; USU.menu=""; USU.conf=null; render(); return; }
+    if(a==="editar"&&u){ abrirUsu({original:u.email,dados:Object.assign({},u)}); return; }
+    if(a==="menu"&&u){ const abrir=USU.menu!==u.email; USU.menu=abrir?u.email:""; USU.conf=null; render();
+      if(abrir){ const p=document.querySelector(`.usu-lin[data-email="${CSS.escape(u.email)}"] .usu-menu button`); if(p) p.focus(); } return; }
+    if(a==="cancelar"){ const em=USU.conf&&USU.conf.u; USU.conf=null; render(); const v=em&&document.querySelector(`.usu-lin[data-email="${CSS.escape(em)}"] .usu-mais`); if(v) v.focus(); return; }
+    if(["ativar","desativar","resetar","desconectar"].includes(a)&&u){ USU.menu=""; USU.conf={acao:a,u:u.email}; render();
+      const c=document.querySelector(`.usu-lin[data-email="${CSS.escape(u.email)}"] [data-usu="confirmar"]`); if(c) c.focus(); return; }
+    if(a==="confirmar"&&USU.conf&&!USU.ocupado){ const c=USU.conf, alvo=USU.lista.find(x=>x.email===c.u); if(!alvo) return;
       const p=c.acao==="resetar"?apiUsu("resetarPin","resetarPin",{usuario:alvo.usuario},[alvo.usuario])
         :c.acao==="desconectar"?apiUsu("desconectar","desconectarAparelhos",{usuario:alvo.usuario},[alvo.usuario])
         :(d=>apiUsu("salvarUsuario","salvarUsuario",{dados:d},[d]))(Object.assign({},alvo,{emailOriginal:alvo.email,ativo:c.acao==="ativar"?"Sim":"Não"}));
       USU.ocupado=true; render();
       p.then(r=>{ USU.ocupado=false; if(!respUsu(r)) return; USU.conf=null;
           if(!r.ok){ aviso(r.motivo||"Não foi possível concluir.",6000); render(); return; }
-          aviso({ativar:"Usuário ativado.",desativar:"Usuário desativado.",resetar:"Senha apagada.",desconectar:"Aparelhos desconectados."}[c.acao]+(r.desconectados?" ("+r.desconectados+" aparelho(s))":"")+(r.aviso||""),r.aviso?8000:3000);
+          aviso({ativar:"Acesso reativado.",desativar:"Acesso desativado.",resetar:"Senha apagada.",desconectar:"Aparelhos desconectados."}[c.acao]+(r.desconectados?" ("+r.desconectados+" aparelho(s))":"")+(r.aviso||""),r.aviso?8000:3000);
           USU.lista=null; render(); })
         .catch(e=>{ USU.ocupado=false; aviso("Erro do Google: "+(e&&e.message?e.message:e),6000); render(); }); }
   }));
