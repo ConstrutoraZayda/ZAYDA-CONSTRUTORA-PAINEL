@@ -106,6 +106,13 @@ a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transpa
 .lgoutros{cursor:pointer}
 .segbar .faixa{cursor:pointer}
 .mdet .rk.outros{cursor:pointer}
+/* Gasto mensal: barra/linha de obra abre a obra */
+.tip .tipab{display:block;margin-top:6px;padding-top:6px;border-top:1px solid var(--line);color:var(--brand);font-weight:700;font-style:normal}
+.tip.toque .tipbtn{pointer-events:auto}
+.tip .tipbtn{display:block;width:100%;margin-top:8px;min-height:40px;padding:8px 12px;border:0;border-radius:8px;background:var(--brand);color:#fff;font:inherit;font-weight:700;cursor:pointer;touch-action:manipulation}
+.mdet .rk.ir{cursor:pointer}
+.mdet .rk.ir:focus-visible,.mdet .rk.outros:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+@media (hover:hover) and (pointer:fine){.mdet .rk.ir:hover em{text-decoration:underline}}
 /* Painel lateral com a lista completa de "Outras obras" */
 .lat-fundo{position:fixed;inset:0;z-index:45;background:rgba(0,0,0,.35);opacity:0;transition:opacity .25s}
 .lat-fundo.aberto{opacity:1}
@@ -1440,8 +1447,8 @@ function months(){
   return list;
 }
 /* Balão no toque (celular/tablet): ponto tocado à espera do redesenho do gráfico e prazo de 3 s. */
-let toqueChart=null, toqueTimer=null;
-function esconderToque(){ clearTimeout(toqueTimer); const t=$("ctip"); if(t) t.hidden=true; document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); }
+let toqueChart=null, toqueTimer=null, toqueSel="";
+function esconderToque(){ clearTimeout(toqueTimer); toqueSel=""; const t=$("ctip"); if(t){ t.hidden=true; t.classList.remove("toque"); }document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); }
 document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#chart"))) esconderToque(); });
 function drawChart(){
   const el=$("chart"); if(!el) return;
@@ -1457,6 +1464,7 @@ function drawChart(){
   const cor=(k,i)=>k==="__OUTROS"?"var(--outros)":S.obra?PAL[i%PAL.length]:obraCor(k);
   const outrosPorUltimo=(a,b)=>(a.k==="__OUTROS")-(b.k==="__OUTROS")||b.v-a.v; // obras do maior para o menor; o grupo sempre no fim
   const rot=(k,outros)=>k==="__OUTROS"?(S.obra?"Outras categorias":"Outras obras")+" ("+outros.length+")":S.obra?k:obraCurta(k);
+  const abrivel=k=>!S.obra&&k!=="__OUTROS"&&k!=="SEM VÍNCULO"; // barra/linha que abre a página da obra
   const data=ms.map(m=>{const v={}, o={}; keys.forEach(k=>v[k]=0);
     conf.filter(l=>ym(l.data)===m).forEach(l=>{const c=chave(l), g=grp(c); v[g]+=l.valor; if(g==="__OUTROS") o[c]=(o[c]||0)+l.valor});
     return {k:m,v,t:sum(keys,k=>v[k]),outros:Object.entries(o).filter(e=>e[1]>0).map(([c,x])=>({nome:S.obra?c:obraCurta(c),cod:c,v:x})).sort((a,b)=>b.v-a.v)}});
@@ -1478,7 +1486,7 @@ function drawChart(){
     let topo=T+ih;
     bs.forEach((b,j)=>{const h=Math.max(6,b.v/ymax*ih), y0=T+ih-h, x=x0+j*(bwi+GAP); topo=Math.min(topo,y0);
       pedacos.push({x,w:bwi,y:y0,h,k:b.k,ki:b.ki,v:b.v,m:d.k,t:d.t,outros:b.k==="__OUTROS"?d.outros:null});
-      col+=`<rect class="seg" data-p="${pedacos.length-1}" data-sk="${esc(d.k+"|"+b.k)}" data-v="${b.v}" x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${b.k==="__OUTROS"?"url(#faixaOutros)":cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
+      col+=`<rect class="seg" data-p="${pedacos.length-1}" data-sk="${esc(d.k+"|"+b.k)}" data-v="${b.v}"${abrivel(b.k)?` role="link" aria-label="${esc("Abrir a obra "+b.k+" · "+brl(b.v))}"`:""} x="${x}" y="${y0}" width="${bwi}" height="${h}" rx="2" style="fill:${b.k==="__OUTROS"?"url(#faixaOutros)":cor(b.k,b.ki)};opacity:${on?1:.8}"/>`});
     // Cada mês num grupo que cresce a partir da base do gráfico (classe "cresce" no svg).
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
     if(d.t) g+=`<text class="tot fade" data-stt="${d.k}" ${tA("tot|"+d.k,d.t,"k")} style="${dl}" x="${cx}" y="${topo-6}" text-anchor="middle">${brlK(d.t)}</text>`;
@@ -1489,21 +1497,29 @@ function drawChart(){
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}"><defs><pattern id="faixaOutros" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--outros-2)"/><rect width="3" height="6" style="fill:var(--outros)"/></pattern></defs>${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort(outrosPorUltimo), maiorL=Math.max(...linhas.map(r=>r.v),0);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk${r.k==="__OUTROS"?" outros":""}" data-ki="${r.ki}" title="${esc(rot(r.k,sel.outros))}"><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${r.k==="__OUTROS"?'class="faixa" ':""}${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/maiorL*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk${r.k==="__OUTROS"?" outros":abrivel(r.k)?" ir":""}" data-ki="${r.ki}"${r.k==="__OUTROS"?` tabindex="0" role="button" title="${esc(rot(r.k,sel.outros))}"`:abrivel(r.k)?` data-irob="${esc(r.k)}" tabindex="0" role="link" title="${esc("Abrir a obra "+r.k)}"`:` title="${esc(rot(r.k,sel.outros))}"`}><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${r.k==="__OUTROS"?'class="faixa" ':""}${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/maiorL*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     const r=el.querySelector("svg").getBoundingClientRect(), px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height;
-    const pg=pedacos.find(s=>s.outros&&px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h); // clique na barra de "Outras" abre a lista completa
+    const pb=pedacos.find(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h), pg=pb&&pb.outros?pb:null; // clique na barra de "Outras" abre a lista completa
+    // Barra de obra: com mouse, o clique abre a obra; no toque, só o segundo toque na mesma barra (com o balão aberto).
+    if(pb&&abrivel(pb.k)&&((!tipoPonteiro||tipoPonteiro==="mouse")||(toqueSel===pb.m+"|"+pb.k&&!$("ctip").hidden))){ esconderToque(); abrirObra(pb.k); return; }
     if(!pg&&tipoPonteiro&&tipoPonteiro!=="mouse") toqueChart={x:e.clientX,y:e.clientY}; // no toque, o balão aparece depois do redesenho
     S.mes=h.dataset.m;drawChart();
     if(pg) abrirOutros(rot(pg.k,pg.outros)+" · "+mesAno(pg.m),pg.outros,pg.t);}));
   // Balão com a obra ao passar o mouse: o pedaço é achado pela posição do cursor, porque o .hit do mês fica por cima
   // (e continua recebendo o clique). Só com mouse; no celular, tocar no mês segue mostrando o detalhe embaixo.
   const svg=el.querySelector("svg"), tip=$("ctip"); let atual=-1;
-  const htmlTip=s=>`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k,s.outros))}${s.outros?" · "+mesAno(s.m):""}</b><div>${s.outros?`<span>${brl(s.v)}</span><span>${pct(s.t?s.v/s.t:0)}</span>`:`<span>${mesAno(s.m)}</span><span>${brl(s.v)}</span>`}</div>`+listaTip(tip,s.outros||[],s.t);
+  const htmlTip=(s,toque)=>`<b><i class="dot" style="background:${cor(s.k,s.ki)}"></i>${esc(rot(s.k,s.outros))}${s.outros?" · "+mesAno(s.m):""}</b><div>${s.outros?`<span>${brl(s.v)}</span><span>${pct(s.t?s.v/s.t:0)}</span>`:`<span>${mesAno(s.m)}</span><span>${brl(s.v)}</span>`}</div>`+listaTip(tip,s.outros||[],s.t)
+    +(abrivel(s.k)?(toque?`<button type="button" class="tipbtn" data-abrirob="${esc(s.k)}">Abrir obra →</button>`:`<em class="tipab">Clique para abrir a obra</em>`):"");
+  tip.addEventListener("click",e=>{const b=e.target.closest("[data-abrirob]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const id=b.dataset.abrirob; esconderToque(); abrirObra(id);});
+  // Linhas do detalhe do mês: obra abre a obra; "Outras obras" abre o painel lateral. Mouse, toque, Enter e Espaço.
+  $("chartDet").querySelectorAll(".rk.ir").forEach(row=>{ const ir=e=>{e.preventDefault();abrirObra(row.dataset.irob)};
+    row.addEventListener("click",ir); row.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "||e.key==="Spacebar")ir(e)}); });
   // Ranking do mês <-> pedaço da barra: a linha acende o pedaço do mês selecionado e o pedaço acende a linha.
   const linhaRk=s=>s&&s.m===S.mes?$("chartDet").querySelector(`.rk[data-ki="${s.ki}"]`):null;
-  const rkOut=$("chartDet").querySelector(".rk.outros"); if(rkOut) rkOut.addEventListener("click",()=>abrirOutros(rot("__OUTROS",sel.outros)+" · "+mesAno(sel.k),sel.outros,sel.t));
+  const rkOut=$("chartDet").querySelector(".rk.outros"); if(rkOut){ rkOut.addEventListener("click",()=>abrirOutros(rot("__OUTROS",sel.outros)+" · "+mesAno(sel.k),sel.outros,sel.t));
+    rkOut.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "||e.key==="Spacebar"){e.preventDefault();rkOut.click()}}); }
   $("chartDet").querySelectorAll(".rk").forEach(row=>{
     const seg=()=>{const p=pedacos.findIndex(s=>s.m===S.mes&&s.ki===+row.dataset.ki);return p<0?null:svg.querySelector(`.seg[data-p="${p}"]`)};
     row.addEventListener("mouseenter",()=>{row.classList.add("hov");const g=seg();if(g)g.classList.add("hov")});
@@ -1516,7 +1532,7 @@ function drawChart(){
     const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h);
     if(p<0){solta();return;}
     if(p!==atual){ solta(); atual=p; const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov"); const l=linhaRk(s); if(l) l.classList.add("hov");
-      tip.innerHTML=htmlTip(s);
+      tip.classList.remove("toque"); tip.innerHTML=htmlTip(s,false);
       tip.hidden=false; }
     // Perto do cursor, sem sair da tela: vira para a esquerda na borda direita e desce quando falta espaço em cima.
     const w=tip.offsetWidth, h=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
@@ -1530,7 +1546,7 @@ function drawChart(){
     const r=svg.getBoundingClientRect(), px=(t.x-r.left)*W/r.width, py=(t.y-r.top)*H/r.height;
     const p=pedacos.findIndex(s=>px>=s.x&&px<=s.x+s.w&&py>=s.y&&py<=s.y+s.h);
     if(p>=0){ const s=pedacos[p], seg=svg.querySelector(`.seg[data-p="${p}"]`); if(seg) seg.classList.add("hov");
-      tip.innerHTML=htmlTip(s);
+      tip.innerHTML=htmlTip(s,true); toqueSel=abrivel(s.k)?s.m+"|"+s.k:""; tip.classList.toggle("toque",!!toqueSel);
       tip.hidden=false;
       const w=tip.offsetWidth, h=tip.offsetHeight, er=el.getBoundingClientRect(), vw=document.documentElement.clientWidth;
       const x=Math.max(8,Math.min(t.x-w/2,vw-8-w));
