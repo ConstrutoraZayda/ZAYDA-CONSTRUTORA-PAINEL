@@ -135,6 +135,18 @@ a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transpa
 .lat-item>em{font-style:normal;font-size:12px;color:var(--ink-3);white-space:nowrap;min-width:42px;text-align:right}
 .lat-item>i{grid-column:1/-1;display:block;height:6px;border-radius:99px;background:var(--hatch-bg);overflow:hidden}
 .lat-item>i>u{display:block;height:100%;min-width:3px;border-radius:99px;background:var(--outros)}
+/* Card de materiais: linha "Outros N materiais" e painel "Todos os materiais" */
+tr.mat-outros{cursor:pointer}
+tr.mat-outros td.mat{color:var(--ink-3);font-weight:600}
+tr.mat-outros .bar .t span{background:var(--outros)}
+tr.mat-outros .bar b{color:var(--ink-3)}
+@media (hover:hover) and (pointer:fine){tr.mat-outros:hover td{background:var(--surface-2)}}
+tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.lat-sub{font-size:12px;color:var(--ink-3);margin-top:3px;overflow-wrap:anywhere}
+.lat-ordem{align-self:flex-start;max-width:100%;flex-wrap:wrap}
+.lat-ordem button{min-height:34px}
+.lat-mat .lat-item small+small{font-family:var(--f-ui)}
+.lat-mat .lat-item>i>u{background:linear-gradient(90deg,var(--brand),var(--brand-2))}
 @media (max-width:700px){.lateral{width:100%;border-left:0}}
 @media (prefers-reduced-motion:reduce){.lateral,.lat-fundo{transition:none}}
 .tip .lista div{break-inside:avoid;padding:2px 0}
@@ -1037,6 +1049,14 @@ body.nao-admin [data-orc]{display:none!important}
       <input type="search" id="latBusca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar por nome ou código" aria-label="Buscar na lista">
       <div class="lat-lista" id="latLista"></div>
     </aside>
+    <div class="lat-fundo" id="matFundo" hidden></div>
+    <aside class="lateral lat-mat" id="latMat" role="dialog" aria-modal="true" aria-labelledby="matTit" hidden>
+      <header><div><h2 id="matTit">Todos os materiais</h2><div class="lat-sub" id="matSub"></div></div><button type="button" class="lat-x" id="matX" aria-label="Fechar">×</button></header>
+      <div class="lat-total" id="matTotal"></div>
+      <input type="search" id="matBusca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar por nome ou SKU" aria-label="Buscar material por nome ou SKU">
+      <div class="seg lat-ordem" id="matOrdem" role="group" aria-label="Ordenar por"><button type="button" data-matord="v" aria-pressed="true">Custo</button><button type="button" data-matord="q" aria-pressed="false">Quantidade</button><button type="button" data-matord="n" aria-pressed="false">Nome (A-Z)</button></div>
+      <div class="lat-lista" id="matLista"></div>
+    </aside>
     <div class="lat-fundo" id="usuFundo" hidden></div>
     <aside class="lateral usu-lat" id="usuLat" role="dialog" aria-modal="true" aria-labelledby="usuLatTit" hidden></aside>
   </main>
@@ -1241,7 +1261,7 @@ function vPainel(){
       </div>
     </article>
     <article class="card">
-      <div class="cardhead"><div><h2>Materiais mais representativos</h2><div class="sub">Custo confirmado por material. Quantidades somadas só dentro do mesmo SKU.${somente()}</div></div></div>
+      <div class="cardhead"><div><h2>Materiais mais representativos</h2><div class="sub">Custo confirmado por material. Quantidades somadas só dentro do mesmo SKU.${somente()}</div></div>${matBotao(s)}</div>
       ${matTable(s)}
     </article>
   </section>
@@ -1363,14 +1383,22 @@ function rankHtml(){
     <span class="pct">${r.n} ${r.n===1?"entrega":"entregas"} · <span ${tA("cmpp|"+r.o.id,tot?r.v/tot:0,"pct")}>${pct(tot?r.v/tot:0)}</span> do total</span></button>`).join("");
 }
 
-function matTable(s){
+/* Todos os materiais do período (mesmo filtro do card), do maior custo para o menor. */
+function matGrupos(s){
   const g = {}; s.conf.forEach(l=>{const k=l.sku; g[k]=g[k]||{sku:k,mat:l.material,un:l.un,q:0,v:0}; g[k].q+=l.qtd; g[k].v+=l.valor});
-  const rows = Object.values(g).sort((a,b)=>b.v-a.v).slice(0,8);
+  return Object.values(g).sort((a,b)=>b.v-a.v);
+}
+const matBotao = s => { const n=matGrupos(s).length; return n>8?`<button type="button" class="btn" data-matver>Ver todos (${n})</button>`:""; };
+function matTable(s){
+  const todos = matGrupos(s), rows = todos.slice(0,8), resto = todos.slice(8);
+  matGuardar(s,todos);
   if(!rows.length) return `<div class="empty"><b>Nenhum custo confirmado neste período</b>Os materiais aparecem aqui quando uma entrega recebe custo e é conferida.</div>`;
   const max = rows[0].v;
   return `<div class="tw"><table><thead><tr><th>Material</th><th>Un</th><th class="n">Qtd entregue</th><th class="n">Custo</th><th>Participação</th></tr></thead><tbody data-lista="mat">
   ${rows.map(r=>`<tr><td class="mat">${esc(r.mat)}<small>${esc(r.sku)}</small></td><td>${esc(r.un)}</td><td class="n">${qtd(r.q)}</td><td class="n"><b ${tA("mat|"+r.sku,r.v)}>${brl(r.v)}</b></td>
-  <td><div class="bar"><div class="t"><span ${bA("mat|"+r.sku,r.v)} style="width:${(r.v/max*100).toFixed(1)}%"></span></div><b ${tA("matp|"+r.sku,r.v/s.custo,"pct")}>${pct(r.v/s.custo)}</b></div></td></tr>`).join("")}</tbody></table></div>`;
+  <td><div class="bar"><div class="t"><span ${bA("mat|"+r.sku,r.v)} style="width:${(r.v/max*100).toFixed(1)}%"></span></div><b ${tA("matp|"+r.sku,r.v/s.custo,"pct")}>${pct(r.v/s.custo)}</b></div></td></tr>`).join("")}${resto.length?(()=>{ const rv=sum(resto,r=>r.v);
+  return `<tr class="mat-outros" data-matver role="button" tabindex="0" aria-label="${esc("Outros "+resto.length+" materiais · "+brl(rv)+" · ver todos")}"><td class="mat">Outros ${resto.length} materiais</td><td></td><td class="n"></td><td class="n"><b ${tA("mat|__OUTROS",rv)}>${brl(rv)}</b></td>
+  <td><div class="bar"><div class="t"><span ${bA("mat|__OUTROS",rv)} style="width:${Math.min(100,rv/max*100).toFixed(1)}%"></span></div><b ${tA("matp|__OUTROS",rv/s.custo,"pct")}>${pct(rv/s.custo)}</b></div></td></tr>`; })():""}</tbody></table></div>`;
 }
 
 function sitPill(s){
@@ -1986,6 +2014,52 @@ const latAbrir=el=>{ const id=el.dataset.latobra; fecharOutros(); abrirObra(id);
 $("latLista").addEventListener("click",e=>{ const l=e.target.closest("[data-latobra]"); if(l) latAbrir(l); });
 $("latLista").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.matches("[data-latobra]")) latAbrir(e.target); });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharOutros(); });
+
+/* ---------- painel lateral: todos os materiais do card "Materiais mais representativos" ---------- */
+let MATS={itens:[],base:0,sub:""}, matOrd="v", matVolta=null, matTimer=null, matBuscaT=null;
+function matGuardar(s,todos){
+  MATS={itens:todos,base:s.custo,sub:"Custo confirmado · "+dbr(S.ini)+" a "+dbr(S.fim)+" · "+(S.obra?obraNome(S.obra)+" ("+S.obra+")":"Todas as obras")+(S.sku?" · Somente: "+nomeSku():"")};
+  const lat=$("latMat"); if(lat&&!lat.hidden) matPreencher(); // atualização automática com o painel aberto
+}
+function matLista(){
+  const q=$("matBusca").value.trim(), m=q?casa(q):null, max=Math.max(...MATS.itens.map(o=>o.v),0);
+  const ord={v:(a,b)=>b.v-a.v, q:(a,b)=>b.q-a.q||b.v-a.v, n:(a,b)=>String(a.mat).localeCompare(String(b.mat),"pt-BR",{sensitivity:"base"})}[matOrd];
+  const its=MATS.itens.filter(o=>!m||m(o.mat+" "+o.sku)).sort(ord);
+  $("matLista").innerHTML=its.length?its.map(o=>`<div class="lat-item"><span>${esc(o.mat)}<small>${esc(o.sku)}</small><small>${qtd(o.q)} ${esc(o.un)} entregue${o.q===1?"":"s"}</small></span><b>${brl(o.v)}</b><em>${pct(MATS.base?o.v/MATS.base:0)}</em><i><u style="width:${(max?o.v/max*100:0).toFixed(1)}%"></u></i></div>`).join(""):`<div class="empty"><b>Nenhum material encontrado.</b></div>`;
+}
+function matPreencher(){
+  $("matSub").textContent=MATS.sub;
+  $("matTotal").textContent=MATS.itens.length+(MATS.itens.length===1?" material":" materiais")+" · "+brl(sum(MATS.itens,o=>o.v));
+  matLista();
+}
+function abrirMat(){
+  esconderSeg(); esconderToque(); fecharOutros(); clearTimeout(matTimer);
+  const lat=$("latMat"), fundo=$("matFundo");
+  matOrd="v"; document.querySelectorAll("#matOrdem button").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.matord===matOrd)));
+  $("matBusca").value=""; matPreencher(); $("matLista").scrollTop=0;
+  if(lat.hidden){ matVolta=document.activeElement; const barra=window.innerWidth-document.documentElement.clientWidth;
+    document.documentElement.style.overflow="hidden"; document.body.style.paddingRight=barra?barra+"px":""; } // rolagem só dentro do painel
+  lat.hidden=false; fundo.hidden=false; lat.getBoundingClientRect();
+  lat.classList.add("aberto"); fundo.classList.add("aberto");
+  (window.matchMedia&&matchMedia("(hover:hover)").matches?$("matBusca"):$("matX")).focus();
+}
+function fecharMat(){
+  const lat=$("latMat"), fundo=$("matFundo"); if(lat.hidden) return;
+  lat.classList.remove("aberto"); fundo.classList.remove("aberto");
+  document.documentElement.style.overflow=""; document.body.style.paddingRight=""; clearTimeout(matBuscaT);
+  clearTimeout(matTimer); matTimer=setTimeout(()=>{lat.hidden=true;fundo.hidden=true;},semMov()?0:260);
+  // O card pode ter sido redesenhado pela atualização automática: volta para o botão equivalente.
+  const alvo=matVolta&&matVolta.isConnected?matVolta:document.querySelector("#view [data-matver].btn")||document.querySelector("#view [data-matver]");
+  if(alvo&&alvo.focus) alvo.focus(); matVolta=null;
+}
+$("matX").addEventListener("click",fecharMat);
+$("matFundo").addEventListener("click",fecharMat);
+$("matBusca").addEventListener("input",()=>{ clearTimeout(matBuscaT); matBuscaT=setTimeout(matLista,120); });
+$("matOrdem").addEventListener("click",e=>{ const b=e.target.closest("[data-matord]"); if(!b) return; matOrd=b.dataset.matord;
+  document.querySelectorAll("#matOrdem button").forEach(x=>x.setAttribute("aria-pressed",String(x===b))); matLista(); $("matLista").scrollTop=0; });
+document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-matver]"); if(b){ e.preventDefault(); abrirMat(); } });
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ fecharMat(); return; }
+  if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#view tr[data-matver]")){ e.preventDefault(); abrirMat(); } });
 
 /* ---------- balão da barra do custo confirmado ---------- */
 let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, segTimer=null;
