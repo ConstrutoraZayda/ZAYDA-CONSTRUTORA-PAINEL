@@ -841,12 +841,44 @@ body.nao-admin [data-orc]{display:none!important}
 #printArea .rel .tb tr.t td.n{color:#0A8A3E}
 #printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#3A4A40}
 #printArea .rel .emit{margin-top:30px;font-size:10px;font-weight:700;color:#0F1A14;break-inside:avoid}
+#printArea .ru .ph .ru-quem{font-family:inherit;font-weight:700;font-size:12px}
 #printArea .ru .ru-nome{margin-top:22px;padding-top:8px;border-top:2px solid #00632B;font-size:13px;color:#00632B}
-#printArea .ru .blk.ru-ped{grid-template-columns:auto auto minmax(0,1fr) auto auto;margin:14px 0 6px;background:#F1F8F3}
-#printArea .ru .ru-id{font-family:var(--f-mono);font-size:10px}
-#printArea .ru .ru-marca{display:inline-block;padding:0 6px;border:1.5px solid #C62828;border-radius:3px;color:#C62828;font-weight:800;font-size:10px;letter-spacing:.06em}
-#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#C62828;margin:0}
-#printArea .ru .ru-ent{margin:3px 0 0}
+#printArea .ru .tot.ru-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
+#printArea .ru .ru-cards>div{display:flex;flex-direction:column;gap:2px}
+#printArea .ru .ru-cards b{font-size:16px;line-height:1.15}
+#printArea .ru .ru-cards small{font-size:9px;color:#3A4A40;font-weight:600}
+#printArea .ru .ru-cards .ru-alerta b{color:#B26A00}
+#printArea .ru .ru-bar{display:block;height:8px;margin-top:4px;border:1px solid #0A8A3E;border-radius:5px;background:#E6F4EA;overflow:hidden}
+#printArea .ru .ru-bar>i{display:block;height:100%;background:#0A8A3E}
+#printArea .ru .blk.ru-ped{display:block;padding:0;gap:0;margin:10px 0;background:#fff;border:1px solid #B9CCBF;border-radius:8px;break-inside:avoid;page-break-inside:avoid}
+#printArea .ru .ru-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 10px;background:#F1F8F3;border-bottom:1px solid #B9CCBF;border-radius:7px 7px 0 0}
+#printArea .ru .ru-topo small{color:#3A4A40;font-weight:600;font-size:9.5px;margin-left:6px}
+#printArea .ru .ru-id{font-family:var(--f-mono);font-size:11px;font-weight:800;color:#0F1A14}
+#printArea .ru .ru-selo{flex:none;font-style:normal;padding:2px 8px;border-radius:4px;color:#FFFFFF;font-weight:800;font-size:9px;letter-spacing:.06em;white-space:nowrap}
+#printArea .ru .ru-s-ok{background:#00632B}
+#printArea .ru .ru-s-pend{background:#B26A00}
+#printArea .ru .ru-s-canc{background:#C62828}
+#printArea .ru .ru-obra{padding:6px 10px;font-weight:700}
+#printArea .ru .ru-ob{font-family:var(--f-mono);color:#00632B;font-weight:700;margin-right:3px}
+#printArea .ru .ru-ped .tb{border-left:0;border-right:0}
+#printArea .ru .ru-ped .tb td:first-child,#printArea .ru .ru-ped .tb th:first-child{border-left:0}
+#printArea .ru .ru-ped .tb td:last-child,#printArea .ru .ru-ped .tb th:last-child{border-right:0}
+#printArea .ru .ru-pe{background:#E6F4EA;border-top:1px solid #B9CCBF;border-radius:0 0 7px 7px;color:#0F1A14}
+#printArea .ru .ru-pl{display:grid;grid-template-columns:repeat(4,minmax(0,1fr))}
+#printArea .ru .ru-pl+.ru-pl{border-top:1px solid #B9CCBF}
+#printArea .ru .ru-pl>div{min-width:0;padding:6px 10px;border-left:1px solid #B9CCBF;overflow-wrap:anywhere}
+#printArea .ru .ru-pl>div:first-child{border-left:0}
+#printArea .ru .ru-pl .ru-l{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#3A4A40}
+#printArea .ru .ru-pl b{display:inline;font-size:13px;font-weight:800;color:#0F1A14}
+#printArea .ru .ru-pl small{font-size:8.5px;font-weight:600;color:#3A4A40;margin-left:4px}
+#printArea .ru .ru-pl .ru-val{text-align:right}
+#printArea .ru .ru-pl .ru-val b{color:#0A8A3E}
+#printArea .ru .ru-pl .ru-val small.ru-ns{display:block;margin:0;color:#C62828}
+#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#C62828;margin:0;font-weight:700}
+#printArea .ru .ru-cod{font-family:var(--f-mono);font-weight:800;white-space:nowrap}
+@media screen{#printArea .ru .ru-ped{overflow-x:auto}}
+@media screen and (max-width:600px){#printArea .ru .tot.ru-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+  #printArea .ru .ru-pl{grid-template-columns:repeat(2,minmax(0,1fr))}#printArea .ru .ru-pl>div:nth-child(3){border-left:0}#printArea .ru .ru-pl>div:nth-child(n+3){border-top:1px solid #B9CCBF}}
 #printArea .rod{margin-top:14px;font-size:8.5px;color:#3A4A40;display:flex;justify-content:space-between}
 #printArea .esp .rod{margin:0;padding-top:4mm;line-height:1}
 #printArea table.folha>tbody>tr>td>:last-child,#printArea table.folha>tbody>tr>td>.rel>:last-child{margin-bottom:0}
@@ -2742,34 +2774,49 @@ function ruResumo(x){
   return {peds:x.peds.length,valor:sum(vivos,p=>sum(p.its,i=>i.valorRef)),linhas:linhas.length,
     entregues:linhas.filter(i=>ent(i)>=(i.qtdSol||0)&&(i.qtdSol||0)>0).length, parciais:linhas.filter(i=>ent(i)>0&&ent(i)<(i.qtdSol||0)).length,
     aEntregar:linhas.filter(i=>!ent(i)).length, fechados:x.peds.filter(p=>p.fe).length,
+    materiais:sum(x.peds,p=>p.its.length),
     entregas:new Set(x.regs.map(r=>r.id+"|"+r.e.data+"|"+String(r.e.entreguePor||"").toUpperCase()+"|"+String(r.e.recebidoPor||"").toUpperCase())).size, itensReg:x.regs.length};
 }
-const ruObra=id=>id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(id)}</small>${esc((D.obras.find(o=>o.id===id)||{}).endereco||(D.obras.find(o=>o.id===id)||{}).casa||obraNome(id))}`;
+const ruEnd=id=>{ const o=D.obras.find(o=>o.id===id)||{}; return esc(o.endereco||o.casa||obraNome(id)); };
+const ruObra=id=>id==="SEM VÍNCULO"?"Sem obra identificada":`<span class="ru-ob">${esc(id)}</span> ${ruEnd(id)}`;
+const ruCurto=id=>{ const m=/^ZAYDA-\d{8}-(.+)$/.exec(String(id)); return m?m[1]:String(id); };
 const ruSituacao=p=>{ if(p.fe) return p.fe.tipo==="ENCERRADO"?"Encerrado":"Cancelado"; const sal=i=>"saldoReal" in i?i.saldoReal:i.saldo;
   return p.its.some(i=>sal(i)>0)?(p.its.some(i=>i.entregue>0)?"Entrega parcial":"Aguardando entrega"):"Tudo entregue"; };
+const ruQuem=u=>[u.nome,u.empresa,u.perfil].filter(Boolean).map(esc).join(" · ");
 function ruDetalhe(u,x,per,titulo){
-  const r=ruResumo(x), sal=i=>"saldoReal" in i?i.saldoReal:i.saldo;
-  const cab=(titulo?`<h2 class="ru-nome">${esc(u.nome)}</h2>`:"")+`<dl class="blk"><div><dt>NOME</dt><dd>${esc(u.nome)}</dd></div><div><dt>EMPRESA</dt><dd>${esc(u.empresa||"—")}</dd></div><div><dt>PERFIL</dt><dd>${esc(u.perfil||"—")}</dd></div>
-    <div class="w2"><dt>E-MAIL</dt><dd>${esc(u.email)}</dd></div><div><dt>PERÍODO</dt><dd>${esc(per.txt)}</dd></div></dl>`;
-  const c=(t,v)=>`<div><span>${t}</span><b>${v}</b></div>`;
-  const resumo=`<h2>RESUMO</h2><div class="tot q4">${c("PEDIDOS FEITOS",r.peds)}${c("VALOR TOTAL DOS PEDIDOS",brl(r.valor))}${c("MATERIAIS (LINHAS)",r.linhas)}${c("ENTREGUES",r.entregues)}${c("PARCIAIS",r.parciais)}${c("A ENTREGAR",r.aEntregar)}${c("CANCELADOS/ENCERRADOS",r.fechados)}${c("ENTREGAS REGISTRADAS POR ELE",r.entregas)}</div>`;
-  const peds=x.peds.length?x.peds.map(p=>{ const canc=p.fe&&p.fe.tipo==="CANCELADO", v=sum(p.its,i=>i.valorRef), E=entregasPedido(p.id);
-      return `<dl class="blk ru-ped"><div><dt>DATA/HORA</dt><dd>${dataHoraBr(p.criado)}</dd></div><div><dt>Nº DO PEDIDO</dt><dd class="ru-id">${esc(p.id)}</dd></div><div><dt>OBRA</dt><dd>${ruObra(p.obra)}</dd></div>
-        <div><dt>SITUAÇÃO</dt><dd>${p.fe?`<span class="ru-marca">${p.fe.tipo==="ENCERRADO"?"ENCERRADO":"CANCELADO"}</span>`:esc(ruSituacao(p))}</dd></div><div><dt>VALOR</dt><dd>${canc?`<s>${brl(v)}</s><small class="ru-ns">não soma</small>`:brl(v)}</dd></div></dl>`+
+  const r=ruResumo(x), sal=i=>"saldoReal" in i?i.saldoReal:i.saldo, n=(v,a,b)=>v+" "+(v===1?a:b);
+  const cab=titulo?`<h2 class="ru-nome">${ruQuem(u)}</h2>`:"";
+  const pend=r.aEntregar+r.parciais+r.fechados, pc=r.linhas?Math.round(r.entregues/r.linhas*100):0;
+  const card=(t,v,sub,cl)=>`<div${cl?` class="${cl}"`:""}><span>${t}</span><b>${v}</b>${sub}</div>`;
+  const resumo=`<h2>RESUMO</h2><div class="tot ru-cards">`+
+    card("PEDIDOS FEITOS",r.peds,`<small>${n(r.materiais,"material","materiais")}</small>`)+
+    card("VALOR DOS PEDIDOS",brl(r.valor),`<small>sem cancelados</small>`)+
+    card("MATERIAIS ENTREGUES",`${r.entregues} de ${r.linhas}`,`<i class="ru-bar" role="img" aria-label="${pc}% entregue"><i style="width:${pc}%"></i></i>`)+
+    card("PENDÊNCIAS",pend,`<small>${r.aEntregar} a entregar · ${n(r.parciais,"parcial","parciais")} · ${n(r.fechados,"cancelado","cancelados")}</small>`,pend>0?"ru-alerta":"")+`</div>`;
+  const peds=x.peds.length?x.peds.map(p=>{ const canc=p.fe&&p.fe.tipo==="CANCELADO", v=sum(p.its,i=>i.valorRef), E=entregasPedido(p.id), sit=ruSituacao(p);
+      const cor=p.fe?"ru-s-canc":sit==="Tudo entregue"?"ru-s-ok":"ru-s-pend";
+      const val=canc?`<s><b>${brl(v)}</b></s><small class="ru-ns">não soma</small>`:`<b>${brl(v)}</b>`;
+      const cel=(t,x,cl)=>`<div${cl?` class="${cl}"`:""}><i class="ru-l">${t}</i>${x}</div>`;
+      const lin=(g,gi)=>`<div class="ru-pl">${cel("ENTREGUE EM",(E.length>1?`<b class="ru-ord">${gi+1}ª</b> `:"")+`<b>${g.data?dbr(g.data):"—"}</b>`+(E.length>1?`<small>${n(g.itens.length,"item","itens")}</small>`:""))}${cel("ENTREGADOR",`<b>${esc(g.entreguePor||"—")}</b>`)}${cel("RECEBIDO POR",`<b>${esc(g.recebidoPor||"—")}</b>`)}${cel("VALOR DO PEDIDO",gi?"":val,"ru-val")}</div>`;
+      return `<div class="blk ru-ped">
+        <div class="ru-topo"><span><b class="ru-id">${esc(p.id)}</b> <small>feito em ${dataHoraBr(p.criado)}</small></span><em class="ru-selo ${cor}">${esc(sit.toUpperCase())}</em></div>
+        <div class="ru-obra">${ruObra(p.obra)}</div>`+
         (p.its.length?relTabela(["Material","Un",["Pedido","n"],["Entregue","n"],["Falta","n"],["Preço unit.","n"],["Valor","n"]],
-          p.its.map(i=>[`<b>${esc(i.material)}</b><small>${esc(i.sku)}</small>`,esc(i.un),qtd(i.qtdSol),qtd(i.entregue),qtd(Math.max(sal(i),0)),i.precoRef==null?"A cotar":brl(i.precoRef),i.valorRef==null?"—":brl(i.valorRef)])):"")+
-        (E.length?E.map((g,gi)=>`<p class="av ru-ent">${ordEntrega(gi+1)} · ${g.data?dbr(g.data).slice(0,5):"—"} · Entregador: ${esc(g.entreguePor||"—")} · Recebido por: ${esc(g.recebidoPor||"—")}</p>`).join(""):`<p class="av ru-ent">Nenhuma entrega registrada neste pedido.</p>`);
+          p.its.map(i=>[`<b>${esc(i.material)}</b><small>${esc(i.sku)}</small>`,esc(i.un),qtd(i.qtdSol),qtd(i.entregue),qtd(Math.max(sal(i),0)),i.precoRef==null?"A cotar":brl(i.precoRef),i.valorRef==null?"—":(canc?`<s>${brl(i.valorRef)}</s>`:brl(i.valorRef))])):"")+
+        `<div class="ru-pe">${E.length?E.map(lin).join(""):`<div class="ru-pl">${cel("ENTREGUE EM","<b>Ainda não entregue</b>")}${cel("ENTREGADOR","<b>—</b>")}${cel("RECEBIDO POR","<b>—</b>")}${cel("VALOR DO PEDIDO",val,"ru-val")}</div>`}</div>
+      </div>`;
     }).join(""):relVazio("Nenhum pedido feito neste período.");
-  /* Tabela: todas as entregas não canceladas dos pedidos feitos (qualquer data, qualquer quem marcou) + as que ele marcou em pedidos de outros. */
-  const cancE=new Set(D.lanc.filter(l=>l.situacao==="CANCELADO").map(l=>l.id)), vistos=new Set(), tab=[];
-  const poe=(e,id,obra)=>{ const k=id+"|"+e.id; if(cancE.has(e.id)||vistos.has(k)) return; vistos.add(k); tab.push({e,id,obra}); };
+  /* Entregas do período: todas as entregas não canceladas dos pedidos feitos + as que ele marcou em pedidos de outros; uma linha por entrega. */
+  const cancE=new Set(D.lanc.filter(l=>l.situacao==="CANCELADO").map(l=>l.id)), vistos=new Set(), grupos={}, tab=[];
+  const poe=(e,id,obra)=>{ const k=id+"|"+e.id; if(cancE.has(e.id)||vistos.has(k)) return; vistos.add(k);
+    const g=id+"|"+(e.data||"")+"|"+String(e.entreguePor||"").toUpperCase()+"|"+String(e.recebidoPor||"").toUpperCase();
+    if(!grupos[g]){ grupos[g]={id,obra,data:e.data||"",entreguePor:e.entreguePor,recebidoPor:e.recebidoPor,itens:0}; tab.push(grupos[g]); } grupos[g].itens++; };
   x.peds.forEach(p=>(p.p.entregas||[]).forEach(e=>poe(e,p.id,p.obra)));
   x.regs.forEach(r=>poe(r.e,r.id,r.obra));
-  tab.sort((a,b)=>String(a.e.data||"").localeCompare(String(b.e.data||""))||a.id.localeCompare(b.id)||String(a.e.id).localeCompare(String(b.e.id)));
-  const regs=tab.length?relTabela(["Data","Nº do pedido","Obra","Material",["Qtd","n"],"Entregador","Recebido por"],
-      tab.map(({e,id,obra})=>[e.data?dbr(e.data):"—",`<span class="ru-id">${esc(id)}</span>`,ruObra(obra),`<b>${esc(e.material)}</b><small>${esc(e.sku)}</small>`,qtd(e.qtd)+" "+esc(e.un),esc(e.entreguePor||"—"),esc(e.recebidoPor||"—")]),
-      ["SUBTOTAL","","","",tab.length+(tab.length===1?" item":" itens"),"",""]):relVazio("Nenhuma entrega registrada por este usuário neste período.");
-  return cab+resumo+`<h2>PEDIDOS FEITOS</h2>`+peds+`<h2>ENTREGAS REGISTRADAS</h2>`+regs;
+  tab.sort((a,b)=>a.data.localeCompare(b.data)||a.id.localeCompare(b.id));
+  const regs=tab.length?relTabela(["Data","Nº do pedido","Obra","Itens","Entregador","Recebido por"],
+      tab.map(g=>[g.data?dbr(g.data):"—",`<b class="ru-cod">${esc(ruCurto(g.id))}</b>`,ruObra(g.obra),n(g.itens,"item","itens"),esc(g.entreguePor||"—"),esc(g.recebidoPor||"—")])):relVazio("Nenhuma entrega neste período.");
+  return cab+resumo+`<h2>PEDIDOS FEITOS</h2>`+peds+`<h2>ENTREGAS DO PERÍODO</h2>`+regs;
 }
 /* Usuário pelo e-mail: cadastro da aba USUARIOS; e-mail fora do cadastro aparece como ele mesmo. */
 const ruUsuario=em=>{ const u=(USU.lista||[]).find(x=>x.email.toLowerCase()===em); return u?{nome:u.nome||u.email,empresa:u.empresa,perfil:u.perfil,email:u.email}:{nome:em,empresa:"",perfil:"",email:em,fora:true}; };
@@ -2785,7 +2832,7 @@ function folhaRelUsu(email,per,mov){
       ls.map(l=>ruDetalhe(l.u,l.x,per,true)).join("");
   } else corpo=ruDetalhe(u,mov[em]||{peds:[],regs:[]},per);
   return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${relAgora()} por ${esc(D.eu&&(D.eu.nome||D.eu.usuario)||"—")}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel ru">
-  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>RELATÓRIO POR USUÁRIO</h1><div class="id">${todos?"Todos os usuários":esc(u.nome)}</div><div class="muted">Período: ${esc(per.txt)}</div></div></div>
+  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>RELATÓRIO POR USUÁRIO</h1><div class="id ru-quem">${todos?"Todos os usuários":ruQuem(u)}</div><div class="muted">Período: ${esc(per.txt)}</div></div></div>
   ${corpo}
 </div></td></tr></tbody></table>`;
 }
