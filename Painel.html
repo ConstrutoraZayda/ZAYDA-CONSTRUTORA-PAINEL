@@ -848,6 +848,8 @@ body.nao-admin [data-orc]{display:none!important}
 #printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#C62828;margin:0}
 #printArea .ru .ru-ent{margin:3px 0 0}
 #printArea .rod{margin-top:14px;font-size:8.5px;color:#3A4A40;display:flex;justify-content:space-between}
+#printArea .esp .rod{margin:0;padding-top:4mm;line-height:1}
+#printArea table.folha>tbody>tr>td>:last-child,#printArea table.folha>tbody>tr>td>.rel>:last-child{margin-bottom:0}
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
 #intro{position:fixed;inset:0;z-index:9999;color:#fff;display:grid;
   background:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/32px 32px,linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px) 0 0/32px 32px,
@@ -2280,7 +2282,7 @@ const carregarLibsPdf=()=>libsPdf=libsPdf||Promise.all(LIBS_PDF.map(src=>new Pro
 function cortesPdf(el){
   const pag=794*297/210, m=794*11/210, base=el.getBoundingClientRect().top;
   const pos=b=>{const r=b.getBoundingClientRect();return {t:r.top-base,b:r.bottom-base}};
-  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.rod,.av,h2")].map(pos), presos=[...el.querySelectorAll("h2,.tb thead")].map(pos);
+  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.av,h2")].map(pos), presos=[...el.querySelectorAll("h2,.tb thead")].map(pos);
   const fim=blocos.length?Math.max(...blocos.map(x=>x.b))+m:el.offsetHeight, cortes=[]; let ini=0;
   while(ini<fim){
     const lim=ini+pag-(ini?2*m:m);
@@ -2293,14 +2295,15 @@ function cortesPdf(el){
     if(c<=ini) c=lim;
     cortes.push([ini,c]); ini=c;
   }
-  return cortes;
+  const comBloco=cortes.filter(([a,b])=>blocos.some(x=>x.b>a&&x.t<b)); // trecho sem nenhum bloco não vira página
+  return comBloco.length?comBloco:cortes;
 }
 async function gerarPdf(html,nome){
   if(gerandoPdf) return;
   gerandoPdf=true; aviso("Gerando PDF…");
   const el=$("printArea");
   // o html2canvas desenha em dobro as bordas de tabela coladas: o ajuste vale já para o cálculo dos cortes
-  const ajuste=document.createElement("style"); ajuste.textContent="#printArea .tb{border-top:1px solid #B9CCBF;border-left:1px solid #B9CCBF}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}";
+  const ajuste=document.createElement("style"); ajuste.textContent="#printArea .tb{border-top:1px solid #B9CCBF;border-left:1px solid #B9CCBF}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}#printArea .esp .rod{visibility:hidden}";
   try{
     await carregarLibsPdf();
     el.innerHTML=html;
@@ -2309,7 +2312,7 @@ async function gerarPdf(html,nome){
     await Promise.all([...el.querySelectorAll("img")].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})));
     if(document.fonts) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>r()));
-    const cortes=cortesPdf(el);
+    const cortes=cortesPdf(el), rod=el.querySelector(".esp .rod"), rodTxt=rod?rod.textContent.trim():"";
     const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), mm=210/794;
     for(let i=0;i<cortes.length;i++){
       const [a,b]=cortes[i], alt=b-a;
@@ -2322,6 +2325,7 @@ async function gerarPdf(html,nome){
       let img=tela.toDataURL("image/png"), tipo="PNG";
       if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
       pdf.addImage(img,tipo,0,i?11:0,210,alt*mm,undefined,"FAST");
+      if(rodTxt){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); pdf.text(rodTxt,198,291,{align:"right"}); }
       tela.width=tela.height=0;
     }
     const dados=pdf.output("arraybuffer");
@@ -2344,7 +2348,7 @@ function folhaPedido(id,its){
   const obraTxt=f.obra==="SEM VÍNCULO"?"Obra não reconhecida":`<small>${esc(f.obra)}</small>${esc(o?(o.endereco||o.casa):obraNome(f.obra))}`;
   // Tabela externa: o cabeçalho e o rodapé vazios se repetem em cada folha e fazem a margem de cima e de baixo.
   // Com a margem da página zerada, o navegador não imprime data, título e endereço do site.
-  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td>
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${hj}</span></div></div></td></tr></tfoot><tbody><tr><td>
   <div class="ph"><img src="${logo}" alt="Zayda Construtora"><div class="t"><h1>SOLICITAÇÃO DE MATERIAIS</h1>${fe?`<div class="marca">${fe.tipo==="ENCERRADO"?"ENCERRADO":"CANCELADO"}</div>`:""}<div class="id">${esc(id)}</div><div class="muted">Revisão ${esc(P.rev||f.rev)} · pedido feito em ${dh(P.criado||f.data)}${P.atualizado&&P.atualizado!==P.criado?" · alterado em "+dh(P.atualizado):""}</div></div></div>
   <dl class="blk">
     <div class="w2"><dt>OBRA</dt><dd>${obraTxt}</dd></div><div><dt>CLIENTE</dt><dd>${esc(o&&o.cliente||"—")}</dd></div>
@@ -2361,7 +2365,6 @@ function folhaPedido(id,its){
   <div class="tot"><div><span>VALOR DO PEDIDO</span><b>${brl(valor)}</b></div><div><span>JÁ ENTREGUE</span><b>${brl(entV)}</b></div><div><span>FALTA ENTREGAR</span><b>${brl(faltaV)}</b></div></div>
   ${(()=>{const E=entregasPedido(id);return E.length?`<h2>HISTÓRICO DE ENTREGAS</h2><table class="tb"><thead><tr><th>Data</th><th>Entregue por</th><th>Recebido por</th><th>Material</th><th class="n">Qtd</th></tr></thead><tbody>${E.map((g,gi)=>g.itens.map(e=>`<tr><td>${dbr(g.data)}<small>${ordEntrega(gi+1)}</small></td><td>${esc(g.entreguePor||"—")}</td><td>${esc(g.recebidoPor||"—")}</td><td><b>${esc(e.material)}</b><small>${esc(e.sku)}</small></td><td class="n">${qtd(e.qtd)} ${esc(e.un)}</td></tr>`).join("")).join("")}</tbody></table>`:"";})()}
   <div class="linha"><div>Emitido por</div></div>
-  <div class="rod"><span></span><span>Impresso em ${hj}</span></div>
   </td></tr></tbody></table>`;
 }
 
@@ -2438,13 +2441,13 @@ function folhaDia(obra,dia){
   const grupos=Object.entries(relGrupo(L,l=>l.obra)).sort((a,b)=>(a[0]==="SEM VÍNCULO")-(b[0]==="SEM VÍNCULO")||a[0].localeCompare(b[0],"pt-BR",{numeric:true}));
   const dados=obra?`<div class="w2"><dt>OBRA</dt><dd>${obra==="SEM VÍNCULO"?"":`<small>${esc(obra)}</small>`}${nomeOb(obra)}</dd></div><div><dt>CLIENTE</dt><dd>${esc(cli(o)||"—")}</dd></div>`:`<div class="w2"><dt>OBRAS</dt><dd>Todas as obras (${grupos.length} com entrega neste dia)</dd></div>`;
   const corpo=obra?`<h2>ENTREGAS</h2>${tabela(L,"TOTAL")}`:grupos.map(([id,a])=>`<h2>${id==="SEM VÍNCULO"?"":esc(id)+" · "}${nomeOb(id)}${cli(D.obras.find(x=>x.id===id))?" · "+esc(cli(D.obras.find(x=>x.id===id))):""}</h2>${tabela(a,"Subtotal da obra")}`).join("")+`<div class="tot"><div><span>TOTAL GERAL DO DIA</span><b>${brl(r.total)}</b></div></div>`;
-  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel">
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${relAgora()}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel">
   <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>Relatório do dia</h1><div class="id">${dbr(dia)}</div></div></div>
   <dl class="blk">${dados}<div><dt>DATA</dt><dd>${dbr(dia)}</dd></div></dl>
   <h2>RESUMO DO DIA</h2><div class="tot q5"><div><span>TOTAL DO DIA</span><b>${brl(r.total)}</b></div><div><span>ENTREGAS</span><b>${r.n}</b></div><div><span>MATERIAIS DIFERENTES</span><b>${r.mats}</b></div><div><span>PEDIDOS</span><b>${r.peds}</b></div><div><span>ENTREGADORES</span><b>${ent.length}</b></div></div>
   ${quadroEnt}
   ${corpo}
-  <div class="rod"><span></span><span>Impresso em ${relAgora()}</span></div></div></td></tr></tbody></table>`;
+</div></td></tr></tbody></table>`;
 }
 const ordemFalta = (a,b) => b.data.localeCompare(a.data)||a.pedido.localeCompare(b.pedido);
 /* Janela de escolha do relatório. */
@@ -2781,10 +2784,10 @@ function folhaRelUsu(email,per,mov){
         ["TOTAL","",sum(ls,l=>l.r.peds),brl(sum(ls,l=>l.r.valor)),sum(ls,l=>l.r.entregas),sum(ls,l=>l.r.fechados)])+
       ls.map(l=>ruDetalhe(l.u,l.x,per,true)).join("");
   } else corpo=ruDetalhe(u,mov[em]||{peds:[],regs:[]},per);
-  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel ru">
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${relAgora()} por ${esc(D.eu&&(D.eu.nome||D.eu.usuario)||"—")}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel ru">
   <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>RELATÓRIO POR USUÁRIO</h1><div class="id">${todos?"Todos os usuários":esc(u.nome)}</div><div class="muted">Período: ${esc(per.txt)}</div></div></div>
   ${corpo}
-  <div class="rod"><span></span><span>Impresso em ${relAgora()} por ${esc(D.eu&&(D.eu.nome||D.eu.usuario)||"—")}</span></div></div></td></tr></tbody></table>`;
+</div></td></tr></tbody></table>`;
 }
 function abrirRelUsu(email){
   if(!USU.lista||!D) return;
