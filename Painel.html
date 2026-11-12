@@ -31,7 +31,7 @@ button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 html{-webkit-tap-highlight-color:transparent}
 a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
-@media (hover:none),(pointer:coarse){a:active,button:active,summary:active{opacity:.7}#busca,#latBusca,#fObra,#fSku,#relObra,#diaData,#relDia,#relDiaObra{font-size:16px}}
+@media (hover:none),(pointer:coarse){a:active,button:active,summary:active{opacity:.7}#busca,#latBusca,#fObra,#fSku,#relObra,#diaData,#relDia,#relDiaObra,#ruUsu,#ruDe,#ruAte{font-size:16px}}
 .app{display:grid;grid-template-columns:248px minmax(0,1fr);min-height:100vh;min-height:100dvh}
 /* Sidebar */
 .side{background:var(--surface);border-right:1px solid var(--line);padding:22px 16px;display:flex;flex-direction:column;gap:22px;position:sticky;top:0;height:100vh;height:100dvh}
@@ -315,12 +315,14 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .orcm label{display:block;margin:12px 0 5px;font-size:12px;font-weight:700;color:var(--ink-2)}
 .orcm input{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600}
 .orcm select{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:10px 12px;font-weight:600}
-#relModal .field.combo{flex:none;max-width:none;margin-top:6px}
-#relModal .field.combo label{margin:0;font-size:11px;color:var(--ink-3)}
-#relModal .field.combo input{border:0;background:transparent;padding:9px 2px}
-#relModal .pop{width:100%;max-height:260px}
+#relModal .field.combo,#ruModal .field.combo{flex:none;max-width:none;margin-top:6px}
+#relModal .field.combo label,#ruModal .field.combo label{margin:0;font-size:11px;color:var(--ink-3)}
+#relModal .field.combo input,#ruModal .field.combo input{border:0;background:transparent;padding:9px 2px}
+#relModal .pop,#ruModal .pop{width:100%;max-height:260px}
+.ru-pers{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:10px}
+.ru-pers label{margin-top:6px}
 #relImprimir:disabled{opacity:.5;cursor:not-allowed;filter:none}
-@media (min-width:701px){#relModal{overflow:visible;max-height:none}}
+@media (min-width:701px){#relModal,#ruModal{overflow:visible;max-height:none}}
 .orcm label.relop{display:flex;align-items:center;gap:8px;margin:14px 0 4px;font-size:13px;color:var(--ink);cursor:pointer}
 .orcm .relop input{width:auto;flex:none}
 .orcm-c{margin-top:14px;padding:10px 12px;border-radius:10px;background:var(--laranja-soft);color:var(--laranja);border:1px solid var(--laranja-line);font-size:13px;font-weight:700}
@@ -836,6 +838,12 @@ body.nao-admin [data-orc]{display:none!important}
 #printArea .rel .tb tr.t td{font-weight:800;background:#F5F8F6!important}
 #printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#555}
 #printArea .rel .emit{margin-top:30px;font-size:10px;font-weight:700;color:#222;break-inside:avoid}
+#printArea .ru .ru-nome{margin-top:22px;padding-top:8px;border-top:2px solid #00632B;font-size:13px}
+#printArea .ru .blk.ru-ped{grid-template-columns:auto auto minmax(0,1fr) auto auto;margin:14px 0 6px;background:#F5F8F6}
+#printArea .ru .ru-id{font-family:var(--f-mono);font-size:10px}
+#printArea .ru .ru-marca{display:inline-block;padding:0 6px;border:1.5px solid #b42318;border-radius:3px;color:#b42318;font-weight:800;font-size:10px;letter-spacing:.06em}
+#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#b42318;margin:0}
+#printArea .ru .ru-ent{margin:3px 0 0}
 #printArea .rod{margin-top:14px;font-size:8.5px;color:#777;display:flex;justify-content:space-between}
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
 #intro{position:fixed;inset:0;z-index:9999;color:#fff;display:grid;
@@ -912,6 +920,7 @@ body.nao-admin [data-orc]{display:none!important}
       <div><h1 id="title">Painel de custos</h1><p id="subtitle">Custo confirmado dos materiais entregues em cada obra.</p></div>
       <div class="topright"><span class="chip" id="modeChip" hidden></span><span class="live" id="live" hidden><i></i>Ao vivo</span><span class="muted" id="updated"></span>
         <button type="button" class="btn primary" id="btnNovoUsu" hidden>+ Novo usuário</button>
+        <button type="button" class="btn" id="btnRelUsu" hidden>Relatório</button>
         <button type="button" class="btn" id="btnAtualizar" title="Buscar os dados da planilha agora" hidden>Atualizar</button>
         <button type="button" class="btn" id="btnRelatorio" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/></svg>Imprimir relatório</button></div>
     </header>
@@ -933,6 +942,21 @@ body.nao-admin [data-orc]{display:none!important}
     <div class="tip" id="stip" hidden></div>
     <div class="lat-fundo aberto" id="orcFundo" hidden></div>
     <div class="lat-fundo aberto" id="relFundo" hidden></div>
+    <div class="lat-fundo aberto" id="ruFundo" hidden></div>
+    <div class="orcm" id="ruModal" role="dialog" aria-modal="true" aria-labelledby="ruTit" hidden>
+      <form id="ruForm" novalidate>
+        <h2 id="ruTit">Relatório por usuário</h2>
+        <p class="orcm-g">Pedidos que o usuário fez e entregas que ele registrou no período.</p>
+        <div class="field combo" id="cRu"><label for="ruUsu">USUÁRIO</label><input id="ruUsu" type="text" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Todos os usuários" role="combobox" aria-autocomplete="list" aria-expanded="false" aria-controls="lRu"><button type="button" class="clr" id="xRu" aria-label="Voltar para todos os usuários" hidden>×</button><ul class="pop" id="lRu" role="listbox" hidden></ul></div>
+        <label class="relop"><input type="radio" name="ruPer" value="dia" checked>Hoje</label>
+        <label class="relop"><input type="radio" name="ruPer" value="semana">Esta semana (segunda a domingo)</label>
+        <label class="relop"><input type="radio" name="ruPer" value="mes">Este mês</label>
+        <label class="relop"><input type="radio" name="ruPer" value="pers">Personalizado</label>
+        <div class="ru-pers" id="ruBoxPers" hidden><div><label for="ruDe">De</label><input id="ruDe" type="date"></div><div><label for="ruAte">Até</label><input id="ruAte" type="date"></div></div>
+        <div class="orcm-e" id="ruMsg" role="alert" hidden></div>
+        <div class="orcm-b"><button type="button" class="btn" id="ruCancelar">Cancelar</button><button type="submit" class="btn primary" id="ruGerar">Gerar relatório</button></div>
+      </form>
+    </div>
     <div class="orcm" id="relModal" role="dialog" aria-modal="true" aria-labelledby="relTit" hidden>
       <form id="relForm" novalidate>
         <h2 id="relTit">Imprimir relatório</h2>
@@ -2042,7 +2066,8 @@ function render(){
   document.querySelectorAll("[data-fsit]").forEach(b=>b.addEventListener("click",()=>{S.sit=S.sit===b.dataset.fsit?"":b.dataset.fsit;render()}));
   document.querySelectorAll("[data-vista]").forEach(b=>b.addEventListener("click",()=>{S.orcVista=b.dataset.vista;try{localStorage.setItem("zaydaOrcVista",S.orcVista)}catch(e){}render()}));
   document.querySelectorAll("[data-orc]").forEach(b=>b.addEventListener("click",()=>abrirOrc(b.dataset.orc)));
-  $("btnNovoUsu").hidden=v!=="usuarios"||!USU.lista;
+  $("btnNovoUsu").hidden=v!=="usuarios"||!USU.lista; $("btnRelUsu").hidden=$("btnNovoUsu").hidden;
+  if(v!=="usuarios") fecharRelUsu();
   if(v==="usuarios") ligarUsuarios(); else fecharUsu();
   // Solicitações: a obra do pedido abre a página da obra sem abrir/fechar o detalhe (está dentro do <summary>)
   document.querySelectorAll("[data-pedobra]").forEach(a=>{const ir=e=>{e.preventDefault();e.stopPropagation();abrirObra(a.dataset.pedobra)};
@@ -2493,7 +2518,8 @@ const contaAntiga=u=>!u.usuario&&/^conta antiga compartilhada/i.test(String(u.ob
 const iniciais=u=>{ const p=String(u.nome||u.email||"?").trim().split(/\s+/).filter(Boolean); return ((p[0]||"?")[0]+(p.length>1?p[p.length-1][0]:"")).toUpperCase(); };
 /* Ações do menu "⋯" que valem para a pessoa (as que não se aplicam ficam ocultas). */
 function acoesUsu(u){
-  const a=[];
+  const a=[["relatorio","Relatório deste usuário",""]];
+  if(u.email===USU.dono) return a;
   if(u.usuario&&u.painel&&u.temPin) a.push(["resetar","Resetar senha",""]);
   if(u.usuario&&u.aparelhos>0) a.push(["desconectar","Desconectar aparelhos",""]);
   if(u.email!==USU.eu) a.push(u.ativo?["desativar","Desativar acesso","perigo"]:["ativar","Reativar acesso",""]);
@@ -2546,13 +2572,13 @@ function linhaUsu(u){
   const acesso=(on,t)=>`<span class="pill ${on?"ok":"off"}" title="${esc(t+(on?": com acesso":": sem acesso"))}">${t}</span>`;
   const senha=!u.painel?`<span class="usu-nada" aria-label="Não usa o painel">—</span>`:u.temPin?`<span class="usu-sen ok">✓ Definida</span>`:`<span class="usu-sen espera">⏳ 1º acesso</span>`;
   const ap=u.aparelhos>0?`<span class="usu-ap"><i aria-hidden="true">●</i>${u.aparelhos} ${u.aparelhos===1?"aparelho":"aparelhos"}</span>`:`<span class="usu-nada">—</span>`;
-  const ops=acoesUsu(u), aberto=USU.menu===u.email&&!dono&&ops.length;
-  const menu=dono?`<span class="usu-dono" title="Dono do sistema">🔒 Dono</span>`:ops.length?`<button type="button" class="btn usu-mais" data-usu="menu" data-u="${k}" aria-haspopup="menu" aria-expanded="${aberto?"true":"false"}" aria-label="Mais ações para ${esc(u.nome||u.email)}">⋯</button>`
+  const ops=acoesUsu(u), aberto=USU.menu===u.email&&ops.length;
+  const menu=ops.length?`<button type="button" class="btn usu-mais" data-usu="menu" data-u="${k}" aria-haspopup="menu" aria-expanded="${aberto?"true":"false"}" aria-label="Mais ações para ${esc(u.nome||u.email)}">⋯</button>`
     +(aberto?`<div class="usu-menu" role="menu">${ops.map(([a,t,c])=>`<button type="button" role="menuitem"${c?` class="${c}"`:""} data-usu="${a}" data-u="${k}">${t}</button>`).join("")}</div>`:""):"";
   const c=USU.conf&&USU.conf.u===u.email?USU.conf.acao:"", nm=u.nome||u.email;
   const conf=c?`<div class="usu-conf" role="alert"><span>${esc({ativar:"Reativar o acesso de "+nm+"?",desativar:"Desativar o acesso de "+nm+"? Os aparelhos dele serão desconectados.",resetar:"Apagar a senha de "+nm+"? Ele fará o primeiro acesso de novo.",desconectar:"Desconectar todos os aparelhos de "+nm+"?"}[c])}</span><button type="button" class="btn primary" data-usu="confirmar"${USU.ocupado?" disabled":""}>${USU.ocupado?"Aguarde…":"Confirmar"}</button><button type="button" class="btn" data-usu="cancelar">Cancelar</button></div>`:"";
   return `<div class="usu-lin${u.ativo?"":" inativo"}" role="listitem" data-email="${k}">
-    <div class="c-p usu-p">${av}<span><b>${esc(u.nome||"—")}</b>${u.ativo?"":`<span class="pill bad">Inativo</span>`}<small>${esc(u.email)}</small></span></div>
+    <div class="c-p usu-p">${av}<span><b>${esc(u.nome||"—")}</b>${u.ativo?"":`<span class="pill bad">Inativo</span>`}${dono?`<span class="usu-dono" title="Dono do sistema"> 🔒 Dono</span>`:""}<small>${esc(u.email)}</small></span></div>
     <div class="c-u" data-r="Usuário">${u.usuario?`<code class="usu-login">${esc(u.usuario)}</code>`:`<span class="usu-nada">—</span>`}</div>
     <div class="c-pf"><span class="pill ${u.perfil==="Admin"?"ok":"sem"}">${esc(u.perfil||"—")}</span></div>
     <div class="c-acc usu-sels">${acesso(u.formulario,"Formulário")}${acesso(u.painel,"Painel")}</div>
@@ -2650,6 +2676,7 @@ function ligarUsuarios(){
     if(a==="recarregar"){ USU.erro=""; render(); return; }
     if(a==="filtro"){ USU.filtro=b.dataset.f; USU.menu=""; USU.conf=null; render(); return; }
     if(a==="editar"&&u){ abrirUsu({original:u.email,dados:Object.assign({},u)}); return; }
+    if(a==="relatorio"&&u){ USU.menu=""; abrirRelUsu(u.email); return; }
     if(a==="menu"&&u){ const abrir=USU.menu!==u.email; USU.menu=abrir?u.email:""; USU.conf=null; render();
       if(abrir){ const p=document.querySelector(`.usu-lin[data-email="${CSS.escape(u.email)}"] .usu-menu button`); if(p) p.focus(); } return; }
     if(a==="cancelar"){ const em=USU.conf&&USU.conf.u; USU.conf=null; render(); const v=em&&document.querySelector(`.usu-lin[data-email="${CSS.escape(em)}"] .usu-mais`); if(v) v.focus(); return; }
@@ -2667,6 +2694,117 @@ function ligarUsuarios(){
         .catch(e=>{ USU.ocupado=false; aviso("Erro do Google: "+(e&&e.message?e.message:e),6000); render(); }); }
   }));
 }
+/* ---------- relatório por usuário (aberto só pela tela Usuários) ---------- */
+let RU_USU="";
+const CU=combo("ruUsu","lRu","xRu","Todos os usuários",()=>RU_USU,v=>{RU_USU=v},{aoMudar:()=>{CU.sync();$("ruMsg").hidden=true},todasAoFocar:true,limite:Infinity});
+const ruIso=d=>d.getUTCFullYear()+"-"+pad(d.getUTCMonth()+1)+"-"+pad(d.getUTCDate());
+const ruDm=t=>t.slice(8,10)+"-"+t.slice(5,7);
+/* Período escolhido (datas em aaaa-mm-dd do fuso de São Paulo, a partir do "hoje" do servidor). */
+function ruPeriodo(){
+  const t=document.querySelector('[name="ruPer"]:checked').value, h=D.hoje;
+  if(t==="dia") return {ini:h,fim:h,txt:"Hoje · "+dbr(h),arq:arqDia(h)};
+  if(t==="semana"){ const d=new Date(h+"T12:00:00Z"), w=(d.getUTCDay()+6)%7, a=ruIso(new Date(d.getTime()-w*864e5)), b=ruIso(new Date(d.getTime()+(6-w)*864e5));
+    return {ini:a,fim:b,txt:"Semana de "+dbr(a)+" a "+dbr(b),arq:"semana "+(a.slice(0,4)===b.slice(0,4)?ruDm(a)+" a "+arqDia(b):arqDia(a)+" a "+arqDia(b))}; }
+  if(t==="mes"){ const k=h.slice(0,7), [a,b]=relDoMes(k); return {ini:a,fim:b,txt:relMesAno(k),arq:k.slice(5,7)+"-"+k.slice(0,4)}; }
+  const a=$("ruDe").value, b=$("ruAte").value;
+  if(!a||!b) return {erro:"Escolha as datas de início e fim."};
+  if(a>b) return {erro:"A data inicial deve ser anterior ou igual à final."};
+  return {ini:a,fim:b,txt:a===b?dbr(a):dbr(a)+" a "+dbr(b),arq:a===b?arqDia(a):arqDia(a)+" a "+arqDia(b)};
+}
+/* Pedidos criados (pela data de criação, por quem criou) e entregas registradas (pelo e-mail de quem confirmou) no período. */
+function ruMovimento(ini,fim){
+  const canc=new Set(D.lanc.filter(l=>l.situacao==="CANCELADO").map(l=>l.id)), its={};
+  (D.itensTodos||D.itens).forEach(i=>{(its[i.pedido]=its[i.pedido]||[]).push(i)});
+  const dentro=t=>!!t&&t>=ini&&t<=fim, por={}, de=e=>{const k=String(e||"").trim().toLowerCase();return por[k]=por[k]||{peds:[],regs:[]}};
+  Object.entries(D.pedidos||{}).forEach(([id,p])=>{
+    const lista=its[id]||[], f=lista[0]||{}, criado=/^\d{4}-\d{2}-\d{2}/.test(p.criado||"")?p.criado:(f.data||"");
+    if(dentro(criado.slice(0,10))&&(p.criadoPor||p.email)) de(p.criadoPor||p.email).peds.push({id,p,its:lista,obra:f.obra||"SEM VÍNCULO",criado,fe:p.cancelamento});
+    (p.entregas||[]).forEach(e=>{ if(e.registradoPor&&!canc.has(e.id)&&dentro(e.data)) de(e.registradoPor).regs.push({e,id,obra:f.obra||"SEM VÍNCULO"}); });
+  });
+  Object.values(por).forEach(x=>{ x.peds.sort((a,b)=>a.criado.localeCompare(b.criado)||a.id.localeCompare(b.id)); x.regs.sort((a,b)=>a.e.data.localeCompare(b.e.data)||a.id.localeCompare(b.id)||a.e.id.localeCompare(b.e.id)); });
+  return por;
+}
+/* Números do resumo de um usuário. Pedido cancelado não soma no valor nem nos materiais. */
+function ruResumo(x){
+  const vivos=x.peds.filter(p=>!(p.fe&&p.fe.tipo==="CANCELADO")), linhas=[].concat(...vivos.map(p=>p.its));
+  const ent=i=>Math.min(i.entregue||0,i.qtdSol||0);
+  return {peds:x.peds.length,valor:sum(vivos,p=>sum(p.its,i=>i.valorRef)),linhas:linhas.length,
+    entregues:linhas.filter(i=>ent(i)>=(i.qtdSol||0)&&(i.qtdSol||0)>0).length, parciais:linhas.filter(i=>ent(i)>0&&ent(i)<(i.qtdSol||0)).length,
+    aEntregar:linhas.filter(i=>!ent(i)).length, fechados:x.peds.filter(p=>p.fe).length,
+    entregas:new Set(x.regs.map(r=>r.id+"|"+r.e.data+"|"+String(r.e.entreguePor||"").toUpperCase()+"|"+String(r.e.recebidoPor||"").toUpperCase())).size, itensReg:x.regs.length};
+}
+const ruObra=id=>id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(id)}</small>${esc((D.obras.find(o=>o.id===id)||{}).endereco||(D.obras.find(o=>o.id===id)||{}).casa||obraNome(id))}`;
+const ruSituacao=p=>{ if(p.fe) return p.fe.tipo==="ENCERRADO"?"Encerrado":"Cancelado"; const sal=i=>"saldoReal" in i?i.saldoReal:i.saldo;
+  return p.its.some(i=>sal(i)>0)?(p.its.some(i=>i.entregue>0)?"Entrega parcial":"Aguardando entrega"):"Tudo entregue"; };
+function ruDetalhe(u,x,per,titulo){
+  const r=ruResumo(x), sal=i=>"saldoReal" in i?i.saldoReal:i.saldo;
+  const cab=(titulo?`<h2 class="ru-nome">${esc(u.nome)}</h2>`:"")+`<dl class="blk"><div><dt>NOME</dt><dd>${esc(u.nome)}</dd></div><div><dt>EMPRESA</dt><dd>${esc(u.empresa||"—")}</dd></div><div><dt>PERFIL</dt><dd>${esc(u.perfil||"—")}</dd></div>
+    <div class="w2"><dt>E-MAIL</dt><dd>${esc(u.email)}</dd></div><div><dt>PERÍODO</dt><dd>${esc(per.txt)}</dd></div></dl>`;
+  const c=(t,v)=>`<div><span>${t}</span><b>${v}</b></div>`;
+  const resumo=`<h2>RESUMO</h2><div class="tot q4">${c("PEDIDOS FEITOS",r.peds)}${c("VALOR TOTAL DOS PEDIDOS",brl(r.valor))}${c("MATERIAIS (LINHAS)",r.linhas)}${c("ENTREGUES",r.entregues)}${c("PARCIAIS",r.parciais)}${c("A ENTREGAR",r.aEntregar)}${c("CANCELADOS/ENCERRADOS",r.fechados)}${c("ENTREGAS REGISTRADAS POR ELE",r.entregas)}</div>`;
+  const peds=x.peds.length?x.peds.map(p=>{ const canc=p.fe&&p.fe.tipo==="CANCELADO", v=sum(p.its,i=>i.valorRef), E=entregasPedido(p.id);
+      return `<dl class="blk ru-ped"><div><dt>DATA/HORA</dt><dd>${dataHoraBr(p.criado)}</dd></div><div><dt>Nº DO PEDIDO</dt><dd class="ru-id">${esc(p.id)}</dd></div><div><dt>OBRA</dt><dd>${ruObra(p.obra)}</dd></div>
+        <div><dt>SITUAÇÃO</dt><dd>${p.fe?`<span class="ru-marca">${p.fe.tipo==="ENCERRADO"?"ENCERRADO":"CANCELADO"}</span>`:esc(ruSituacao(p))}</dd></div><div><dt>VALOR</dt><dd>${canc?`<s>${brl(v)}</s><small class="ru-ns">não soma</small>`:brl(v)}</dd></div></dl>`+
+        (p.its.length?relTabela(["Material","Un",["Pedido","n"],["Entregue","n"],["Falta","n"],["Preço unit.","n"],["Valor","n"]],
+          p.its.map(i=>[`<b>${esc(i.material)}</b><small>${esc(i.sku)}</small>`,esc(i.un),qtd(i.qtdSol),qtd(i.entregue),qtd(Math.max(sal(i),0)),i.precoRef==null?"A cotar":brl(i.precoRef),i.valorRef==null?"—":brl(i.valorRef)])):"")+
+        (E.length?E.map((g,gi)=>`<p class="av ru-ent">${ordEntrega(gi+1)} · ${g.data?dbr(g.data).slice(0,5):"—"} · Entregador: ${esc(g.entreguePor||"—")} · Recebido por: ${esc(g.recebidoPor||"—")}</p>`).join(""):`<p class="av ru-ent">Nenhuma entrega registrada neste pedido.</p>`);
+    }).join(""):relVazio("Nenhum pedido feito neste período.");
+  const regs=x.regs.length?relTabela(["Data","Nº do pedido","Obra","Material",["Qtd","n"],"Entregador","Recebido por"],
+      x.regs.map(({e,id,obra})=>[dbr(e.data),`<span class="ru-id">${esc(id)}</span>`,ruObra(obra),`<b>${esc(e.material)}</b><small>${esc(e.sku)}</small>`,qtd(e.qtd)+" "+esc(e.un),esc(e.entreguePor||"—"),esc(e.recebidoPor||"—")]),
+      ["SUBTOTAL","","","",x.regs.length+(x.regs.length===1?" item":" itens"),"",""]):relVazio("Nenhuma entrega registrada por este usuário neste período.");
+  return cab+resumo+`<h2>PEDIDOS FEITOS</h2>`+peds+`<h2>ENTREGAS REGISTRADAS</h2>`+regs;
+}
+/* Usuário pelo e-mail: cadastro da aba USUARIOS; e-mail fora do cadastro aparece como ele mesmo. */
+const ruUsuario=em=>{ const u=(USU.lista||[]).find(x=>x.email.toLowerCase()===em); return u?{nome:u.nome||u.email,empresa:u.empresa,perfil:u.perfil,email:u.email}:{nome:em,empresa:"",perfil:"",email:em,fora:true}; };
+function folhaRelUsu(email,per,mov){
+  const todos=!email, em=String(email||"").toLowerCase(), u=todos?null:ruUsuario(em);
+  let corpo="";
+  if(todos){
+    const ls=Object.entries(mov).filter(([k,x])=>k&&(x.peds.length||x.regs.length)).map(([k,x])=>({u:ruUsuario(k),x,r:ruResumo(x)}))
+      .sort((a,b)=>b.r.valor-a.r.valor||a.u.nome.localeCompare(b.u.nome,"pt-BR"));
+    corpo=`<h2>COMPARATIVO ENTRE USUÁRIOS</h2>`+relTabela(["Usuário","Empresa",["Pedidos","n"],["Valor","n"],["Entregas registradas","n"],["Cancelados/encerrados","n"]],
+        ls.map(l=>[`<b>${esc(l.u.nome)}</b>${l.u.fora?"<small>fora do cadastro de usuários</small>":""}`,esc(l.u.empresa||"—"),l.r.peds,brl(l.r.valor),l.r.entregas,l.r.fechados]),
+        ["TOTAL","",sum(ls,l=>l.r.peds),brl(sum(ls,l=>l.r.valor)),sum(ls,l=>l.r.entregas),sum(ls,l=>l.r.fechados)])+
+      ls.map(l=>ruDetalhe(l.u,l.x,per,true)).join("");
+  } else corpo=ruDetalhe(u,mov[em]||{peds:[],regs:[]},per);
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel ru">
+  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>RELATÓRIO POR USUÁRIO</h1><div class="id">${todos?"Todos os usuários":esc(u.nome)}</div><div class="muted">Período: ${esc(per.txt)}</div></div></div>
+  ${corpo}
+  <div class="rod"><span></span><span>Impresso em ${relAgora()} por ${esc(D.eu&&(D.eu.nome||D.eu.usuario)||"—")}</span></div></div></td></tr></tbody></table>`;
+}
+function abrirRelUsu(email){
+  if(!USU.lista||!D) return;
+  fecharMenuUsu();
+  RU_USU=email||"";
+  CU.items=[...USU.lista].sort((a,b)=>String(a.nome||a.email).localeCompare(String(b.nome||b.email),"pt-BR")).map(u=>({v:u.email,cd:"",t:u.nome||u.email,
+    sub:[u.empresa,u.perfil,u.ativo?"":"Inativo",u.email].filter(Boolean).join(" · "),busca:(u.nome||"")+" "+(u.usuario||"")+" "+u.email+" "+(u.empresa||"")}));
+  CU.sync();
+  if(!$("ruDe").value){ $("ruDe").value=D.hoje.slice(0,8)+"01"; $("ruAte").value=D.hoje; }
+  $("ruMsg").hidden=true; ruTipos();
+  ruVolta=document.activeElement; $("ruModal").hidden=false; $("ruFundo").hidden=false; $("ruCancelar").focus();
+}
+let ruVolta=null;
+function ruTipos(){ $("ruBoxPers").hidden=document.querySelector('[name="ruPer"]:checked').value!=="pers"; $("ruMsg").hidden=true; }
+function fecharRelUsu(){ if($("ruModal").hidden) return; $("ruModal").hidden=true; $("ruFundo").hidden=true; if(ruVolta&&ruVolta.isConnected&&ruVolta.focus) ruVolta.focus(); ruVolta=null; }
+function gerarRelUsu(e){
+  e.preventDefault();
+  const m=$("ruMsg"), avisa=t=>{ m.textContent=t; m.hidden=false; };
+  const per=ruPeriodo(); if(per.erro) return avisa(per.erro);
+  const mov=ruMovimento(per.ini,per.fim), em=RU_USU.toLowerCase(), x=mov[em];
+  if(RU_USU&&!(x&&(x.peds.length||x.regs.length))) return avisa("Nenhum pedido ou entrega de "+ruUsuario(em).nome+" em "+per.txt.replace(/^Hoje · /,"")+".");
+  if(!RU_USU&&!Object.entries(mov).some(([k,v])=>k&&(v.peds.length||v.regs.length))) return avisa("Nenhum pedido ou entrega de usuários em "+per.txt.replace(/^Hoje · /,"")+".");
+  const html=folhaRelUsu(RU_USU,per,mov), nome="Zayda - "+(RU_USU?ruUsuario(em).nome:"Usuarios")+" "+per.arq+".pdf";
+  fecharRelUsu();
+  imprimirFolha(html,nome);
+}
+$("ruForm").addEventListener("submit",gerarRelUsu);
+$("ruCancelar").addEventListener("click",fecharRelUsu);
+$("ruFundo").addEventListener("click",fecharRelUsu);
+$("ruDe").addEventListener("input",()=>{$("ruMsg").hidden=true});
+$("ruAte").addEventListener("input",()=>{$("ruMsg").hidden=true});
+document.querySelectorAll('[name="ruPer"]').forEach(x=>x.addEventListener("change",ruTipos));
+document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharRelUsu(); });
+$("btnRelUsu").addEventListener("click",()=>abrirRelUsu(""));
 /* ---------- acesso: usuário + senha; o aparelho guarda só a sua chave (nunca código, senha ou hash) ---------- */
 const CHAVE_LOCAL="zaydaPainelToken"; let TOKEN="";
 try{localStorage.removeItem("zaydaPainelCodigo")}catch(e){} // código guardado pela versão antiga: deixa de valer

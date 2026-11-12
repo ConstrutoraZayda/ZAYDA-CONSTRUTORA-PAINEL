@@ -566,14 +566,15 @@ function escreverCancelamentos_(ss, linhas) {
 function escreverEntregas_(ss, entregas, pedidos) {
   const entregador = {}, rev = {};
   pedidos.forEach(p => { if (!(p[0] in rev) || p[1] > rev[p[0]]) { rev[p[0]] = p[1]; entregador[p[0]] = p[6]; } });
-  const cab = ['ENTREGA_ID', 'PEDIDO_ID', 'SKU', 'PRODUTO', 'UNIDADE', 'QTD_ENTREGUE', 'DATA_ENTREGA', 'RECEBIDO_POR', 'ENTREGUE_POR', 'OBSERVACOES'];
+  // K REGISTRADO_POR: e-mail de quem confirmou a entrega no formulário (coluna I EMAIL_LOGIN da aba ENTREGAS).
+  const cab = ['ENTREGA_ID', 'PEDIDO_ID', 'SKU', 'PRODUTO', 'UNIDADE', 'QTD_ENTREGUE', 'DATA_ENTREGA', 'RECEBIDO_POR', 'ENTREGUE_POR', 'OBSERVACOES', 'REGISTRADO_POR'];
   let sh = ss.getSheetByName(CTRL.destEntregas);
   if (!sh) { sh = ss.insertSheet(CTRL.destEntregas, ss.getNumSheets()); sh.hideSheet(); }
   sh.getRange(1, 1, 1, cab.length).setValues([cab]).setFontWeight('bold');
   const ultima = sh.getMaxRows();
   if (ultima > 1) sh.getRange(2, 1, ultima - 1, cab.length).clearContent();
   if (!entregas.length) return;
-  const linhas = entregas.map(e => [e.id, e.pedido, e.sku, e.produto, e.un, e.qtd, e.data, e.recebidoTxt, e.entreguePor || entregador[e.pedido] || '', e.obsTxt]);
+  const linhas = entregas.map(e => [e.id, e.pedido, e.sku, e.produto, e.un, e.qtd, e.data, e.recebidoTxt, e.entreguePor || entregador[e.pedido] || '', e.obsTxt, texto_(e.email).toLowerCase()]);
   if (sh.getMaxRows() < linhas.length + 1) sh.insertRowsAfter(sh.getMaxRows(), linhas.length + 1 - sh.getMaxRows());
   sh.getRange(2, 1, linhas.length, cab.length).setNumberFormat('@');
   sh.getRange(2, 6, linhas.length, 1).setNumberFormat('0.###');
@@ -1241,21 +1242,24 @@ function getDadosPainel(token) {
     obs: texto_(r[13]), situacao: texto_(r[14]), alertas: texto_(r[15])
   }));
   // Dados de cabeçalho de cada pedido (revisão vigente): usados na impressão do pedido.
-  const pedidos = {};
+  const pedidos = {}, primeiraRev = {}; // primeiraRev: e-mail de quem criou o pedido (menor revisão)
   linhas_(ss, CTRL.destPedidos, 2, 16).filter(r => texto_(r[0])).forEach(r => {
     const id = texto_(r[0]), rev = Number(r[1]) || 0;
+    if (!primeiraRev[id] || rev < primeiraRev[id].rev) primeiraRev[id] = {rev, email: texto_(r[4]).toLowerCase()};
     if (pedidos[id] && pedidos[id].rev > rev) return;
     pedidos[id] = {rev, criado: dataHora_(r[2]), atualizado: dataHora_(r[3]), email: texto_(r[4]), atendente: texto_(r[5]),
       entregador: texto_(r[6]), endereco: texto_(r[7]), casa: texto_(r[8]), obs: texto_(r[9]), status: texto_(r[12]),
       referencia: texto_(r[15])};
   });
   // Entregas de cada pedido, com quem entregou e quem recebeu (_IMPORT_ENTREGAS), da mais antiga para a mais nova.
+  Object.keys(pedidos).forEach(id => { pedidos[id].criadoPor = primeiraRev[id] ? primeiraRev[id].email : ''; });
   const shEnt = ss.getSheetByName(CTRL.destEntregas);
-  if (shEnt && shEnt.getLastRow() > 1) shEnt.getRange(2, 1, shEnt.getLastRow() - 1, 10).getValues().forEach(r => {
+  if (shEnt && shEnt.getLastRow() > 1) shEnt.getRange(2, 1, shEnt.getLastRow() - 1, Math.min(11, shEnt.getMaxColumns())).getValues().forEach(r => {
     const id = texto_(r[1]);
     if (!pedidos[id] || !texto_(r[0])) return;
     (pedidos[id].entregas = pedidos[id].entregas || []).push({id: texto_(r[0]), sku: texto_(r[2]), material: texto_(r[3]), un: texto_(r[4]),
-      qtd: num_(r[5]) || 0, data: dataIso_(r[6]), recebidoPor: texto_(r[7]), entreguePor: texto_(r[8]), obs: texto_(r[9])});
+      qtd: num_(r[5]) || 0, data: dataIso_(r[6]), recebidoPor: texto_(r[7]), entreguePor: texto_(r[8]), obs: texto_(r[9]),
+      registradoPor: texto_(r[10]).toLowerCase()});
   });
   Object.keys(pedidos).forEach(id => { if (pedidos[id].entregas) pedidos[id].entregas.sort((a, b) => a.data.localeCompare(b.data) || a.id.localeCompare(b.id)); });
   // Pedido cancelado ou encerrado no formulário (_IMPORT_CANCELAMENTOS). Vale o primeiro registro de cada pedido.
