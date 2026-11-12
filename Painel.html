@@ -2749,9 +2749,15 @@ function ruDetalhe(u,x,per,titulo){
           p.its.map(i=>[`<b>${esc(i.material)}</b><small>${esc(i.sku)}</small>`,esc(i.un),qtd(i.qtdSol),qtd(i.entregue),qtd(Math.max(sal(i),0)),i.precoRef==null?"A cotar":brl(i.precoRef),i.valorRef==null?"—":brl(i.valorRef)])):"")+
         (E.length?E.map((g,gi)=>`<p class="av ru-ent">${ordEntrega(gi+1)} · ${g.data?dbr(g.data).slice(0,5):"—"} · Entregador: ${esc(g.entreguePor||"—")} · Recebido por: ${esc(g.recebidoPor||"—")}</p>`).join(""):`<p class="av ru-ent">Nenhuma entrega registrada neste pedido.</p>`);
     }).join(""):relVazio("Nenhum pedido feito neste período.");
-  const regs=x.regs.length?relTabela(["Data","Nº do pedido","Obra","Material",["Qtd","n"],"Entregador","Recebido por"],
-      x.regs.map(({e,id,obra})=>[dbr(e.data),`<span class="ru-id">${esc(id)}</span>`,ruObra(obra),`<b>${esc(e.material)}</b><small>${esc(e.sku)}</small>`,qtd(e.qtd)+" "+esc(e.un),esc(e.entreguePor||"—"),esc(e.recebidoPor||"—")]),
-      ["SUBTOTAL","","","",x.regs.length+(x.regs.length===1?" item":" itens"),"",""]):relVazio("Nenhuma entrega registrada por este usuário neste período.");
+  /* Tabela: todas as entregas não canceladas dos pedidos feitos (qualquer data, qualquer quem marcou) + as que ele marcou em pedidos de outros. */
+  const cancE=new Set(D.lanc.filter(l=>l.situacao==="CANCELADO").map(l=>l.id)), vistos=new Set(), tab=[];
+  const poe=(e,id,obra)=>{ const k=id+"|"+e.id; if(cancE.has(e.id)||vistos.has(k)) return; vistos.add(k); tab.push({e,id,obra}); };
+  x.peds.forEach(p=>(p.p.entregas||[]).forEach(e=>poe(e,p.id,p.obra)));
+  x.regs.forEach(r=>poe(r.e,r.id,r.obra));
+  tab.sort((a,b)=>String(a.e.data||"").localeCompare(String(b.e.data||""))||a.id.localeCompare(b.id)||String(a.e.id).localeCompare(String(b.e.id)));
+  const regs=tab.length?relTabela(["Data","Nº do pedido","Obra","Material",["Qtd","n"],"Entregador","Recebido por"],
+      tab.map(({e,id,obra})=>[e.data?dbr(e.data):"—",`<span class="ru-id">${esc(id)}</span>`,ruObra(obra),`<b>${esc(e.material)}</b><small>${esc(e.sku)}</small>`,qtd(e.qtd)+" "+esc(e.un),esc(e.entreguePor||"—"),esc(e.recebidoPor||"—")]),
+      ["SUBTOTAL","","","",tab.length+(tab.length===1?" item":" itens"),"",""]):relVazio("Nenhuma entrega registrada por este usuário neste período.");
   return cab+resumo+`<h2>PEDIDOS FEITOS</h2>`+peds+`<h2>ENTREGAS REGISTRADAS</h2>`+regs;
 }
 /* Usuário pelo e-mail: cadastro da aba USUARIOS; e-mail fora do cadastro aparece como ele mesmo. */
