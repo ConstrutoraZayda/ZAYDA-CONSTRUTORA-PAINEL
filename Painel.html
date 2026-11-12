@@ -793,58 +793,61 @@ body.nao-admin [data-orc]{display:none!important}
 #printArea{display:none}
 @media print{
   @page{size:A4;margin:0}
-  html,body{background:#fff!important;color:#111!important}
+  html,body{background:#fff!important;color:#0F1A14!important}
   .app,.acesso,.aviso,#intro{display:none!important}
   *{animation:none!important;transition:none!important}
-  #printArea{display:block;font:500 10.5px/1.4 var(--f-ui);color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #printArea{display:block;font:500 10.5px/1.4 var(--f-ui);color:#0F1A14;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
+#printArea,#printArea *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 #printArea .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #00632B;padding-bottom:10px}
 #printArea .ph img{width:170px;height:auto}
 #printArea .ph .t{text-align:right}
 #printArea .ph h1{margin:0;font-size:16px;letter-spacing:.04em;color:#00632B}
-#printArea .ph .marca{display:inline-block;margin:4px 0 2px;padding:2px 10px;border:2px solid #b42318;border-radius:4px;color:#b42318;font-weight:800;font-size:12px;letter-spacing:.08em}
-#printArea .ph .id{font-family:var(--f-mono);font-size:12px;margin-top:3px}
-#printArea .ph .muted{color:#555;font-size:10px}
-#printArea .blk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;margin:12px 0;padding:10px 12px;border:1px solid #cfd8d2;border-radius:8px}
+#printArea .ph .marca{display:inline-block;margin:4px 0 2px;padding:2px 10px;border:2px solid #C62828;border-radius:4px;color:#C62828;font-weight:800;font-size:12px;letter-spacing:.08em}
+#printArea .ph .id{font-family:var(--f-mono);font-size:12px;margin-top:3px;color:#0F1A14}
+#printArea .ph .muted{color:#3A4A40;font-size:10px}
+#printArea .blk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;margin:12px 0;padding:10px 12px;border:1px solid #B9CCBF;border-radius:8px;background:#F1F8F3}
 #printArea .blk .w2{grid-column:span 2}#printArea .blk .w3{grid-column:1/-1}
-#printArea .blk dt{font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#5b6b61}
-#printArea .blk dd{margin:1px 0 0;font-weight:700;font-size:11px}
-#printArea .blk dd small{font-family:var(--f-mono);color:#00632B;font-weight:500;margin-right:5px}
+#printArea .blk dt{font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#3A4A40}
+#printArea .blk dd{margin:1px 0 0;font-weight:700;font-size:11px;color:#0F1A14}
+#printArea .blk dd small{font-family:var(--f-mono);color:#00632B;font-weight:600;margin-right:5px}
 #printArea h2{font-size:11px;letter-spacing:.06em;margin:14px 0 6px;color:#00632B}
 #printArea table.folha{width:100%;border-collapse:collapse}
-#printArea table.folha>thead>tr>td,#printArea table.folha>tfoot>tr>td,#printArea table.folha>tbody>tr>td{padding:0 12mm;border:0}
+#printArea table.folha>thead>tr>td,#printArea table.folha>tfoot>tr>td,#printArea table.folha>tbody>tr>td{padding:0 12mm;border:0;background:none}
 #printArea .esp{height:11mm}
-#printArea table.tb{width:100%;border-collapse:collapse;font-size:10px}
-#printArea .tb th{background:#EEF3EF!important;color:#33443A;font-size:8.5px;letter-spacing:.05em;padding:5px 6px;border:1px solid #cfd8d2;border-radius:0;white-space:nowrap}
-#printArea .tb td{padding:5px 6px;border:1px solid #dfe6e1;vertical-align:top}
+#printArea table.tb{width:100%;border-collapse:collapse;font-size:10px;color:#0F1A14}
+#printArea .tb th{background:#00632B!important;color:#FFFFFF;font-weight:800;font-size:8.5px;letter-spacing:.05em;padding:5px 6px;border:1px solid #00632B;border-radius:0;white-space:nowrap}
+#printArea .tb td{padding:5px 6px;border:1px solid #B9CCBF;vertical-align:top}
+#printArea .tb tbody tr:nth-child(even) td{background:#F3F9F5}
 #printArea .tb td.n,#printArea .tb th.n{text-align:right;white-space:nowrap}
-#printArea .tb td small{display:block;font-family:var(--f-mono);font-size:8.5px;color:#666}
+#printArea .tb td small{display:block;font-family:var(--f-mono);font-size:8.5px;color:#00632B}
 #printArea .tb tr{break-inside:avoid}
 #printArea .tot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
-#printArea .tot div{border:1px solid #cfd8d2;border-radius:8px;padding:7px 10px}
-#printArea .tot span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#5b6b61}
-#printArea .tot b{font-size:13px}
+#printArea .tot div{border:1px solid #B9CCBF;border-radius:8px;padding:7px 10px;background:#F1F8F3}
+#printArea .tot span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#3A4A40}
+#printArea .tot b{font-size:13px;color:#0F1A14}
 #printArea .ass{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;break-inside:avoid}
-#printArea .ass>div{border:1px solid #cfd8d2;border-radius:8px;padding:8px 10px;min-height:90px}
+#printArea .ass>div{border:1px solid #B9CCBF;border-radius:8px;padding:8px 10px;min-height:90px}
 #printArea .ass img{display:block;max-width:100%;height:58px;object-fit:contain;margin:4px 0}
-#printArea .ass span{font-size:9px;color:#555}
+#printArea .ass span{font-size:9px;color:#3A4A40}
 #printArea .linha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:34px;break-inside:avoid}
-#printArea .linha div{border-top:1px solid #333;padding-top:5px;font-size:10px;font-weight:700;color:#222;text-align:center;letter-spacing:.04em;text-transform:uppercase}
+#printArea .linha div{border-top:1px solid #0F1A14;padding-top:5px;font-size:10px;font-weight:700;color:#0F1A14;text-align:center;letter-spacing:.04em;text-transform:uppercase}
 #printArea .rel h2{break-after:avoid}
 #printArea .rel .tot{margin:8px 0}
 #printArea .rel .tot.q4{grid-template-columns:repeat(4,1fr)}
 #printArea .rel .tot.q5{grid-template-columns:repeat(5,1fr)}
 #printArea .rel .tb thead{display:table-header-group}
-#printArea .rel .tb tr.t td{font-weight:800;background:#F5F8F6!important}
-#printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#555}
-#printArea .rel .emit{margin-top:30px;font-size:10px;font-weight:700;color:#222;break-inside:avoid}
-#printArea .ru .ru-nome{margin-top:22px;padding-top:8px;border-top:2px solid #00632B;font-size:13px}
-#printArea .ru .blk.ru-ped{grid-template-columns:auto auto minmax(0,1fr) auto auto;margin:14px 0 6px;background:#F5F8F6}
+#printArea .rel .tb tr.t td{font-weight:800;color:#0F1A14;background:#E6F4EA!important;border-top:1.5px solid #00632B}
+#printArea .rel .tb tr.t td.n{color:#0A8A3E}
+#printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#3A4A40}
+#printArea .rel .emit{margin-top:30px;font-size:10px;font-weight:700;color:#0F1A14;break-inside:avoid}
+#printArea .ru .ru-nome{margin-top:22px;padding-top:8px;border-top:2px solid #00632B;font-size:13px;color:#00632B}
+#printArea .ru .blk.ru-ped{grid-template-columns:auto auto minmax(0,1fr) auto auto;margin:14px 0 6px;background:#F1F8F3}
 #printArea .ru .ru-id{font-family:var(--f-mono);font-size:10px}
-#printArea .ru .ru-marca{display:inline-block;padding:0 6px;border:1.5px solid #b42318;border-radius:3px;color:#b42318;font-weight:800;font-size:10px;letter-spacing:.06em}
-#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#b42318;margin:0}
+#printArea .ru .ru-marca{display:inline-block;padding:0 6px;border:1.5px solid #C62828;border-radius:3px;color:#C62828;font-weight:800;font-size:10px;letter-spacing:.06em}
+#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#C62828;margin:0}
 #printArea .ru .ru-ent{margin:3px 0 0}
-#printArea .rod{margin-top:14px;font-size:8.5px;color:#777;display:flex;justify-content:space-between}
+#printArea .rod{margin-top:14px;font-size:8.5px;color:#3A4A40;display:flex;justify-content:space-between}
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
 #intro{position:fixed;inset:0;z-index:9999;color:#fff;display:grid;
   background:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/32px 32px,linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px) 0 0/32px 32px,
@@ -2256,8 +2259,8 @@ function abrirJanelaImpressao(html){
   const falhou=()=>aviso("Não foi possível abrir a impressão. Libere pop-ups para este site e tente de novo.",6000);
   const w=window.open("","_blank"); if(!w) return falhou();
   const css=[...document.querySelectorAll("style")].map(s=>s.textContent).join("\n"), fontes=document.querySelector('link[rel="stylesheet"]');
-  const extra=`html,body{background:#fff!important;color:#111!important}
-#printArea{display:block;width:210mm;margin:64px auto 0;font:500 10.5px/1.4 var(--f-ui);color:#111;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  const extra=`html,body{background:#fff!important;color:#0F1A14!important}
+#printArea{display:block;width:210mm;margin:64px auto 0;font:500 10.5px/1.4 var(--f-ui);color:#0F1A14;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .imp-barra{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:flex-end;gap:10px;padding:10px 12px;background:#fff;border-bottom:1px solid #cfd8d2}
 .imp-barra button{padding:9px 18px;border:1px solid #cfd8d2;border-radius:10px;background:#fff;color:#111;font:700 15px var(--f-ui);cursor:pointer}
 .imp-barra .imp-ok{background:#00632B;border-color:#00632B;color:#fff}
@@ -2296,31 +2299,36 @@ async function gerarPdf(html,nome){
   if(gerandoPdf) return;
   gerandoPdf=true; aviso("Gerando PDF…");
   const el=$("printArea");
+  // o html2canvas desenha em dobro as bordas de tabela coladas: o ajuste vale já para o cálculo dos cortes
+  const ajuste=document.createElement("style"); ajuste.textContent="#printArea .tb{border-top:1px solid #B9CCBF;border-left:1px solid #B9CCBF}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}";
   try{
     await carregarLibsPdf();
     el.innerHTML=html;
-    el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;background:#fff;font:500 10.5px/1.4 var(--f-ui);color:#111";
+    el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;background:#fff;font:500 10.5px/1.4 var(--f-ui);color:#0F1A14";
+    document.head.appendChild(ajuste);
     await Promise.all([...el.querySelectorAll("img")].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})));
     if(document.fonts) await document.fonts.ready;
-    let cortes=[];
-    const escala=Math.min(2,Math.sqrt(16e6/(794*el.offsetHeight))); // o iPhone não desenha imagens acima de cerca de 16,7 milhões de pixels
-    const tela=await html2canvas(el,{scale:escala,backgroundColor:"#fff",logging:false,windowWidth:794,scrollX:0,scrollY:0,
-      ignoreElements:e=>e.id==="intro"||e.id==="acesso"||e.id==="aviso"||e.classList.contains("app"),
-      onclone:d=>{ d.documentElement.setAttribute("data-theme","light");
-        const s=d.createElement("style"); s.textContent="#printArea .tb{border-top:1px solid #dfe6e1;border-left:1px solid #dfe6e1}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}"; d.head.appendChild(s); // o html2canvas desenha em dobro as bordas de tabela coladas
-        cortes=cortesPdf(d.getElementById("printArea")); }});
-    const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), k=tela.width/794, mm=210/794;
-    cortes.forEach(([a,b],i)=>{
-      const c=document.createElement("canvas"); c.width=tela.width; c.height=Math.ceil((b-a)*k);
-      const g=c.getContext("2d"); g.fillStyle="#fff"; g.fillRect(0,0,c.width,c.height); g.drawImage(tela,0,-a*k);
+    await new Promise(r=>requestAnimationFrame(()=>r()));
+    const cortes=cortesPdf(el);
+    const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), mm=210/794;
+    for(let i=0;i<cortes.length;i++){
+      const [a,b]=cortes[i], alt=b-a;
+      const escala=Math.min(3,Math.sqrt(16e6/(794*alt))); // o iPhone não desenha imagens acima de cerca de 16,7 milhões de pixels
+      const tela=await html2canvas(el,{scale:escala,backgroundColor:"#fff",logging:false,windowWidth:794,scrollX:0,scrollY:0,
+        x:0,y:a,width:794,height:alt, // x/y contam a partir do canto do próprio #printArea
+        ignoreElements:e=>e.id==="intro"||e.id==="acesso"||e.id==="aviso"||e.classList.contains("app"),
+        onclone:d=>{ d.documentElement.setAttribute("data-theme","light"); }});
       if(i) pdf.addPage();
-      pdf.addImage(c.toDataURL("image/jpeg",.92),"JPEG",0,i?11:0,210,(b-a)*mm);
-    });
+      let img=tela.toDataURL("image/png"), tipo="PNG";
+      if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
+      pdf.addImage(img,tipo,0,i?11:0,210,alt*mm,undefined,"FAST");
+      tela.width=tela.height=0;
+    }
     const dados=pdf.output("arraybuffer");
     window.top.postMessage({zayda:"pdf",nome:String(nome).replace(/[\x2f\x5c:*?<>|\x22]/g,"-"),dados},ORIGEM_APP,[dados]);
     aviso("");
   }catch(e){ console.error(e); aviso("Não foi possível gerar o PDF. Confira a internet e tente de novo.",6000); }
-  finally{ el.style.cssText=""; el.innerHTML=""; gerandoPdf=false; }
+  finally{ ajuste.remove(); el.style.cssText=""; el.innerHTML=""; gerandoPdf=false; }
 }
 function imprimirPedido(id){
   const its=(D.itensTodos||D.itens).filter(i=>i.pedido===id); if(!its.length) return;
