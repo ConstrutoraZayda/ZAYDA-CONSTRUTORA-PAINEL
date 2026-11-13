@@ -473,6 +473,13 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .faviso button{border:0;background:transparent;color:inherit;cursor:pointer;font-size:16px;line-height:1;padding:0 5px;border-radius:99px}
 @media (hover:hover) and (pointer:fine){.faviso button:hover{background:var(--surface)}}
 .sub .somente{color:var(--brand);font-weight:700;margin-left:6px}
+/* Chip "Somente: … ✕" (tela Painel): tira o filtro de material */
+.sub button.somente{display:inline-flex;align-items:center;gap:6px;max-width:100%;vertical-align:middle;border:1px solid var(--brand);background:var(--brand-soft);border-radius:99px;padding:2px 10px;font:inherit;font-weight:700;color:var(--brand);cursor:pointer;text-align:left;overflow-wrap:anywhere}
+.sub button.somente>span{min-width:0}
+.sub button.somente>b{flex:none;font-size:13px;line-height:1}
+.sub button.somente:focus-visible,.btn[data-limpasku]:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+@media (hover:hover) and (pointer:fine){.sub button.somente:hover{background:var(--surface)}}
+@media (max-width:700px),(pointer:coarse){.sub button.somente,.btn[data-limpasku]{min-height:44px}.sub button.somente{margin:6px 0 0;padding:6px 12px}}
 @media (max-width:700px){.faviso span{flex:1 1 100%}.faviso span b{flex:1}}
 @media (max-width:700px){.toolbar.obtool{flex-direction:column;align-items:stretch}.toolbar.obtool>*,.toolbar.obtool input[type=search]{width:100%;max-width:none;min-width:0}}
 .toolbar select option,select option{background:var(--surface);color:var(--ink)}
@@ -1083,7 +1090,7 @@ const lastDay = (y,m) => new Date(y,m,0).getDate();
 const obraNome = id => { const o = D.obras.find(x=>x.id===id); return o ? (o.endereco||o.casa) : (id==="SEM VÍNCULO" ? "Sem obra identificada" : id); };
 /* Filtro de material ligado: nome do material e o aviso "Somente: ..." no subtítulo dos cards com valores. */
 const nomeSku = () => D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku;
-const somente = () => S.sku ? `<span class="somente">Somente: ${esc(nomeSku())}</span>` : "";
+const somente = texto => !S.sku ? "" : (S.view==="painel"&&!texto ? `<button type="button" class="somente" data-limpasku aria-label="Mostrar todos os materiais"><span>Somente: ${esc(nomeSku())}</span><b aria-hidden="true">✕</b></button>` : `<span class="somente">Somente: ${esc(nomeSku())}</span>`);
 /* Hora em que o pedido foi feito (aaaa-mm-dd hh:mm:ss); sem ela, a data do pedido. Ordena do mais recente para o mais antigo. */
 const criadoEm = id => { const c=((D.pedidos||{})[id]||{}).criado||""; return /^\d{4}-\d{2}-\d{2}/.test(c)?c:""; };
 const ordemPedido = (a,b) => (criadoEm(b.id)||b.f.data).localeCompare(criadoEm(a.id)||a.f.data) || b.id.localeCompare(a.id);
@@ -1250,7 +1257,7 @@ function vPainel(){
   ${tabelaMensal(s)}
 
   <section class="card" style="margin-top:16px">
-    <div class="cardhead"><div><h2>${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}</h2><div class="sub">${S.obra?"Custo confirmado de cada material desta obra, somado ao longo do período":"Custo confirmado de materiais de cada obra, somado ao longo do período. Toque numa obra para ver só ela."}${somente()}</div></div></div>
+    <div class="cardhead"><div><h2>${S.obra?"Gasto acumulado por material":"Gasto acumulado por obra"}</h2><div class="sub">${S.obra?"Custo confirmado de cada material desta obra, somado ao longo do período":"Custo confirmado de materiais de cada obra, somado ao longo do período. Toque numa obra para ver só ela."}${somente(true)}</div></div>${S.sku?`<button type="button" class="btn" data-limpasku aria-label="Mostrar todos os materiais">✕ Ver todos os materiais</button>`:""}</div>
     <div class="lw" id="lines"></div><div class="lleg" id="lleg"></div>
   </section>
 
@@ -2132,6 +2139,11 @@ function manterAncora(alvos,fn){
       const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>.5) window.scrollTo({top:window.scrollY+d,left:window.scrollX,behavior:"instant"}); return; } };
   ajusta(); requestAnimationFrame(()=>{ ajusta(); requestAnimationFrame(ajusta); }); // gráficos e animações podem mudar a altura logo depois
 }
+/* Botão "✕ Ver todos os materiais" e chip "Somente: … ✕" dos cards do Painel. */
+document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-limpasku]"); if(!b) return; e.preventDefault();
+  const cards=()=>[...document.querySelectorAll("#view .card")], card=b.closest(".card"), tit=card&&card.querySelector("h2")?card.querySelector("h2").textContent:"", pos=cards().indexOf(card);
+  const achar=()=>cards().find(c=>{const t=c.querySelector("h2"); return t&&t.textContent===tit;})||cards()[pos];
+  manterAncora([[card,achar]],()=>{ S.sku=""; S.mes=null; render(); }); });
 function manterRolagem(fn){ const v=$("view"), y=window.scrollY; v.style.minHeight=v.offsetHeight+"px"; try{ fn(); }finally{ v.style.minHeight=""; } if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y); }
 function cliqueIr(e){e.preventDefault();const [v,f]=e.currentTarget.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v}
 /* Busca da tela: o campo nunca é recriado enquanto se digita, porque isso quebra o teclado do celular. */
