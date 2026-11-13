@@ -1794,7 +1794,11 @@ function drawLines(){
   lg.querySelectorAll("[data-lk]").forEach(b=>{const k=b.dataset.lk;
     b.addEventListener("mouseenter",()=>el.querySelectorAll(".ln").forEach(p=>p.classList.toggle("dim",p.dataset.k!==k)));
     b.addEventListener("mouseleave",()=>el.querySelectorAll(".ln").forEach(p=>p.classList.remove("dim")));
-    b.addEventListener("click",()=>{if(k==="__OUTROS"){abrirOutros(rot(k)+" · "+dbr(S.ini)+" a "+dbr(S.fim),outros.map(c=>({nome:S.obra?nome(c):obraCurta(c),cod:c,v:tot[c]})),sum(L,l=>l.valor));return;} const abre=!S.obra; if(S.obra){S.sku=S.sku===k?"":k}else{S.obra=k} S.mes=null; render(); if(abre) irTopo()});});
+    b.addEventListener("click",()=>{if(k==="__OUTROS"){abrirOutros(rot(k)+" · "+dbr(S.ini)+" a "+dbr(S.fim),outros.map(c=>({nome:S.obra?nome(c):obraCurta(c),cod:c,v:tot[c]})),sum(L,l=>l.valor));return;} const abre=!S.obra;
+      if(S.obra){ // filtra/desfiltra o material sem trocar de tela: o botão clicado (ou o card do gráfico) fica na mesma altura da tela
+        const card=()=>{const l=$("lines"); return l&&l.closest(".card");}, botao=()=>{const g=$("lleg"); return g&&[...g.querySelectorAll("[data-lk]")].find(x=>x.dataset.lk===k);};
+        manterAncora([[b,botao],[card(),card]],()=>{S.sku=S.sku===k?"":k; S.mes=null; render();}); return; }
+      S.obra=k; S.mes=null; render(); if(abre) irTopo()});});
 }
 
 /* ---------- animações ----------
@@ -2109,6 +2113,17 @@ function abrirObra(id){ S.obra=id; S.mes=null; if(S.view==="painel"){ render(); 
 /* Tela nova começa no topo: chamar depois de desenhar. O segundo passo cobre o que só ganha altura no quadro seguinte. */
 function irTopo(){ window.scrollTo(0,0); requestAnimationFrame(()=>window.scrollTo(0,0)); }
 /* Atualização na mesma tela: a página não encolhe durante o redesenho, e a rolagem só é corrigida se tiver mudado de fato (corrigir à toa interrompe o dedo). */
+/* Âncora: redesenha (fn) e deixa o elemento de referência exatamente na mesma altura da tela de antes, mesmo que o conteúdo acima mude de altura.
+   alvos = [[elemento atual, função que acha o mesmo elemento depois do redesenho], ...]; usa o primeiro que ainda existir. */
+function manterAncora(alvos,fn){
+  const antes=alvos.filter(a=>a[0]&&a[0].isConnected).map(([el,achar])=>({achar,top:el.getBoundingClientRect().top}));
+  fn();
+  const ajusta=()=>{
+    if(document.querySelector("#view .entra")) cancelarEntrada(); // a animação de entrada não pode deslocar a medida
+    for(const a of antes){ const el=a.achar(); if(!el||!el.isConnected) continue;
+      const d=el.getBoundingClientRect().top-a.top; if(Math.abs(d)>.5) window.scrollTo({top:window.scrollY+d,left:window.scrollX,behavior:"instant"}); return; } };
+  ajusta(); requestAnimationFrame(()=>{ ajusta(); requestAnimationFrame(ajusta); }); // gráficos e animações podem mudar a altura logo depois
+}
 function manterRolagem(fn){ const v=$("view"), y=window.scrollY; v.style.minHeight=v.offsetHeight+"px"; try{ fn(); }finally{ v.style.minHeight=""; } if(Math.abs(window.scrollY-y)>1) window.scrollTo(0,y); }
 function cliqueIr(e){e.preventDefault();const [v,f]=e.currentTarget.dataset.ir.split("|");S.irSit=f;if(location.hash==="#"+v)route();else location.hash=v}
 /* Busca da tela: o campo nunca é recriado enquanto se digita, porque isso quebra o teclado do celular. */
