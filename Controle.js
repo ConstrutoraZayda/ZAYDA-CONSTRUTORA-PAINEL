@@ -776,6 +776,7 @@ function doPost(e) {
     : c.acao === 'desconectar' ? desconectarAparelhos(c.token, c.usuario)
     : c.acao === 'entregas' ? getEntregasPedido(c.token, c.pedido)
     : c.acao === 'salvarOrcamento' ? salvarOrcamento(c.token, c.obra, c.valor, c.data, c.obs)
+    : c.acao === 'conferirTerceiro' ? conferirTerceiro(c.token, c.id, c.op, c.motivo, c.atualizadoEm)
     : getDadosPainel(c.token); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
@@ -1279,9 +1280,12 @@ function getDadosPainel(token) {
         data: r[4] instanceof Date ? Utilities.formatDate(r[4], CTRL.fuso, 'dd/MM/yyyy') : texto_(r[4]), obs: texto_(r[5])};
     });
   }
+  // Outros fornecedores (planilha do formulário). Uma falha aqui não impede o painel de abrir.
+  let ter = {terceiros: [], fornecedores: {}};
+  try { ter = lerTerceiros_(); } catch (e) { Logger.log('Outros fornecedores não lidos: ' + e.message); }
   const conf = ss.getSheetByName(CTRL.conf);
   return {
-    acesso: true, pedidos, nomesEtapas, orcamentos,
+    acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores,
     usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: publico_(ac.u),
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
@@ -1306,4 +1310,81 @@ function getEntregasPedido(token, pedido) {
                 data: dataIso_(r[7]) || dataHora_(r[7]).slice(0, 10), registrado: dataHora_(r[9]), obs: texto_(r[10]),
                 recebido: texto_(r[11]), assinatura: /^data:image\/png;base64,/.test(texto_(r[12])) ? texto_(r[12]) : ''}));
   return {acesso: true, pedido: id, entregas};
+}
+
+/* ===================== OUTROS FORNECEDORES (lançados no formulário) =====================
+ * Lidos direto da planilha do formulário na mesma chamada do painel (getDadosPainel), sem cópia na planilha de controle.
+ * FORNECEDORES  A ID · B NOME · C TIPO_PRINCIPAL · D CPF_CNPJ · E TELEFONE · F OBSERVACAO · G ATIVO · H CRIADO_POR · I CRIADO_EM
+ * TERCEIROS     A ID · B CRIADO_EM · C CRIADO_POR · D OBRA_ID · E FORNECEDOR_ID · F FORNECEDOR_NOME · G TIPO · H DESCRICAO · I QUANTIDADE
+ *               J UNIDADE · K VALOR_TOTAL · L DATA_REFERENCIA · M NOTA_NUMERO · N ANEXO_URL · O FORMA_PAGAMENTO · P CONFERENCIA
+ *               Q CONFERIDO_POR · R CONFERIDO_EM · S MOTIVO · T OBSERVACAO · U ATUALIZADO_EM · V ATUALIZADO_POR
+ * TERCEIROS_PARCELAS A ID_PARCELA · B ID_LANCAMENTO · C NUMERO · D DESCRICAO · E VALOR · F VENCIMENTO · G PAGO · H DATA_PAGAMENTO
+ *               I FORMA · J COMPROVANTE_URL · K REGISTRADO_POR · L REGISTRADO_EM
+ * Só CONFERENCIA = CONFERIDO vira custo da obra (no painel). Abas ausentes: listas vazias. */
+const TERC = Object.freeze({abaForn: 'FORNECEDORES', abaLanc: 'TERCEIROS', abaParc: 'TERCEIROS_PARCELAS', nLanc: 22, nParc: 12, nForn: 9});
+function linhasOrigem_(origem, nome, n) {
+  const sh = origem.getSheetByName(nome);
+  if (!sh || sh.getLastRow() < 2) return [];
+  return sh.getRange(2, 1, sh.getLastRow() - 1, Math.min(n, sh.getMaxColumns())).getValues();
+}
+const urlDrive_ = v => { const s = texto_(v); return /^https:\/\/(drive|docs)\.google\.com\//.test(s) ? s : ''; };
+function lerTerceiros_(origem) {
+  origem = origem || origemPlanilha_();
+  const fornecedores = {};
+  linhasOrigem_(origem, TERC.abaForn, TERC.nForn).forEach(r => { const id = texto_(r[0]); if (/^FOR-\d+$/.test(id)) fornecedores[id] = {
+    nome: textoForm_(r[1]), tipo: textoForm_(r[2]), doc: textoForm_(r[3]), telefone: textoForm_(r[4]), obs: textoForm_(r[5]), ativo: texto_(r[6]).toUpperCase() !== 'NAO'}; });
+  const parc = {};
+  linhasOrigem_(origem, TERC.abaParc, TERC.nParc).forEach(r => {
+    const lanc = texto_(r[1]); if (texto_(r[0]).indexOf('TER-') !== 0 || !lanc) return;
+    (parc[lanc] = parc[lanc] || []).push({id: texto_(r[0]), numero: Number(r[2]) || 0, descricao: textoForm_(r[3]), valor: Math.round((Number(valor_(r[4])) || 0) * 100) / 100,
+      vencimento: dataIso_(r[5]), pago: texto_(r[6]).toUpperCase() === 'SIM', dataPagamento: dataIso_(r[7]), forma: textoForm_(r[8]),
+      comprovante: urlDrive_(r[9]), registradoPor: texto_(r[10]).toLowerCase(), registradoEm: dataHora_(r[11])});
+  });
+  const lista = linhasOrigem_(origem, TERC.abaLanc, TERC.nLanc).filter(r => texto_(r[0]).indexOf('TER-') === 0).map(r => {
+    const id = texto_(r[0]);
+    return {id, criadoEm: dataHora_(r[1]), criadoPor: texto_(r[2]).toLowerCase(), obra: texto_(r[3]).toUpperCase(), fornecedorId: texto_(r[4]),
+      fornecedor: textoForm_(r[5]), tipo: textoForm_(r[6]) || 'Outros', descricao: textoForm_(r[7]), quantidade: num_(r[8]), unidade: textoForm_(r[9]),
+      valor: Math.round((Number(valor_(r[10])) || 0) * 100) / 100, dataRef: dataIso_(r[11]), nota: textoForm_(r[12]), anexo: urlDrive_(r[13]),
+      forma: texto_(r[14]).toUpperCase(), conferencia: texto_(r[15]).toUpperCase() || 'AGUARDANDO', conferidoPor: texto_(r[16]).toLowerCase(),
+      conferidoEm: dataHora_(r[17]), motivo: textoForm_(r[18]), obs: textoForm_(r[19]), atualizadoEm: dataHora_(r[20]), atualizadoPor: texto_(r[21]).toLowerCase(),
+      parcelas: (parc[id] || []).sort((a, b) => a.numero - b.numero)};
+  });
+  return {terceiros: lista, fornecedores};
+}
+/** Conferência no painel (só Admin da Zayda): op = CONFERIR | REPROVAR (AGUARDANDO) ou CANCELAR (CONFERIDO).
+ *  Reprovar e cancelar exigem motivo. Grava na aba TERCEIROS e na AUDITORIA da planilha do formulário e devolve os dados novos. */
+function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
+  const ac = autenticar_(token); if (ac.erro) return ac.erro;
+  if (!ehAdminZayda_(ac.u)) return {ok: false, motivo: 'Somente administradores da Zayda podem conferir lançamentos de outros fornecedores.'};
+  const acao = texto_(op).toUpperCase(), alvo = texto_(id);
+  if (['CONFERIR', 'REPROVAR', 'CANCELAR'].indexOf(acao) < 0 || !/^TER-\d{8}-[A-Z0-9]{4}$/.test(alvo)) return {ok: false, motivo: 'Pedido inválido.'};
+  const mot = texto_(motivo);
+  if (acao !== 'CONFERIR') {
+    if (mot.length < 5) return {ok: false, motivo: 'Informe o motivo (mínimo 5 caracteres).'};
+    if (mot.length > 300) return {ok: false, motivo: 'Motivo muito longo (máximo 300 caracteres).'};
+    if (/^[=+@\-]/.test(mot)) return {ok: false, motivo: 'O motivo não pode começar com =, +, - ou @.'};
+  }
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) return {ok: false, motivo: 'Sistema ocupado. Tente de novo em instantes.'};
+  try {
+    const origem = origemPlanilha_(), sh = origem.getSheetByName(TERC.abaLanc);
+    if (!sh || sh.getLastRow() < 2) return {ok: false, motivo: 'Lançamento não encontrado.'};
+    const ids = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().map(r => texto_(r[0])), i = ids.indexOf(alvo);
+    if (i < 0) return {ok: false, motivo: 'Lançamento não encontrado.'};
+    const linha = i + 2, r = sh.getRange(linha, 1, 1, TERC.nLanc).getValues()[0], atual = texto_(r[15]).toUpperCase() || 'AGUARDANDO';
+    if (texto_(atualizadoEm) !== dataHora_(r[20])) return {ok: false, motivo: 'Este lançamento foi alterado no formulário depois que você abriu. A tela foi atualizada: confira de novo.', atualizar: true};
+    const precisa = acao === 'CANCELAR' ? 'CONFERIDO' : 'AGUARDANDO';
+    if (atual !== precisa) return {ok: false, motivo: 'Este lançamento está ' + atual.toLowerCase() + ': ' + (acao === 'CANCELAR' ? 'só um lançamento conferido pode ser cancelado.' : 'só um lançamento aguardando conferência pode ser conferido ou reprovado.'), atualizar: true};
+    const novo = {CONFERIR: 'CONFERIDO', REPROVAR: 'REPROVADO', CANCELAR: 'CANCELADO'}[acao];
+    const agora = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss');
+    sh.getRange(linha, 16, 1, 4).setNumberFormat('@').setValues([[novo, ac.u.email, agora, acao === 'CONFERIR' ? '' : mot]]);
+    const valor = (Number(valor_(r[10])) || 0).toFixed(2).replace('.', ',');
+    const aud = origem.getSheetByName('AUDITORIA');
+    if (aud) aud.appendRow([agora, ac.u.email, 'TERCEIRO_' + novo, alvo, '', 'Painel: ' + {CONFERIR: 'conferido', REPROVAR: 'reprovado', CANCELAR: 'cancelado'}[acao] +
+      ' por ' + (ac.u.nome || ac.u.usuario) + ' · ' + texto_(r[5]) + ' · ' + texto_(r[6]) + ' · R$ ' + valor + ' · obra ' + texto_(r[3]) +
+      (acao === 'CANCELAR' ? ' · conferido antes por ' + texto_(r[16]) + ' em ' + dataHora_(r[17]) : '') + (mot ? ' · Motivo: ' + mot : '')]);
+    SpreadsheetApp.flush();
+    const dados = lerTerceiros_(origem);
+    return {ok: true, status: novo, terceiros: dados.terceiros, fornecedores: dados.fornecedores};
+  } finally { lock.releaseLock(); }
 }
