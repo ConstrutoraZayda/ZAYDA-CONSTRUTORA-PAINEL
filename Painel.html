@@ -1154,15 +1154,16 @@ const sum = (a,f) => a.reduce((s,x)=>s+(f(x)||0),0);
 const uniq = a => [...new Set(a)];
 
 function stats(){
-  const L = lancF(), I = itensF();
+  const L = lancF(), I = itensF(), G = solAgrupar(I); // G: os pedidos da tela Solicitações, para as pendências baterem com a lista
   const conf = L.filter(l=>l.situacao==="CUSTO CONFIRMADO");
   const p = {
     semCusto: L.filter(l=>l.situacao==="PENDENTE DE CUSTO").length,
     conferir: L.filter(l=>l.situacao==="AGUARDANDO CONFERÊNCIA").length,
-    saldo: I.filter(i=>i.saldo>0).length,
-    semObra: S.obra?0:uniq(I.filter(i=>i.obra==="SEM VÍNCULO").map(i=>i.pedido)).length,
-    alertas: L.filter(l=>l.alertas).length,
-    semPreco: I.filter(i=>i.precoRef==null).length
+    saldo: G.filter(SOL_SIT_F.FALTA).length,
+    semObra: G.filter(SOL_SIT_F["OBRA NÃO IDENTIFICADA"]).length,
+    alertas: L.filter(comAviso).length,
+    semPreco: I.filter(i=>i.precoRef==null).length, // itens (card Valor dos pedidos)
+    cotar: G.filter(SOL_SIT_F.COTACAO).length // pedidos com item sem preço (Pendências → chip Sem preço)
   };
   const entRef=sum(I,i=>i.precoRef==null?0:Math.min(i.entregue,i.qtdSol)*i.precoRef), faltaRef=sum(I,i=>i.precoRef==null?0:Math.max(i.saldo,0)*i.precoRef);
   return {L,I,conf,custo:sum(conf,l=>l.valor),ref:sum(I,i=>i.valorRef),entRef,faltaRef,pedidos:uniq(I.map(i=>i.pedido)).length,
@@ -1177,8 +1178,8 @@ function pendencias(s){
     {n:s.p.semObra, t:"Pedidos sem obra reconhecida", c:"Pedidos sem obra", d:"O endereço digitado não bate com nenhuma obra. Abra o pedido no formulário e escolha o endereço da lista.", v:"solicitacoes", f:"OBRA NÃO IDENTIFICADA"},
     {n:s.p.semCusto, t:"Entregas sem valor", c:"Entregas sem valor", d:"Chegou material que não tinha preço no pedido. Informe o custo na aba MATERIAIS_E_CUSTOS.", v:"lancamentos", f:"PENDENTE DE CUSTO"},
     {n:s.p.conferir, t:"Entregas para conferir", c:"Para conferir", d:"Entregas lançadas à mão na planilha que ainda não foram marcadas como CONFIRMADO.", v:"lancamentos", f:"AGUARDANDO CONFERÊNCIA"},
-    {n:s.p.alertas, t:"Entregas com aviso", c:"Com aviso", d:"Algo não bate, como quantidade acima do pedido ou obra diferente. O aviso aparece em vermelho na lista.", v:"lancamentos", f:""},
-    {n:s.p.semPreco, t:"Materiais pedidos sem preço", c:"Sem preço", d:"Itens “a cotar”: o valor do pedido fica incompleto até alguém informar o preço.", v:"solicitacoes", f:""}
+    {n:s.p.alertas, t:"Entregas com aviso", c:"Com aviso", d:"Algo não bate, como quantidade acima do pedido ou obra diferente. O aviso aparece em vermelho na lista.", v:"lancamentos", f:"COM AVISO"},
+    {n:s.p.cotar, t:"Materiais pedidos sem preço", c:"Sem preço", d:"Itens “a cotar”: o valor do pedido fica incompleto até alguém informar o preço.", v:"solicitacoes", f:"COTACAO"}
   ];
 }
 const irPara = (v,f) => `href="#${v}" data-ir="${v}|${esc(f)}"`;
@@ -1511,22 +1512,29 @@ function usuarioPedido(email){const e=String(email||"").trim();if(!e)return "—
 /* Código curto do pedido: o último trecho do ID, depois do último "-" (o ID completo fica no title). */
 function codigoCurto(id){const s=String(id||"");return s.slice(s.lastIndexOf("-")+1)||s;}
 const HORAS_ESPERA = 12; /* Solicitações: horas desde a criação para contar como espera longa */
-function vSol(){
-  let I = S.pedFoco&&S.busca===S.pedFoco?D.itens.filter(i=>i.pedido===S.pedFoco):itensF(); // pedido aberto pelo link de Materiais e custos, mesmo fora do período
-  const buscar=I=>{if(!S.busca)return I;const m=casa(S.busca);return I.filter(i=>m(i.pedido+" "+i.material+" "+i.sku+" "+i.obraTexto+" "+i.atendente+" "+i.obra+" "+obraNome(i.obra)+" "+((D.pedidos||{})[i.pedido]||{}).endereco))};
-  // Pedido cancelado: só no filtro Cancelados. Encerrado: em Todas, como concluído (sem pendência nem atenção).
-  const agrupar=I=>{const ped = {}; I.forEach(i=>{(ped[i.pedido]=ped[i.pedido]||[]).push(i)});
-   return Object.entries(ped).map(([id,its])=>{
+/* Pedidos de Solicitações (também usados na contagem do card Pendências, para o número bater com a lista).
+   Pedido cancelado: só no filtro Cancelados. Encerrado: em Todas, como concluído (sem pendência nem atenção). */
+function solAgrupar(I){
+  const ped={}; I.forEach(i=>{(ped[i.pedido]=ped[i.pedido]||[]).push(i)});
+  const ix=L=>{const m={}; L.forEach(i=>{(m[i.pedido]=m[i.pedido]||[]).push(i)}); return m;}, porPed=ix(D.itens), porPedTodos=ix(D.itensTodos||D.itens);
+  return Object.entries(ped).map(([id,its])=>{
     const ent=its.filter(i=>i.entregue>0).length, semObra=its[0].obra==="SEM VÍNCULO", fe=its[0].fechado;
     const sit = fe==="CANCELADO"?"PEDIDO_CANCELADO":fe==="ENCERRADO"?"PEDIDO_ENCERRADO":semObra?"OBRA NÃO IDENTIFICADA":ent===0?"A ENTREGAR":its.every(i=>i.saldo<=0)?"ENTREGUE":"PARCIAL";
     // Parcial: olha todos os itens do pedido, mesmo com busca ou filtro de material escondendo algum.
-    const todos=(fe?D.itensTodos:D.itens).filter(i=>i.pedido===id), pend=fe?[]:todos.filter(i=>i.saldo>0), parcial=!fe&&todos.some(i=>i.entregue>0)&&pend.length>0;
+    const todos=(fe?porPedTodos:porPed)[id]||[], pend=fe?[]:todos.filter(i=>i.saldo>0), parcial=!fe&&todos.some(i=>i.entregue>0)&&pend.length>0;
     return {id,its,sit,f:its[0],fe,parcial,pend,nTodos:todos.length,cotar:!fe&&todos.some(i=>i.precoRef==null)};
-   }).sort(ordemPedido);};
+  }).sort(ordemPedido);
+}
+// Chips: a mesma situação do selo de cada pedido; Pendente de cotação é um item sem preço e pode somar com as outras.
+const SOL_SIT_F={"A ENTREGAR":p=>p.sit==="A ENTREGAR"&&!p.parcial,PARCIAL_FALTA:p=>p.parcial,COTACAO:p=>p.cotar,ENTREGUE:p=>p.sit==="ENTREGUE"&&!p.parcial,"OBRA NÃO IDENTIFICADA":p=>p.sit==="OBRA NÃO IDENTIFICADA",FALTA:p=>p.parcial||p.sit==="A ENTREGAR"||p.sit==="PARCIAL",PEDIDO_ENCERRADO:p=>p.sit==="PEDIDO_ENCERRADO"};
+/* Lançamento com aviso que conta como pendência (o cancelado não soma). */
+const comAviso = l => !!l.alertas && l.situacao!=="CANCELADO";
+function vSol(){
+  let I = S.pedFoco&&S.busca===S.pedFoco?D.itens.filter(i=>i.pedido===S.pedFoco):itensF(); // pedido aberto pelo link de Materiais e custos, mesmo fora do período
+  const buscar=I=>{if(!S.busca)return I;const m=casa(S.busca);return I.filter(i=>m(i.pedido+" "+i.material+" "+i.sku+" "+i.obraTexto+" "+i.atendente+" "+i.obra+" "+obraNome(i.obra)+" "+((D.pedidos||{})[i.pedido]||{}).endereco))};
+  const agrupar=solAgrupar, SIT_F=SOL_SIT_F;
   let list = agrupar(buscar(I));
   const cancelados = agrupar(buscar(D.itensTodos.filter(i=>i.fechado==="CANCELADO"&&inP(i.data)&&okO(i.obra)&&okS(i.sku))));
-  // Chips: a mesma situação do selo de cada pedido; Pendente de cotação é um item sem preço e pode somar com as outras.
-  const SIT_F={"A ENTREGAR":p=>p.sit==="A ENTREGAR"&&!p.parcial,PARCIAL_FALTA:p=>p.parcial,COTACAO:p=>p.cotar,ENTREGUE:p=>p.sit==="ENTREGUE"&&!p.parcial,"OBRA NÃO IDENTIFICADA":p=>p.sit==="OBRA NÃO IDENTIFICADA",FALTA:p=>p.parcial||p.sit==="A ENTREGAR"||p.sit==="PARCIAL",PEDIDO_ENCERRADO:p=>p.sit==="PEDIDO_ENCERRADO"};
   const base=list;
   if(S.sit==="PEDIDO_CANCELADO") list=cancelados; else if(SIT_F[S.sit]) list=list.filter(SIT_F[S.sit]);
   const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim]); if(chave!==S.solChave){S.solChave=chave;S.solN=50;}
@@ -1581,7 +1589,7 @@ function vSol(){
 function lcFiltrados(){
   let L = lancF();
   if(S.busca){const q=S.busca.toLowerCase(); L=L.filter(l=>(l.id+" "+l.material+" "+l.sku+" "+l.pedido+" "+l.obs).toLowerCase().includes(q))}
-  if(S.sit) L=L.filter(l=>l.situacao===S.sit);
+  if(S.sit==="COM AVISO") L=L.filter(comAviso); else if(S.sit) L=L.filter(l=>l.situacao===S.sit);
   return L;
 }
 const LC_COMP={data:(a,b)=>a.data.localeCompare(b.data), material:(a,b)=>a.material.localeCompare(b.material,"pt-BR"), valor:(a,b)=>(a.valor||0)-(b.valor||0), obra:(a,b)=>a.obra.localeCompare(b.obra,"pt-BR",{numeric:true})};
@@ -1596,7 +1604,7 @@ function vLanc(){
   // Mudou o que está filtrado ou a ordem: volta para os primeiros 50.
   const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim,S.lcOrd]); if(chave!==S.lcChave){S.lcChave=chave;S.lcN=50;}
   const tool=`<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar lançamento, material ou pedido" value="${esc(S.busca)}" aria-label="Buscar lançamentos">
-    <select id="sitSel" aria-label="Situação"><option value="">Todas as situações</option>${["CUSTO CONFIRMADO","PENDENTE DE CUSTO","AGUARDANDO CONFERÊNCIA","CANCELADO"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"CUSTO CONFIRMADO":"Custo confirmado","PENDENTE DE CUSTO":"Pendente de custo","AGUARDANDO CONFERÊNCIA":"A conferir","CANCELADO":"Cancelado"}[x]}</option>`).join("")}</select>
+    <select id="sitSel" aria-label="Situação"><option value="">Todas as situações</option>${["CUSTO CONFIRMADO","PENDENTE DE CUSTO","AGUARDANDO CONFERÊNCIA","CANCELADO","COM AVISO"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"CUSTO CONFIRMADO":"Custo confirmado","PENDENTE DE CUSTO":"Pendente de custo","AGUARDANDO CONFERÊNCIA":"A conferir","CANCELADO":"Cancelado","COM AVISO":"Com aviso"}[x]}</option>`).join("")}</select>
     <a class="btn" id="addLanc" href="#" target="_blank" rel="noopener">Abrir planilha</a><button type="button" class="btn" id="lcCsv" ${L.length?"":"disabled"}>Baixar CSV</button></div>`;
   const resumo=`<div class="lc-res"><div><small>Total (custo confirmado)</small><b ${tA("lc",total)}>${brl(total)}</b></div><div><small>Entregas</small><b>${ativos.length}</b></div><div><small>Obras</small><b>${uniq(ativos.map(l=>l.obra).filter(o=>o!=="SEM VÍNCULO")).length}</b></div><div><small>Materiais diferentes</small><b>${uniq(ativos.map(l=>l.sku)).length}</b></div></div>`;
   const cab=`<div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">As entregas confirmadas no formulário entram aqui sozinhas; as canceladas ficam visíveis e não somam.${somente()}</div></div></div>`;
