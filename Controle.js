@@ -36,7 +36,7 @@ const CTRL = Object.freeze({
   obras: 'OBRAS', solicitacoes: 'SOLICITACOES', lancamentos: 'MATERIAIS_E_CUSTOS',
   abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS', orcamentos: 'ORCAMENTOS',
   abaCancelOrigem: 'CANCELAMENTOS', destCancel: '_IMPORT_CANCELAMENTOS', destEntregas: '_IMPORT_ENTREGAS',
-  intervaloMinutos: 1, copiaCompletaMinutos: 15
+  intervaloMinutos: 2, copiaCompletaMinutos: 15
 });
 
 /* ============================== MENU ============================== */
@@ -229,7 +229,7 @@ function escreverEtapas_(ss, etapas) {
 }
 
 /** Atualiza obras e etapas se a planilha de obras mudou (compara a assinatura dos dados).
- *  Chamado a cada minuto, a cada consulta do painel e na hora em que alguém edita a planilha de obras. */
+ *  Chamado a cada 2 minutos, a cada consulta do painel e na hora em que alguém edita a planilha de obras. */
 function atualizarObrasSeMudou_(forcar) {
   const props = PropertiesService.getScriptProperties();
   let obras;
@@ -647,7 +647,7 @@ function sincronizarComAviso() {
   catch (e) { ui.alert('Sincronização não concluída', e.message, ui.ButtonSet.OK); }
 }
 
-/** Acionador de 1 em 1 minuto. Verificação rápida: só faz a cópia completa quando o formulário
+/** Acionador de 2 em 2 minutos (CTRL.intervaloMinutos). Verificação rápida: só faz a cópia completa quando o formulário
  *  registrou algo novo (pedido, revisão ou entrega) ou a cada 15 minutos (obras e catálogo).
  *  Assim fica quase em tempo real sem estourar o limite diário de execução do Google. */
 /** Marca rápida do formulário: nº de linhas de PEDIDOS, ITENS_PEDIDO, ENTREGAS e AUDITORIA. */
@@ -659,7 +659,7 @@ function marcaOrigem_(conf) {
 }
 
 /** Chamado pelo painel antes de devolver os dados: se o formulário tem pedido, revisão ou entrega
- *  nova, sincroniza na hora. Assim o painel mostra a novidade sem esperar o acionador de 1 minuto. */
+ *  nova, sincroniza na hora. Assim o painel mostra a novidade sem esperar o acionador de 2 minutos. */
 function sincronizarSeHouverNovidade_() {
   try {
     const conf = planilhaControle_().getSheetByName(CTRL.conf);
@@ -673,7 +673,7 @@ function sincronizarSeHouverNovidade_() {
   } catch (e) { Logger.log('Sincronização pelo painel não feita: ' + e.message); return false; }
 }
 
-/** [Etapa 1] Gatilho de 1 em 1 minuto: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
+/** [Etapa 1] Gatilho de 2 em 2 minutos: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
 function sincronizacaoAutomatica() {
   const t0 = Date.now(); let r = '';
   try { r = sincronizacaoAutomaticaCorpo_(); return r; }
@@ -715,7 +715,7 @@ function instalarSincronizacao() {
   ScriptApp.newTrigger('backupSemanal').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(3).create();
   PropertiesService.getScriptProperties().deleteProperty('MARCA_ORIGEM');
   const r = sincronizacaoAutomatica();
-  SpreadsheetApp.getUi().alert('Sincronização automática ativada: verifica o formulário a cada minuto e copia assim que houver pedido ou entrega nova. ' +
+  SpreadsheetApp.getUi().alert('Sincronização automática ativada: verifica o formulário a cada ' + CTRL.intervaloMinutos + ' minutos e copia assim que houver pedido ou entrega nova. ' +
     'Mudanças de fase, status e etapas na planilha de obras entram na hora. Backup semanal: segunda, entre 3h e 4h.\n\nPrimeira execução: ' + r);
 }
 
@@ -1305,7 +1305,7 @@ function getDadosPainel(token) {
   const conf = ss.getSheetByName(CTRL.conf);
   return {
     acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores,
-    sistema: ehAdminZayda_(ac.u) ? {sinc: resumoSinc_(), backup: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); } catch (e) { return null; } })()} : null, // [Etapa 1]
+    sistema: ehAdminZayda_(ac.u) ? {sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
     usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: publico_(ac.u),
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
@@ -1464,9 +1464,11 @@ function fazerBackup_(origem) {
     props.setProperty('BACKUP_ULTIMO', JSON.stringify(r));
     return r;
   } catch (e) {
-    const r = {ok: false, em: agora, origem, erro: String(e && e.message || e)};
+    // O texto técnico do Google fica só no registro de execuções; o painel recebe apenas o tipo da falha.
+    const erro = String(e && e.message || e);
+    const r = {ok: false, em: agora, origem, falta: /permiss|permission|DriveApp/i.test(erro) ? 'AUTORIZAR' : 'OUTRO'};
     props.setProperty('BACKUP_ULTIMO', JSON.stringify(r));
-    Logger.log('Backup não feito: ' + r.erro);
+    console.error('Backup não feito: ' + erro);
     return r;
   }
 }

@@ -654,7 +654,6 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .card.ob .big.zero{color:var(--ink-3)}
 .ob-orc{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
 .ob-orcb{display:flex;align-items:center;gap:6px;flex:1;min-width:120px}.ob-orcb .oc-t{flex:1}.ob-orcb small{font-size:12px;color:var(--ink-3);white-space:nowrap}
-.obconc{margin-top:16px}.obconc>summary{cursor:pointer;font-weight:800;min-height:44px;display:flex;align-items:center}.obconc[open]>summary{margin-bottom:12px}
 .orc-vazio{margin-bottom:16px;border-color:var(--brand);background:var(--brand-soft)}.orc-vazio b{display:block;color:var(--brand);margin-bottom:4px}
 .oc-semf{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
 .oc-semf input{width:140px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-weight:700}
@@ -685,8 +684,8 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
  .kpis .kpi .val{font-size:22px}
  .kpis .kpi .pend,.kpis .kpi .vbar,.kpis .kpi .foot.orig{display:none}
 }
-.sc-sist{display:block;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2)}
-.sc-sist[hidden]{display:none}.sc-sist .l{display:block;margin-top:3px}.sc-sist b{display:inline;font-size:12px;margin:0}.sc-sist .warn{color:var(--amber)}.sc-sist .bad{color:var(--red)}
+.sc-sist{display:block;min-width:0;max-width:100%;overflow-wrap:anywhere;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2)}
+.sc-sist[hidden]{display:none}.sc-sist .l{display:block;margin-top:3px;overflow-wrap:anywhere}.sc-sist b{display:inline;font-size:12px;margin:0}.sc-sist .warn{color:var(--amber)}.sc-sist .bad{color:var(--red)}
 .sc-sist button{margin-top:8px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:8px;padding:7px 10px;font:inherit;font-weight:700;font-size:12px;cursor:pointer;min-height:36px}
 .sc-sist button.pri{background:var(--brand);border-color:var(--brand);color:#fff}.sc-sist .acoes{display:flex;gap:6px;flex-wrap:wrap}
 .sidecard .sc-conta{padding-top:10px;border-top:1px solid var(--line)}
@@ -1118,7 +1117,7 @@ body.nao-admin [data-orc]{display:none!important}
         <a href="#usuarios" data-v="usuarios" id="navUsuarios" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/></svg>Usuários</a>
       </nav>
     </div>
-    <div class="sidecard" id="sidecard"><div class="sc-info"><b>Como os dados chegam</b>Pedidos e entregas vêm do formulário e entram aqui sozinhos, em até 1 minuto. O custo de cada material é o preço do pedido.<br><a id="sheetLink" href="#" target="_blank" rel="noopener">Abrir planilha</a><span class="sc-sist" id="scSist" hidden></span></div><div class="sc-conta" id="scConta" hidden><span class="eu" id="euTxt"></span><a href="#" id="trocarPinLnk">Trocar minha senha</a><a href="#" id="sair" hidden>Sair deste aparelho</a></div></div>
+    <div class="sidecard" id="sidecard"><div class="sc-info"><b>Como os dados chegam</b>Pedidos e entregas vêm do formulário e entram aqui sozinhos, em até 2 minutos. O custo de cada material é o preço do pedido.<br><a id="sheetLink" href="#" target="_blank" rel="noopener">Abrir planilha</a><span class="sc-sist" id="scSist" hidden></span></div><div class="sc-conta" id="scConta" hidden><span class="eu" id="euTxt"></span><a href="#" id="trocarPinLnk">Trocar minha senha</a><a href="#" id="sair" hidden>Sair deste aparelho</a></div></div>
   </aside>
 
   <main class="main">
@@ -1660,8 +1659,6 @@ function vOrc(){
 function vObras(){
   if(!D.obras.length) return `<div class="card empty"><b>Nenhuma obra cadastrada</b>As obras vêm da planilha Controle e Planejamento de Obras.</div>`;
   const sts=uniq(D.obras.map(stTxt)).sort((a,b)=>a.localeCompare(b,"pt-BR"));
-  // [Etapa 3A] Ao abrir: "Em andamento" (se existir) e maior gasto no período.
-  if(S.obRota!==S.rota){ S.obRota=S.rota; if(!S.sit){ const em=sts.find(x=>semAc(x)==="em andamento"); S.sit=em||""; } if(!S.ord) S.ord="maiorCusto"; }
   const nSt={}; D.obras.forEach(o=>{nSt[stTxt(o)]=(nSt[stTxt(o)]||0)+1});
   let lista=D.obras;
   if(S.busca){const m=casa(S.busca); lista=lista.filter(o=>m(o.id+" "+(o.endereco||o.casa)+" "+(o.cliente||o.empreendimento||"")))}
@@ -1678,7 +1675,7 @@ function vObras(){
     ${S.busca||S.sit||(S.ord&&S.ord!=="codigo")?`<button type="button" class="limpar" id="limparObras" title="Limpar busca, status e ordenação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar</button>`:""}
     <span class="muted" style="align-self:center">${lista.length} de ${D.obras.length} obras</span><button type="button" class="btn" data-csv="obras">Baixar CSV</button></div>`;
   if(!lista.length) return tool+`<div class="card empty"><b>Nenhuma obra encontrada</b>Confira o código, a rua ou o nome do cliente.</div>`;
-  const orcS=orcObras(), conc=!S.sit?lista.filter(o=>o.status==="CONCLUÍDA"):[], ativas=lista.filter(o=>!conc.includes(o));
+  const orcS=orcObras();
   const cartao=o=>{
     const L=D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)), conf=L.filter(l=>l.situacao==="CUSTO CONFIRMADO");
     const I=D.itens.filter(i=>i.obra===o.id&&inP(i.data)&&okS(i.sku));
@@ -1691,7 +1688,7 @@ function vObras(){
       <div class="big${conf.length?"":" zero"}" ${tA("ob|"+o.id,sum(conf,l=>l.valor))}>${brl(sum(conf,l=>l.valor))}</div><div class="muted">${conf.length?"custo confirmado no período":"Nenhum custo confirmado neste período"}</div>
       <div class="stats"><div><b>${conf.length}</b>entregas</div><div><b>${uniq(I.map(i=>i.pedido)).length}</b>solicitações</div><div><b>${ult?dbr(ult).slice(0,5):"—"}</b>última entrega</div></div>
     </button>`};
-  return tool+(ativas.length?`<section class="grid obras">${ativas.map(cartao).join("")}</section>`:"")+(conc.length?`<details class="card obconc"><summary>Concluídas (${conc.length})</summary><section class="grid obras">${conc.map(cartao).join("")}</section></details>`:"");
+  return tool+`<section class="grid obras">${lista.map(cartao).join("")}</section>`;
 }
 
 /* Faixa do pedido cancelado ou encerrado no formulário. */
@@ -2713,7 +2710,7 @@ function cartaoSistema(){ const el=$("scSist"); if(!el) return; const s=D&&D.sis
   const dh=t=>{const m=/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(String(t||""));return m?m[3]+"/"+m[2]+" às "+m[4]+":"+m[5]:"—";};
   const velho=!b||!b.ok||(Date.now()-new Date(String(b.em).replace(" ","T")+"-03:00").getTime())>8*864e5;
   el.innerHTML=`<span class="l ${cl}">Sincronização hoje: <b>${q.n||0}</b> execuções · <b>${String(q.min||0).replace(".",",")}</b> min de ${q.cota||90} · média ${String(q.media||0).replace(".",",")} s</span>
-    <span class="l ${velho?"bad":""}">Último backup: ${b?dh(b.em)+(b.ok?"":" · erro: "+esc(b.erro||"")):"nenhum ainda"}</span>
+    <span class="l ${velho?"bad":""}">${b&&!b.ok?"Backup falhou em "+dh(b.em)+" — "+(b.falta==="AUTORIZAR"?"falta autorizar o acesso ao Drive.":"tente de novo."):"Último backup: "+(b?dh(b.em):"nenhum ainda")}</span>
     ${BKP_MSG?`<span class="l">${esc(BKP_MSG)}</span>`:""}
     ${BKP_CONF?`<span class="l">Copiar agora as planilhas do formulário e do controle para a pasta “ZAYDA - Backups”?</span><span class="acoes"><button type="button" class="pri" data-bkp="sim">Fazer backup</button><button type="button" data-bkp="nao">Voltar</button></span>`
       :`<button type="button" data-bkp="pedir">Fazer backup agora</button>`}`; }
