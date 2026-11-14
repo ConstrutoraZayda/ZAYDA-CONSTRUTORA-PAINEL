@@ -685,7 +685,8 @@ function sincronizarSeHouverNovidade_() {
 /** [Etapa 1] Gatilho de 5 em 5 minutos: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
 function sincronizacaoAutomatica() {
   const t0 = Date.now(); let r = '';
-  try { r = sincronizacaoAutomaticaCorpo_(); return r; }
+  try { r = sincronizacaoAutomaticaCorpo_(); marcarErroSinc_(''); return r; }
+  catch (e) { marcarErroSinc_(String(e && e.message || e)); throw e; } // a tela Sistema mostra o aviso (só para Admin Zayda)
   finally { registrarExecucaoSinc_(Date.now() - t0, /^(Sem novidades|Outra sincronização)/.test(String(r || ''))); }
 }
 function sincronizacaoAutomaticaCorpo_() {
@@ -1327,13 +1328,14 @@ function getDadosPainel(token) {
   const conf = ss.getSheetByName(CTRL.conf);
   return {
     acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores,
-    sistema: ehAdminZayda_(ac.u) ? {sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
+    // Dados técnicos (sincronização, backup e link da planilha): só vão para Admin Zayda; para os outros nem saem do servidor.
+    sistema: ehAdminZayda_(ac.u) ? {sincErro: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('SINC_ERRO') || 'null'); } catch (e) { return null; } })(), sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
     usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: publico_(ac.u),
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
     modo: texto_(conf.getRange(CTRL.celulaModo).getValue()) || 'PRODUÇÃO',
     sincronizadoEm: texto_(conf.getRange(CTRL.celulaUltimaSinc).getValue()).split(' · ')[0],
-    planilhaUrl: ss.getUrl(), versaoPainel: versaoPainel_(), obras, itens, lanc
+    planilhaUrl: ehAdminZayda_(ac.u) ? ss.getUrl() : '', versaoPainel: versaoPainel_(), obras, itens, lanc
   };
 }
 
@@ -1446,6 +1448,15 @@ function registrarExecucaoSinc_(ms, semMudanca) {
       Object.keys(props.getProperties()).forEach(c => { if (c.indexOf('SINC_DIA_') === 0 && c.slice(9) < limite) props.deleteProperty(c); });
     }
   } catch (e) { Logger.log('Medição da sincronização não gravada: ' + e.message); }
+}
+/** Última falha da sincronização automática (só a data; o texto técnico fica no registro de execuções). Uma execução certa apaga o aviso. */
+function marcarErroSinc_(msg) {
+  try {
+    const p = PropertiesService.getScriptProperties();
+    if (!msg) { if (p.getProperty('SINC_ERRO')) p.deleteProperty('SINC_ERRO'); return; }
+    p.setProperty('SINC_ERRO', JSON.stringify({em: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss')}));
+    console.error('Sincronização automática falhou: ' + msg);
+  } catch (e) {}
 }
 function resumoSinc_() {
   const props = PropertiesService.getScriptProperties(), dia = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd');
