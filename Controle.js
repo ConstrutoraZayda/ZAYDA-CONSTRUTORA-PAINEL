@@ -36,7 +36,7 @@ const CTRL = Object.freeze({
   obras: 'OBRAS', solicitacoes: 'SOLICITACOES', lancamentos: 'MATERIAIS_E_CUSTOS',
   abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS', orcamentos: 'ORCAMENTOS',
   abaCancelOrigem: 'CANCELAMENTOS', destCancel: '_IMPORT_CANCELAMENTOS', destEntregas: '_IMPORT_ENTREGAS',
-  intervaloMinutos: 2, copiaCompletaMinutos: 15
+  intervaloMinutos: 5, copiaCompletaMinutos: 15
 });
 
 /* ============================== MENU ============================== */
@@ -229,7 +229,7 @@ function escreverEtapas_(ss, etapas) {
 }
 
 /** Atualiza obras e etapas se a planilha de obras mudou (compara a assinatura dos dados).
- *  Chamado a cada 2 minutos, a cada consulta do painel e na hora em que alguém edita a planilha de obras. */
+ *  Chamado a cada 5 minutos, a cada consulta do painel e na hora em que alguém edita a planilha de obras. */
 function atualizarObrasSeMudou_(forcar) {
   const props = PropertiesService.getScriptProperties();
   let obras;
@@ -641,13 +641,22 @@ function sincronizarFormulario(esperaMs) {
   } finally { lock.releaseLock(); }
 }
 
-function sincronizarComAviso() {
-  const ui = SpreadsheetApp.getUi();
-  try { ui.alert('Sincronização concluída', sincronizarFormulario(), ui.ButtonSet.OK); }
-  catch (e) { ui.alert('Sincronização não concluída', e.message, ui.ButtonSet.OK); }
+/** Aviso na tela da planilha (menu Zayda). Pelo editor ou por gatilho não há tela: só registra no log, sem erro. */
+function avisar_(titulo, mensagem) {
+  try {
+    const ui = SpreadsheetApp.getUi();
+    if (titulo) ui.alert(titulo, mensagem, ui.ButtonSet.OK); else ui.alert(mensagem);
+  } catch (e) {
+    console.log(titulo ? titulo + ': ' + mensagem : mensagem);
+  }
 }
 
-/** Acionador de 2 em 2 minutos (CTRL.intervaloMinutos). Verificação rápida: só faz a cópia completa quando o formulário
+function sincronizarComAviso() {
+  try { avisar_('Sincronização concluída', sincronizarFormulario()); }
+  catch (e) { avisar_('Sincronização não concluída', e.message); }
+}
+
+/** Acionador de 5 em 5 minutos (CTRL.intervaloMinutos). Verificação rápida: só faz a cópia completa quando o formulário
  *  registrou algo novo (pedido, revisão ou entrega) ou a cada 15 minutos (obras e catálogo).
  *  Assim fica quase em tempo real sem estourar o limite diário de execução do Google. */
 /** Marca rápida do formulário: nº de linhas de PEDIDOS, ITENS_PEDIDO, ENTREGAS e AUDITORIA. */
@@ -659,7 +668,7 @@ function marcaOrigem_(conf) {
 }
 
 /** Chamado pelo painel antes de devolver os dados: se o formulário tem pedido, revisão ou entrega
- *  nova, sincroniza na hora. Assim o painel mostra a novidade sem esperar o acionador de 2 minutos. */
+ *  nova, sincroniza na hora. Assim o painel mostra a novidade sem esperar o acionador de 5 minutos. */
 function sincronizarSeHouverNovidade_() {
   try {
     const conf = planilhaControle_().getSheetByName(CTRL.conf);
@@ -673,7 +682,7 @@ function sincronizarSeHouverNovidade_() {
   } catch (e) { Logger.log('Sincronização pelo painel não feita: ' + e.message); return false; }
 }
 
-/** [Etapa 1] Gatilho de 2 em 2 minutos: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
+/** [Etapa 1] Gatilho de 5 em 5 minutos: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
 function sincronizacaoAutomatica() {
   const t0 = Date.now(); let r = '';
   try { r = sincronizacaoAutomaticaCorpo_(); return r; }
@@ -703,11 +712,24 @@ function sincronizacaoAutomaticaCorpo_() {
   return r;
 }
 
+/** everyMinutes só aceita 1, 5, 10, 15 ou 30: outro número vira o permitido logo acima (ex.: 2 → 5; acima de 30 → 30). */
+function intervaloPermitido_(n) {
+  const ok = [1, 5, 10, 15, 30], v = Number(n);
+  if (!(v > 0)) return 5;
+  for (let i = 0; i < ok.length; i++) if (ok[i] >= v) return ok[i];
+  return 30;
+}
+
 function instalarSincronizacao() {
-  ScriptApp.getProjectTriggers()
+  const minutos = intervaloPermitido_(CTRL.intervaloMinutos);
+  // Ordem segura: primeiro cria o gatilho novo; só depois apaga os antigos da sincronização.
+  // Se a criação falhar, nada é apagado e os gatilhos antigos continuam funcionando.
+  const antigos = ScriptApp.getProjectTriggers();
+  const novo = ScriptApp.newTrigger('sincronizacaoAutomatica').timeBased().everyMinutes(minutos).create();
+  antigos
+    .filter(t => t.getUniqueId() !== novo.getUniqueId())
     .filter(t => ['sincronizarFormulario', 'sincronizacaoAutomatica', 'aoEditarObras', 'backupSemanal'].indexOf(t.getHandlerFunction()) >= 0)
     .forEach(t => ScriptApp.deleteTrigger(t));
-  ScriptApp.newTrigger('sincronizacaoAutomatica').timeBased().everyMinutes(CTRL.intervaloMinutos).create();
   // Na hora em que alguém muda fase, status ou etapa na planilha "Controle e Planejamento de Obras".
   const idObras = texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaObrasId).getValue());
   if (idObras) ScriptApp.newTrigger('aoEditarObras').forSpreadsheet(idObras).onEdit().create();
@@ -715,7 +737,7 @@ function instalarSincronizacao() {
   ScriptApp.newTrigger('backupSemanal').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(3).create();
   PropertiesService.getScriptProperties().deleteProperty('MARCA_ORIGEM');
   const r = sincronizacaoAutomatica();
-  SpreadsheetApp.getUi().alert('Sincronização automática ativada: verifica o formulário a cada ' + CTRL.intervaloMinutos + ' minutos e copia assim que houver pedido ou entrega nova. ' +
+  avisar_('', 'Sincronização automática ativada: verifica o formulário a cada ' + minutos + ' minutos e copia assim que houver pedido ou entrega nova. ' +
     'Mudanças de fase, status e etapas na planilha de obras entram na hora. Backup semanal: segunda, entre 3h e 4h.\n\nPrimeira execução: ' + r);
 }
 
