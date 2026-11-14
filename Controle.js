@@ -600,9 +600,16 @@ function sincronizarFormulario(esperaMs) {
     if (!dados.pedidos.length && atuais > 0 && !dados.catalogo.length) {
       throw new Error('A origem não retornou pedidos nem catálogo. Confira o ID da planilha em CONFIGURACOES. Nada foi alterado.');
     }
-    escrever_(ss, CTRL.destCatalogo, dados.catalogo, 6);
-    escrever_(ss, CTRL.destItens, dados.itens, 11);
-    if (obras.ativo) {
+    // [Etapa 1] Só regrava a aba de destino quando o conteúdo mudou (impressão digital MD5 em PropertiesService). A cada 6 h regrava tudo,
+    // por segurança. Se a comparação falhar, copia normalmente.
+    const props = PropertiesService.getScriptProperties(), tudo = Date.now() - Number(props.getProperty('REESCRITA_TOTAL') || 0) > 6 * 3600000, digs = {};
+    const gravar = (chave, conteudo, fn) => { let d = '';
+      try { d = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(conteudo), Utilities.Charset.UTF_8).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join(''); } catch (e) { d = ''; }
+      if (d && !tudo && props.getProperty('DIG_' + chave) === d) return false;
+      fn(); if (d) digs['DIG_' + chave] = d; return true; };
+    gravar('catalogo', dados.catalogo, () => escrever_(ss, CTRL.destCatalogo, dados.catalogo, 6));
+    gravar('itens', dados.itens, () => escrever_(ss, CTRL.destItens, dados.itens, 11));
+    if (obras.ativo && (tudo || obras.assinatura !== props.getProperty('HASH_OBRAS'))) {
       escreverObras_(ss, obras.linhas); escreverEtapas_(ss, obras.etapas);
       PropertiesService.getScriptProperties().setProperty('HASH_OBRAS', obras.assinatura);
     }
@@ -610,11 +617,12 @@ function sincronizarFormulario(esperaMs) {
       linhas_(ss, CTRL.obras, CTRL.linhaObras, 4).filter(r => texto_(r[0]));
     const ident = identificarObras_(ss, dados, obrasParaVinculo);
     // Coluna O de _IMPORT_PEDIDOS: obra identificada pelo script (código ou rua + casa).
-    escrever_(ss, CTRL.destPedidos, dados.pedidos.map((p, i) => p.concat([ident.porLinha[i], p.referencia || ''])), 16);
+    const linhasPed = dados.pedidos.map((p, i) => p.concat([ident.porLinha[i], p.referencia || '']));
+    gravar('pedidos', linhasPed, () => escrever_(ss, CTRL.destPedidos, linhasPed, 16));
     const cabP = ss.getSheetByName(CTRL.destPedidos).getRange('P1');
     if (texto_(cabP.getValue()) !== 'PONTO_REFERENCIA') cabP.setValue('PONTO_REFERENCIA');
-    escreverCancelamentos_(ss, dados.cancelamentos);
-    escreverEntregas_(ss, dados.entregas, dados.pedidos);
+    gravar('cancelamentos', dados.cancelamentos, () => escreverCancelamentos_(ss, dados.cancelamentos));
+    gravar('entregas', [dados.entregas, dados.pedidos.map(p => [p[0], p[1], p[6]])], () => escreverEntregas_(ss, dados.entregas, dados.pedidos));
     const novasEntregas = lancarEntregas_(ss, dados, ident);
     // Lista de obras para as sugestões de endereço do formulário (só regrava quando muda).
     if (obras.ativo) { try { escreverObrasFormulario_(obras.linhas); } catch (e) { avisoObras += ' · LISTA DE OBRAS DO FORMULÁRIO NÃO ATUALIZADA: ' + e.message; } }
@@ -627,6 +635,7 @@ function sincronizarFormulario(esperaMs) {
       (dados.orfaos.length ? ' · ITENS SEM PEDIDO: ' + dados.orfaos.join(', ') : '');
     ss.getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc).setNumberFormat('@').setValue(resumo);
     SpreadsheetApp.flush();
+    try { if (tudo) digs.REESCRITA_TOTAL = String(Date.now()); if (Object.keys(digs).length) props.setProperties(digs); } catch (e) {} // [Etapa 1]
     Logger.log(resumo);
     return resumo;
   } finally { lock.releaseLock(); }
@@ -664,7 +673,13 @@ function sincronizarSeHouverNovidade_() {
   } catch (e) { Logger.log('Sincronização pelo painel não feita: ' + e.message); return false; }
 }
 
+/** [Etapa 1] Gatilho de 1 em 1 minuto: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
 function sincronizacaoAutomatica() {
+  const t0 = Date.now(); let r = '';
+  try { r = sincronizacaoAutomaticaCorpo_(); return r; }
+  finally { registrarExecucaoSinc_(Date.now() - t0, /^(Sem novidades|Outra sincronização)/.test(String(r || ''))); }
+}
+function sincronizacaoAutomaticaCorpo_() {
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(200)) return 'Outra sincronização em andamento.';
   lock.releaseLock();
@@ -690,16 +705,18 @@ function sincronizacaoAutomatica() {
 
 function instalarSincronizacao() {
   ScriptApp.getProjectTriggers()
-    .filter(t => ['sincronizarFormulario', 'sincronizacaoAutomatica', 'aoEditarObras'].indexOf(t.getHandlerFunction()) >= 0)
+    .filter(t => ['sincronizarFormulario', 'sincronizacaoAutomatica', 'aoEditarObras', 'backupSemanal'].indexOf(t.getHandlerFunction()) >= 0)
     .forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('sincronizacaoAutomatica').timeBased().everyMinutes(CTRL.intervaloMinutos).create();
   // Na hora em que alguém muda fase, status ou etapa na planilha "Controle e Planejamento de Obras".
   const idObras = texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaObrasId).getValue());
   if (idObras) ScriptApp.newTrigger('aoEditarObras').forSpreadsheet(idObras).onEdit().create();
+  // [Etapa 1] Backup semanal: segunda-feira entre 3h e 4h (fuso do projeto: São Paulo).
+  ScriptApp.newTrigger('backupSemanal').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(3).create();
   PropertiesService.getScriptProperties().deleteProperty('MARCA_ORIGEM');
   const r = sincronizacaoAutomatica();
   SpreadsheetApp.getUi().alert('Sincronização automática ativada: verifica o formulário a cada minuto e copia assim que houver pedido ou entrega nova. ' +
-    'Mudanças de fase, status e etapas na planilha de obras entram na hora.\n\nPrimeira execução: ' + r);
+    'Mudanças de fase, status e etapas na planilha de obras entram na hora. Backup semanal: segunda, entre 3h e 4h.\n\nPrimeira execução: ' + r);
 }
 
 /* ===================== REMOÇÃO DOS DADOS DE TESTE ===================== */
@@ -777,6 +794,7 @@ function doPost(e) {
     : c.acao === 'entregas' ? getEntregasPedido(c.token, c.pedido)
     : c.acao === 'salvarOrcamento' ? salvarOrcamento(c.token, c.obra, c.valor, c.data, c.obs)
     : c.acao === 'conferirTerceiro' ? conferirTerceiro(c.token, c.id, c.op, c.motivo, c.atualizadoEm)
+    : c.acao === 'backup' ? backupAgora(c.token)
     : getDadosPainel(c.token); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
@@ -982,6 +1000,7 @@ function autenticar_(token) {
   const props = PropertiesService.getScriptProperties(), v = props.getProperty('TOKEN_' + t);
   if (!v) return {erro: {acesso: false, motivo: 'TOKEN'}};
   let reg; try { reg = JSON.parse(v); } catch (e) { return {erro: {acesso: false, motivo: 'TOKEN'}}; }
+  if (Date.now() - Number(reg.uso || reg.criado || 0) > TOKEN_VALIDADE_DIAS * 864e5) { props.deleteProperty('TOKEN_' + t); return {erro: {acesso: false, motivo: 'EXPIRADO'}}; } // [Etapa 1]
   const u = usuarioPorLogin_(reg.u);
   if (!podePainel_(u)) { props.deleteProperty('TOKEN_' + t); return {erro: {acesso: false, motivo: 'DESATIVADO'}}; }
   if (Date.now() - Number(reg.uso || 0) > 3600000) { reg.uso = Date.now(); props.setProperty('TOKEN_' + t, JSON.stringify(reg)); } // último uso, no máximo 1 gravação por hora
@@ -1286,6 +1305,7 @@ function getDadosPainel(token) {
   const conf = ss.getSheetByName(CTRL.conf);
   return {
     acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores,
+    sistema: ehAdminZayda_(ac.u) ? {sinc: resumoSinc_(), backup: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); } catch (e) { return null; } })()} : null, // [Etapa 1]
     usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: publico_(ac.u),
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
@@ -1388,3 +1408,90 @@ function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
     return {ok: true, status: novo, terceiros: dados.terceiros, fornecedores: dados.fornecedores};
   } finally { lock.releaseLock(); }
 }
+
+/* ===================== [Etapa 1] ESTABILIDADE =====================
+ * Medição da sincronização automática (cota de 90 min/dia de gatilhos), backup semanal e validade das chaves de aparelho. */
+const SINC_DIAS = 14, SINC_COTA_MIN = 90;
+/** Acumula a execução do dia (fuso São Paulo): execuções, milissegundos, maior duração e quantas foram "sem mudança". Guarda 14 dias. */
+function registrarExecucaoSinc_(ms, semMudanca) {
+  try {
+    const props = PropertiesService.getScriptProperties(), dia = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'), k = 'SINC_DIA_' + dia;
+    let x = {n: 0, ms: 0, max: 0, sem: 0}; try { x = JSON.parse(props.getProperty(k) || 'null') || x; } catch (e) {}
+    x.n++; x.ms += ms; x.max = Math.max(x.max, ms); if (semMudanca) x.sem++;
+    props.setProperty(k, JSON.stringify(x));
+    if (x.n === 1) { // primeira do dia: apaga os dias com mais de 14 dias
+      const limite = Utilities.formatDate(new Date(Date.now() - SINC_DIAS * 864e5), CTRL.fuso, 'yyyy-MM-dd');
+      Object.keys(props.getProperties()).forEach(c => { if (c.indexOf('SINC_DIA_') === 0 && c.slice(9) < limite) props.deleteProperty(c); });
+    }
+  } catch (e) { Logger.log('Medição da sincronização não gravada: ' + e.message); }
+}
+function resumoSinc_() {
+  const props = PropertiesService.getScriptProperties(), dia = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd');
+  let x = null; try { x = JSON.parse(props.getProperty('SINC_DIA_' + dia) || 'null'); } catch (e) {}
+  x = x || {n: 0, ms: 0, max: 0, sem: 0};
+  return {dia, n: x.n, min: Math.round(x.ms / 600) / 100, media: x.n ? Math.round(x.ms / x.n / 100) / 10 : 0, max: Math.round(x.max / 100) / 10, sem: x.sem, cota: SINC_COTA_MIN};
+}
+
+/* Backup semanal: cópia das planilhas do FORMULÁRIO e do CONTROLE na pasta "ZAYDA - Backups" (Drive do dono), as 8 mais recentes de cada.
+ * A cópia de uma planilha leva junto o projeto do Apps Script dela (os gatilhos não vão junto). Nada é compartilhado. */
+const BACKUP = Object.freeze({pasta: 'ZAYDA - Backups', manter: 8, idFormulario: '1F7q4M4Sv1WRAY_9HNrPBmiCWymkCKS-EdAa6644GB6Q'});
+function pastaBackup_() {
+  const props = PropertiesService.getScriptProperties(), id = props.getProperty('BACKUP_PASTA_ID');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  const it = DriveApp.getFoldersByName(BACKUP.pasta);
+  const pasta = it.hasNext() ? it.next() : DriveApp.createFolder(BACKUP.pasta);
+  props.setProperty('BACKUP_PASTA_ID', pasta.getId());
+  return pasta;
+}
+function fazerBackup_(origem) {
+  const props = PropertiesService.getScriptProperties(), inicio = Date.now();
+  const agora = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss'), dia = agora.slice(0, 10);
+  try {
+    const pasta = pastaBackup_();
+    let idForm = '';
+    try { idForm = texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaOrigemId).getValue()); } catch (e) {}
+    const copias = [[idForm || BACKUP.idFormulario, 'Formulário'], [planilhaControle_().getId(), 'Controle']];
+    copias.forEach(([id, nome]) => DriveApp.getFileById(id).makeCopy('BACKUP ' + dia + ' — ' + nome, pasta));
+    // Mantém as 8 mais recentes de cada: só arquivos desta pasta cujo nome começa com "BACKUP ".
+    const lixo = [];
+    copias.forEach(([, nome]) => {
+      const lista = [], it = pasta.getFiles();
+      while (it.hasNext()) { const f = it.next(), n = f.getName(); if (n.indexOf('BACKUP ') === 0 && n.slice(-(' — ' + nome).length) === ' — ' + nome) lista.push(f); }
+      lista.sort((a, b) => b.getDateCreated() - a.getDateCreated()).slice(BACKUP.manter).forEach(f => { f.setTrashed(true); lixo.push(f.getName()); });
+    });
+    const tokens = limparTokensVelhos_();
+    const r = {ok: true, em: agora, origem, segundos: Math.round((Date.now() - inicio) / 1000), lixeira: lixo.length, tokensRemovidos: tokens};
+    props.setProperty('BACKUP_ULTIMO', JSON.stringify(r));
+    return r;
+  } catch (e) {
+    const r = {ok: false, em: agora, origem, erro: String(e && e.message || e)};
+    props.setProperty('BACKUP_ULTIMO', JSON.stringify(r));
+    Logger.log('Backup não feito: ' + r.erro);
+    return r;
+  }
+}
+/** Gatilho semanal (segunda, 3h–4h). */
+function backupSemanal() { return fazerBackup_('semanal'); }
+/** Gatilho de uma vez, criado pelo botão "Fazer backup agora" do painel (assim o painel não espera a cópia terminar). */
+function backupAgendado() {
+  ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'backupAgendado').forEach(t => ScriptApp.deleteTrigger(t));
+  return fazerBackup_('manual');
+}
+function backupAgora(token) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const pend = ScriptApp.getProjectTriggers().some(t => t.getHandlerFunction() === 'backupAgendado');
+  if (!pend) ScriptApp.newTrigger('backupAgendado').timeBased().after(5000).create();
+  return {ok: true, agendado: true, jaAgendado: pend};
+}
+/** Chaves de aparelho sem uso há mais de 60 dias deixam de valer. */
+const TOKEN_VALIDADE_DIAS = 60;
+function limparTokensVelhos_() {
+  const props = PropertiesService.getScriptProperties(), todas = props.getProperties(), limite = Date.now() - TOKEN_VALIDADE_DIAS * 864e5;
+  let n = 0;
+  Object.keys(todas).forEach(k => {
+    if (k.indexOf('TOKEN_') !== 0) return;
+    try { const r = JSON.parse(todas[k]); if (Number(r.uso || r.criado || 0) < limite) { props.deleteProperty(k); n++; } } catch (e) {}
+  });
+  return n;
+}
+
