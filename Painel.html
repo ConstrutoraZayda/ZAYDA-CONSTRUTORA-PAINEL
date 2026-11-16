@@ -3207,7 +3207,7 @@ function sisAviso(){ const s=D&&D.sistema; if(!s) return ""; const b=s.backup, r
   return ""; }
 const sisNum=v=>String(v||0).replace(".",",");
 function htmlSinc(){ const s=D.sistema, q=s.sinc||{}, cl=q.min>80?"bad":q.min>60?"warn":"";
-  return `<p class="sis-txt">Pedidos e entregas vêm do formulário e entram aqui sozinhos, em até 5 minutos. O custo de cada material é o preço do pedido.</p>
+  return `<p class="sis-txt">Com o painel aberto, os dados chegam em segundos. Com ele fechado, em até 5 minutos.</p>
   <dl class="sis-dl"><div><dt>Última sincronização</dt><dd>${esc(D.sincronizadoEm||"—")}</dd></div><div><dt>Execuções hoje</dt><dd>${q.n||0}</dd></div>
   <div><dt>Minutos usados hoje</dt><dd class="${cl}">${sisNum(q.min)} de ${q.cota||90}</dd></div><div><dt>Média por execução</dt><dd>${sisNum(q.media)} s</dd></div></dl>
   ${s.sincErro?`<p class="sis-erro">A sincronização automática falhou em ${sisDh(s.sincErro.em)}. O painel continua sincronizando quando é aberto.</p>`:""}${linhaResumo()}`; }
@@ -3304,7 +3304,7 @@ function iniciarAoVivo(){
   $("btnAtualizar").addEventListener("click",()=>atualizarAgora(true));
   clearInterval(timerVivo); timerVivo=setInterval(()=>atualizarAgora(false),INTERVALO_MS);
   setInterval(textoAtualizado,10000);
-  document.addEventListener("visibilitychange",()=>{if(!document.hidden&&Date.now()-LIDO>5000)atualizarAgora(false)});
+  document.addEventListener("visibilitychange",()=>{if(!document.hidden)atualizarAgora(false)}); // voltou para o painel: verifica na hora
   window.addEventListener("focus",()=>{if(Date.now()-LIDO>5000)atualizarAgora(false)});
   window.addEventListener("pageshow",()=>{if(Date.now()-LIDO>5000)atualizarAgora(false)});
 }

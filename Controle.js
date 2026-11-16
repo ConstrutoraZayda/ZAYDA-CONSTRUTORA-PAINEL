@@ -893,12 +893,15 @@ function sincronizarComAviso() {
 /** Acionador de 5 em 5 minutos (CTRL.intervaloMinutos). Verificação rápida: só faz a cópia completa quando o formulário
  *  registrou algo novo (pedido, revisão ou entrega) ou a cada 15 minutos (obras e catálogo).
  *  Assim fica quase em tempo real sem estourar o limite diário de execução do Google. */
-/** Marca rápida do formulário: nº de linhas de PEDIDOS, ITENS_PEDIDO, ENTREGAS e AUDITORIA. */
+/** Marca rápida do formulário: nº de linhas de PEDIDOS, ITENS_PEDIDO, ENTREGAS, AUDITORIA, CANCELAMENTOS, TERCEIROS, TERCEIROS_PARCELAS, FORNECEDORES e CATALOGO. */
 function marcaOrigem_(conf) {
   const origem = SpreadsheetApp.openById(texto_(conf.getRange(CTRL.celulaOrigemId).getValue()));
   const ult = nome => { const sh = origem.getSheetByName(nome); return sh ? sh.getLastRow() : 0; };
+  // Todas as abas do formulário que o painel usa: só o número de linhas de cada uma (leve, sem ler o conteúdo).
+  // Edições que não criam linha (conferência, pagamento, edição de lançamento, preço do catálogo) entram na AUDITORIA, que também é contada.
   return [ult(texto_(conf.getRange(CTRL.celulaAbaPedidos).getValue())), ult(texto_(conf.getRange(CTRL.celulaAbaItens).getValue())),
-          ult(CTRL.abaEntregasOrigem), ult('AUDITORIA')].join('|');
+          ult(CTRL.abaEntregasOrigem), ult('AUDITORIA'), ult(CTRL.abaCancelOrigem), ult(TERC.abaLanc), ult(TERC.abaParc), ult(TERC.abaForn),
+          ult(texto_(conf.getRange(CTRL.celulaAbaCatalogo).getValue()))].join('|');
 }
 
 /** Chamado pelo painel antes de devolver os dados: se o formulário tem pedido, revisão ou entrega
