@@ -8,6 +8,14 @@ Eles se comunicam **pelas planilhas**, não por código compartilhado.
 | Formulario-Zayda-Construtora | ZAYDA CONSTRUTORA \| FORMULÁRIO (script 1TjrLZ…) | ZAYDA CONSTRUTORA \| CATÁLOGO E SOLICITAÇÕES (OFICIAL) | `Código.js`, `Index.html`, `appsscript.json` |
 | ZAYDA-CONSTRUTORA-PAINEL | Zayda Controle | ZAYDA CONSTRUTORA \| CONTROLE DE MATERIAIS POR OBRA (OFICIAL) | `Controle.js`, `Painel.html`, `appsscript.json` |
 
+## Princípio do projeto: simples primeiro
+- Este sistema é um controle de materiais e custos por obra, não um ERP. Prioridade: simplicidade, dados confiáveis e facilidade de uso.
+- Sempre escolha a solução mais simples que resolve o pedido. Menos código, menos abas, menos telas, menos opções.
+- Não crie camadas, abstrações, caches, filas, bibliotecas ou estruturas "para o futuro" sem eu pedir.
+- Reaproveite o que já existe antes de criar algo novo.
+- Se um pedido meu parecer exigir algo complexo, faça a versão simples e me diga em uma frase o que ficou de fora, ou me pergunte antes.
+- Código fácil de entender por outra pessoa é mais importante do que código "esperto".
+
 ## Regras que não podem ser quebradas
 - **Nunca renomear nem criar arquivos de código.** Os nomes são exatamente `Index.html`, `Código.js`, `Painel.html` e `Controle.js`. Nunca pode existir `INDEX.html` (o Git no Windows não distingue maiúsculas e isso já derrubou o formulário).
 - **Conferir o `.clasp.json`**: o `scriptId` tem que ser o do projeto da tabela acima. Um ID errado envia o código para outro projeto (existem cópias de segurança com o mesmo nome).
