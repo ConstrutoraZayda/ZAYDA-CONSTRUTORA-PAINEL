@@ -2899,7 +2899,7 @@ const TER_BOTAO={CONFERIR:"Confirmar conferência",REPROVAR:"Reprovar",CANCELAR:
 function terConfirmarPag(op,pid){const t=terTodos().find(x=>x.id===TER_ID),box=$("terConf");if(!t||!box||terEnviando)return;
   const ps=t.parcelas||[],x=ps.find(q=>q.id===pid);if(!x)return;TER_CONFIRMA=op;TER_PARC=pid;
   const rot=`Parcela ${x.numero} de ${ps.length} · ${brl(x.valor)} · vence ${dbr(x.vencimento)}`;
-  box.innerHTML=(op==="PAGAR"?`<p>Registrar pagamento?<br><span class="muted">${esc(rot)}</span></p><div class="tl-2"><div><label for="terPgData">Data do pagamento *</label><input type="date" id="terPgData" value="${esc(D.hoje)}" max="${esc(D.hoje)}"></div>
+  box.innerHTML=(op==="PAGAR"?`<p>Registrar pagamento?<br><span class="muted">${esc(rot)}</span></p><div class="tl-2"><div><label for="terPgData">Data do pagamento *</label><input type="date" id="terPgData" value="${esc(D.hoje)}"></div>
       <div><label for="terPgForma">Forma de pagamento *</label><select id="terPgForma"><option value="">Escolha</option>${(D.formasPag||[]).map(f=>`<option>${esc(f)}</option>`).join("")}</select></div></div>`
     :`<p>Desfazer o pagamento?<br><span class="muted">${esc(rot)} · paga em ${dbr(x.dataPagamento)}${x.forma?" · "+esc(x.forma):""}</span></p><label for="terMotivo">Motivo *</label><textarea id="terMotivo" maxlength="300" rows="3" placeholder="Explique o motivo (mínimo 5 caracteres)"></textarea>`)
     +`<div class="tl-erro" id="terErro" role="alert" hidden></div><div class="tl-acoes"><button type="button" class="btn" id="terNao">Voltar</button><button type="button" class="btn primary${op==="DESFAZER"?" tl-canc":""}" id="terSim">${TER_BOTAO[op]}</button></div>`;
@@ -2921,7 +2921,7 @@ function terEnviar(){
   const mot=$("terMotivo")?$("terMotivo").value.trim():"", er=$("terErro"), pag=op==="PAGAR"||op==="DESFAZER", pid=TER_PARC;
   const dia=$("terPgData")?$("terPgData").value:"", forma=$("terPgForma")?$("terPgForma").value:"";
   if(op!=="CONFERIR"&&op!=="PAGAR"&&mot.length<5){er.textContent="Informe o motivo (mínimo 5 caracteres).";er.hidden=false;$("terMotivo").focus();return;}
-  if(op==="PAGAR"&&(!/^\d{4}-\d{2}-\d{2}$/.test(dia)||dia>D.hoje)){er.textContent="Informe a data do pagamento (até hoje).";er.hidden=false;$("terPgData").focus();return;}
+  if(op==="PAGAR"&&(!/^\d{4}-\d{2}-\d{2}$/.test(dia))){er.textContent="Informe a data do pagamento.";er.hidden=false;$("terPgData").focus();return;}
   if(op==="PAGAR"&&!forma){er.textContent="Escolha a forma de pagamento.";er.hidden=false;$("terPgForma").focus();return;}
   terEnviando=true; const sim=$("terSim"), nao=$("terNao"); sim.disabled=nao.disabled=true; sim.textContent="Gravando…"; er.hidden=true;
   (pag?chamarApi({token:TOKEN,acao:"pagarParcelaTerceiro",id:pid,op,data:dia,forma,motivo:mot},"pagarParcelaTerceiro",[TOKEN,pid,op,dia,forma,mot])

@@ -1701,10 +1701,10 @@ function pagarParcelaTerceiro(token, idParcela, op, data, forma, motivo) {
   if (!podeFinanceiro_(ac.u)) return {ok: false, motivo: 'Só a equipe Zayda ou o financeiro podem registrar pagamentos.'};
   const acao = texto_(op).toUpperCase(), alvo = texto_(idParcela);
   if (['PAGAR', 'DESFAZER'].indexOf(acao) < 0 || !/^TER-\d{8}-[A-Z0-9]{4}-P\d{1,2}$/.test(alvo)) return {ok: false, motivo: 'Pedido inválido.'};
-  const hoje = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'), dia = texto_(data), fp = texto_(forma), mot = texto_(motivo);
+  const dia = texto_(data), fp = texto_(forma), mot = texto_(motivo);
   if (acao === 'PAGAR') {
     const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dia), d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null;
-    if (!d || d.getUTCDate() !== +m[3] || dia < '2020-01-01' || dia > hoje) return {ok: false, motivo: 'Data do pagamento inválida (não pode ser depois de hoje).'};
+    if (!d || d.getUTCDate() !== +m[3] || dia < '2020-01-01') return {ok: false, motivo: 'Data do pagamento inválida.'};
     if (TERC.formas.indexOf(fp) < 0) return {ok: false, motivo: 'Escolha a forma de pagamento.'};
   } else {
     if (mot.length < 5) return {ok: false, motivo: 'Informe o motivo (mínimo 5 caracteres).'};
