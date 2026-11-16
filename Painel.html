@@ -485,6 +485,15 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .sol-atn h2 svg{width:16px;height:16px}
 .sol-atn h2 span{font-size:12px}
 .sol-dia{margin:14px 2px 6px;font-size:12.5px;font-weight:800;color:var(--ink-2)}
+.sol-dia .sol-dia-o{font-weight:600;color:var(--ink-3)}
+/* Solicitações: origem (Tudo / Loja BSJ / Outros fornecedores) e lançamento de outro fornecedor (faixa azul + selo) */
+.chips.sol-orig{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;margin:0 0 10px;padding-bottom:2px}
+.chips.sol-orig::-webkit-scrollbar{display:none}
+.chips.sol-orig button{flex:none;display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.chips.sol-orig button svg{width:15px;height:15px}
+.ped.ped-ter{border-left:4px solid var(--blue)}
+.ter-selo{display:inline-flex;align-items:center;gap:4px;vertical-align:1px;margin-right:4px;background:var(--blue-soft);color:var(--blue);font-size:11px;font-weight:800}
+.ter-selo svg{width:13px;height:13px;flex:none}
 .ped.ped2{margin-bottom:6px}
 .ped.ped2 summary{grid-template-columns:minmax(0,1fr) 120px 290px 36px;gap:6px 16px;padding:9px 14px}
 /* Solicitações: valores e selos na mesma posição em todas as linhas. */
@@ -2062,6 +2071,11 @@ function solAgrupar(I){
 const SOL_SIT_F={"A ENTREGAR":p=>p.sit==="A ENTREGAR"&&!p.parcial,PARCIAL_FALTA:p=>p.parcial,COTACAO:p=>p.cotar,ENTREGUE:p=>p.sit==="ENTREGUE"&&!p.parcial,"OBRA NÃO IDENTIFICADA":p=>p.sit==="OBRA NÃO IDENTIFICADA",FALTA:p=>p.parcial||p.sit==="A ENTREGAR"||p.sit==="PARCIAL",PEDIDO_ENCERRADO:p=>p.sit==="PEDIDO_ENCERRADO"};
 /* Lançamento com aviso que conta como pendência (o cancelado não soma). */
 const comAviso = l => !!l.alertas && l.situacao!=="CANCELADO";
+/* Solicitações: lançamentos de Outros fornecedores (fora os cancelados), com os filtros de obra, período e etapa do topo e a busca
+   (fornecedor, descrição, nº da nota, código, tipo e obra). Só mostra; o custo continua vindo só dos conferidos. */
+function solTer(){ const m=S.busca?casa(S.busca):null;
+  return terTopo().filter(t=>t.conferencia!=="CANCELADO"&&(!m||m([t.fornecedor,t.descricao,t.nota,t.id,t.tipo,t.obra,obraNome(t.obra)].join(" ")))); }
+const SOL_TER_F={TER_AGUARDANDO:t=>t.conferencia==="AGUARDANDO",TER_CONFERIDO:t=>t.conferencia==="CONFERIDO",TER_REPROVADO:t=>t.conferencia==="REPROVADO",TER_VENCIDO:t=>terPag(t).temVenc};
 function vSol(){
   let I = S.pedFoco&&S.busca===S.pedFoco?D.itens.filter(i=>i.pedido===S.pedFoco):itensF(); // pedido aberto pelo link de Materiais e custos, mesmo fora do período
   const buscar=I=>{if(!S.busca)return I;const m=casa(S.busca);return I.filter(i=>m(i.pedido+" "+i.material+" "+i.sku+" "+i.obraTexto+" "+i.atendente+" "+i.obra+" "+obraNome(i.obra)+" "+((D.pedidos||{})[i.pedido]||{}).endereco))};
@@ -2070,14 +2084,24 @@ function vSol(){
   const cancelados = agrupar(buscar(D.itensTodos.filter(i=>i.fechado==="CANCELADO"&&inP(i.data)&&okO(i.obra)&&okS(i.sku))));
   const base=list;
   if(S.sit==="PEDIDO_CANCELADO") list=cancelados; else if(SIT_F[S.sit]) list=list.filter(SIT_F[S.sit]);
-  const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim]); if(chave!==S.solChave){S.solChave=chave;S.solN=50;}
+  /* Outros fornecedores na mesma lista (origem: "" = Tudo, LOJA, TER). Filtro de situação de pedido mostra só pedidos. */
+  if(S.solRota!==S.rota){ S.solRota=S.rota; S.solOrig=""; }
+  const orig=S.solOrig||"", terBase=(S.pedFoco&&S.busca===S.pedFoco)||S.sku?[]:solTer(), soPed=S.sit==="PEDIDO_CANCELADO"||!!SIT_F[S.sit];
+  let T=orig==="TER"?terBase.filter(SOL_TER_F[S.sit]||(()=>true)):orig==="LOJA"||soPed?[]:terBase;
+  if(orig==="TER") list=[];
+  const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim,orig]); if(chave!==S.solChave){S.solChave=chave;S.solN=50;}
   const seloSit=p=>!p.parcial?sitPill(p.sit):`<span class="pill parc">${ico("alert")}Parcial · atenção</span>${p.sit==="OBRA NÃO IDENTIFICADA"?sitPill(p.sit):""}`;
   const faltaBox=p=>`<div class="fbox" role="alert"><b>${ico("alert")}Materiais não entregues</b><div class="fl cab"><span>Material</span><span>Pedido</span><span>Entregue</span><span>Falta</span></div>${p.pend.map(i=>`<div class="fl"><span>${esc(i.material)}</span><span data-r="Pedido:">${qtd(i.qtdSol)} ${esc(i.un)}</span><span data-r="Entregue:">${qtd(i.entregue)} ${esc(i.un)}</span><strong data-r="Falta:">${qtd(i.saldo)} ${esc(i.un)}</strong></div>`).join("")}</div>`;
   const tool = `<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações">${selEtapa()}<button type="button" class="btn" data-csv="sol">Baixar CSV</button></div>`;
   const chip=(v,t,n)=>`<button type="button" data-solsit="${v}" aria-pressed="${S.sit===v}">${t} <b>${n}</b></button>`;
   const chips=`<div class="chips" role="group" aria-label="Situação da entrega">${chip("","Todas",base.length)}${[["A ENTREGAR","A entregar"],["PARCIAL_FALTA","Parcial"],["COTACAO","Sem preço"],["ENTREGUE","Entregue"],["OBRA NÃO IDENTIFICADA","Sem obra"],["PEDIDO_ENCERRADO","Encerrados"]].map(([v,t])=>chip(v,t,base.filter(SIT_F[v]).length)).join("")}${chip("PEDIDO_CANCELADO","Cancelados",cancelados.length)}${S.sit==="FALTA"?chip("FALTA","Ainda falta entregar",base.filter(SIT_F.FALTA).length):""}</div>`;
-  const valor=p=>sum(p.its,i=>i.valorRef), resumo=S.sit==="PEDIDO_CANCELADO"?`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido cancelado":"pedidos cancelados"}</span></div>`:`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido":"pedidos"}</span><span>Valor total: <b>${brl(sum(list,valor))}</b></span><span><b>${list.filter(SIT_F["A ENTREGAR"]).length}</b> a entregar</span><span><b>${list.filter(p=>p.parcial).length}</b> ${list.filter(p=>p.parcial).length===1?"parcial":"parciais"}</span></div>`;
-  if(!list.length) return tool+chips+resumo+`<div class="card empty"><b>Nenhuma solicitação encontrada</b>Ajuste o período, a obra ou a busca.</div>`;
+  const origBt=(v,t,n)=>`<button type="button" data-solorig="${v}" aria-pressed="${orig===v}">${t} <b>${n}</b></button>`;
+  const origem=`<div class="chips sol-orig" role="group" aria-label="Origem">${origBt("","Tudo",base.length+terBase.length)}${origBt("LOJA","Loja BSJ",base.length)}${origBt("TER",ico("truck")+"Outros fornecedores",terBase.length)}</div>`;
+  const chipsTer=`<div class="chips" role="group" aria-label="Situação do lançamento">${chip("","Todos",terBase.length)}${[["TER_AGUARDANDO","Aguardando conferência"],["TER_CONFERIDO","Conferido"],["TER_REPROVADO","Reprovado"],["TER_VENCIDO","Com parcela vencida"]].map(([v,t])=>chip(v,t,terBase.filter(SOL_TER_F[v]).length)).join("")}</div>`;
+  const resTer=`<span><b>${T.length}</b> ${T.length===1?"lançamento":"lançamentos"} de outros fornecedores · <b>${brl(sum(T,t=>t.valor))}</b></span>`;
+  const valor=p=>sum(p.its,i=>i.valorRef), resumo=orig==="TER"?`<div class="sol-res">${resTer}<span><b>${T.filter(SOL_TER_F.TER_AGUARDANDO).length}</b> aguardando conferência</span><span><b>${T.filter(SOL_TER_F.TER_VENCIDO).length}</b> com parcela vencida</span></div>`:S.sit==="PEDIDO_CANCELADO"?`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido cancelado":"pedidos cancelados"}</span></div>`:`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido":"pedidos"}</span><span>Valor total: <b>${brl(sum(list,valor))}</b></span><span><b>${list.filter(SIT_F["A ENTREGAR"]).length}</b> a entregar</span><span><b>${list.filter(p=>p.parcial).length}</b> ${list.filter(p=>p.parcial).length===1?"parcial":"parciais"}</span>${T.length?resTer:""}</div>`;
+  const topo=tool+origem+(orig==="TER"?chipsTer:chips)+resumo;
+  if(!list.length&&!T.length) return topo+`<div class="card empty"><b>Nenhuma solicitação encontrada</b>Ajuste o período, a obra ou a busca.</div>`;
   const criacao=p=>criadoEm(p.id)||p.f.data||"";
   const horas=p=>{ const c=criacao(p); return (Date.now()-new Date(c.length>10?c.replace(" ","T"):c+"T00:00:00").getTime())/36e5; };
   const esperaLonga=p=>horas(p)>=HORAS_ESPERA;
@@ -2112,10 +2136,21 @@ function vSol(){
   // Atenção primeiro (mais antigos antes); depois os demais, por dia de criação. 50 por vez, contando os dois blocos.
   const atencao=list.filter(p=>p.parcial||(SIT_F["A ENTREGAR"](p)&&esperaLonga(p))||p.cotar), demais=list.filter(p=>!atencao.includes(p));
   const antigos=[...atencao].sort((a,b)=>criacao(a).localeCompare(criacao(b))||a.id.localeCompare(b.id));
-  const visA=antigos.slice(0,S.solN), visD=demais.slice(0,Math.max(0,S.solN-visA.length)), resta=list.length-visA.length-visD.length;
-  const porDia=relGrupo(demais,p=>criacao(p).slice(0,10)); let dia=null;
-  const grupos=visD.map(p=>{ const d=criacao(p).slice(0,10); let c=""; if(d!==dia){ dia=d; const a=porDia[d]; c=`<div class="sol-dia">${d?dbr(d):"Sem data"} · ${a.length} ${a.length===1?"pedido":"pedidos"} · ${brl(sum(a,valor))}</div>`; } return c+linhaPed(p,false); }).join("");
-  return tool+chips+resumo+(visA.length?`<section class="sol-atn"><h2>${ico("alert")}Precisam de atenção <span>${atencao.length}</span></h2>${visA.map(p=>linhaPed(p,true)).join("")}</section>`:"")+grupos+(resta>0?`<div class="lc-mais"><button type="button" class="btn" id="solMais">Carregar mais (${resta} restantes)</button></div>`:"");
+  // Pedidos e lançamentos misturados por data/hora (lançamento: data de referência + hora em que foi lançado), mais recentes primeiro.
+  const mist=demais.map(p=>({k:criacao(p),id:p.id,p})).concat(T.map(t=>({k:(t.dataRef||"")+" "+String(t.criadoEm||"").slice(11),id:t.id,t})))
+    .sort((a,b)=>b.k.localeCompare(a.k)||b.id.localeCompare(a.id));
+  const visA=antigos.slice(0,S.solN), visD=mist.slice(0,Math.max(0,S.solN-visA.length)), resta=antigos.length+mist.length-visA.length-visD.length;
+  const porDia=relGrupo(mist,e=>e.k.slice(0,10)); let dia=null;
+  const qt=(n,um,v)=>n?n+" "+(n===1?um:v):"";
+  const cabDia=d=>{ const a=porDia[d], P=a.filter(e=>e.p), L=a.filter(e=>e.t), vp=sum(P,e=>valor(e.p)), vt=sum(L,e=>e.t.valor);
+    return `<div class="sol-dia">${d?dbr(d):"Sem data"} · ${[qt(P.length,"pedido","pedidos"),qt(L.length,"lançamento","lançamentos")].filter(Boolean).join(" · ")} · ${brl(vp+vt)}${P.length&&L.length?` <span class="sol-dia-o">(Loja ${brl(vp)} · Outros ${brl(vt)})</span>`:""}</div>`; };
+  const linhaTer=t=>`<details class="ped ped2 ped-ter"><summary data-terid="${esc(t.id)}">
+     <div class="p-main"><div class="p-obra"><span class="pill ter-selo">${ico("truck")}Outro fornecedor</span> ${terObraLink(t.obra)}</div>
+       <div class="p-dados">Fornecedor: <b>${esc(t.fornecedor)}</b> · Tipo: <b>${esc(t.tipo)}</b>${t.etapaC?` · Etapa: <b>${esc(t.etapaC)}</b>`:""}${t.nota?` · Nº da nota: <b>${esc(t.nota)}</b>`:""} · <b>${dbr(t.dataRef)}</b></div></div>
+     <div class="p-val"><b>${brl(t.valor)}</b></div>
+     <div class="p-sit">${terSeloConf(t)}${terSeloPag(t)}</div><button type="button" class="pr" data-terimp="${esc(t.id)}" title="Imprimir o lançamento ${esc(t.id)}" aria-label="Imprimir o lançamento ${esc(t.id)}">${ico("print")}</button></summary></details>`;
+  const grupos=visD.map(e=>{ const d=e.k.slice(0,10); let c=""; if(d!==dia){ dia=d; c=cabDia(d); } return c+(e.p?linhaPed(e.p,false):linhaTer(e.t)); }).join("");
+  return topo+(visA.length?`<section class="sol-atn"><h2>${ico("alert")}Precisam de atenção <span>${atencao.length}</span></h2>${visA.map(p=>linhaPed(p,true)).join("")}</section>`:"")+grupos+(resta>0?`<div class="lc-mais"><button type="button" class="btn" id="solMais">Carregar mais (${resta} restantes)</button></div>`:"");
 }
 
 /* ---------- tela Materiais e custos ---------- */
@@ -2885,7 +2920,8 @@ $("latTer").addEventListener("click",e=>{const x=e.target.closest("button,a");if
 document.addEventListener("keydown",e=>{ if(e.key!=="Escape"||$("latTer").hidden) return; if(TER_CONFIRMA&&!terEnviando){terVoltarConf();return;} fecharTer(); });
 /* Linhas da lista (tela nova e card da obra): mouse, toque, Enter e Espaço. O link da obra dentro da linha abre a obra. */
 document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-terpagar]"); if(!b) return; abrirTer(b.dataset.terpagar); terConfirmarPag("PAGAR",b.dataset.parc); }); // "Para pagar": abre o lançamento já na confirmação
-document.addEventListener("click",e=>{ const r=e.target.closest("#view [data-terid]"); if(!r||e.target.closest("a,[data-irobra]")) return; abrirTer(r.dataset.terid); });
+document.addEventListener("click",e=>{ const r=e.target.closest("#view [data-terid]"); if(!r||e.target.closest("a,[data-irobra],[data-terimp]")) return; if(r.tagName==="SUMMARY") e.preventDefault(); abrirTer(r.dataset.terid); });
+document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-terimp]"); if(!b) return; e.preventDefault(); imprimirTer(b.dataset.terimp); }); // Solicitações: impressora da linha do lançamento
 document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#view [data-terid]")){ e.preventDefault(); abrirTer(e.target.dataset.terid); } });
 
 /* ---------- relatórios: seção Outros fornecedores (conferidos no período) ---------- */
@@ -3010,6 +3046,7 @@ function render(){
   document.querySelectorAll("[data-lcagr]").forEach(b=>b.addEventListener("click",()=>{S.lcOrd=null;render()}));
   document.querySelectorAll("[data-lcped]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();S.irPed=a.dataset.lcped;location.hash="solicitacoes"}));
   document.querySelectorAll("[data-solsit]").forEach(b=>b.addEventListener("click",()=>{S.sit=S.sit===b.dataset.solsit?"":b.dataset.solsit;render()}));
+  document.querySelectorAll("[data-solorig]").forEach(b=>b.addEventListener("click",()=>{S.solOrig=b.dataset.solorig;S.sit="";render()})); // Solicitações: Tudo / Loja BSJ / Outros fornecedores
   const sm=$("solMais"); if(sm) sm.addEventListener("click",()=>{S.solN+=50;manterRolagem(()=>renderMantendo(null))});
   const lm=$("lcMais"); if(lm) lm.addEventListener("click",()=>{S.lcN+=50;manterRolagem(render)});
   const lc=$("lcCsv"); if(lc) lc.addEventListener("click",baixarCsvLanc);
