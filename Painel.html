@@ -219,6 +219,9 @@ tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 .lat-ter .tl-conf p{margin:0 0 10px;font-size:13.5px;font-weight:700}
 .lat-ter .tl-conf label{display:block;font-size:11px;font-weight:800;letter-spacing:.05em;color:var(--ink-3);margin-bottom:4px}
 .lat-ter .tl-conf textarea{width:100%;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:9px 11px;font:inherit;font-size:16px;resize:vertical;margin-bottom:10px}
+.lat-ter .tl-pg{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;grid-column:1/-1}.lat-ter .tl-pg .btn{min-height:40px}
+.lat-ter .tl-conf .tl-2{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:0 10px}
+.lat-ter .tl-conf input,.lat-ter .tl-conf select{width:100%;min-height:44px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink);border-radius:10px;padding:8px 11px;font:inherit;font-size:16px;margin-bottom:10px}
 .lat-ter .tl-erro{margin:0 0 10px;padding:8px 10px;border-radius:8px;background:var(--red-soft);color:var(--red);font-size:12.5px;font-weight:700}
 .lat-ter .tl-erro[hidden],.lat-ter [hidden]{display:none!important}
 @media (max-width:420px){.lat-ter .tl-dl{grid-template-columns:1fr}}
@@ -709,7 +712,9 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .pp-b{display:grid;justify-items:end;text-align:right;gap:1px}.pp-b small{font-size:12px;color:var(--ink-3);white-space:nowrap}.pp-v{font-size:15px;white-space:nowrap}
 .pp-q.bad{color:var(--red);font-weight:800}.pp-q.warn{color:var(--amber);font-weight:800}
 .pp-nota{margin:0;font-size:12px;color:var(--ink-3)}
-@media (max-width:560px){.af-l,.pp-l{grid-template-columns:minmax(0,1fr) auto}.af-b{grid-column:1/-1;justify-self:stretch}.pp-aba{font-size:12px;padding:6px 4px}}
+.pp-bt{display:grid;gap:6px}
+@media (max-width:560px){.af-l,.pp-l{grid-template-columns:minmax(0,1fr) auto}.af-b{grid-column:1/-1;justify-self:stretch}.pp-aba{font-size:12px;padding:6px 4px}
+  .pp-bt{grid-column:1/-1;grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}.pp-bt .af-b{grid-column:auto}}
 .tl-tool{margin:4px 0 8px}
 .tl-mais .tl-n{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:99px;background:var(--brand);color:#fff;font-size:12px}
 .tl-csv{border:0;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:700;text-decoration:underline;cursor:pointer;min-height:40px;padding:0 6px;margin-left:auto}
@@ -2708,11 +2713,11 @@ function paraPagar(){ const g=parcelasAVencer(), abas=[["VENCIDAS","Vencidos","b
   const linha=x=>{ const t=x.t, pa=x.p, quando=x.atraso?`há ${x.atraso} ${x.atraso===1?"dia":"dias"}`:x.falta?`em ${x.falta} ${x.falta===1?"dia":"dias"}`:"vence hoje";
     return `<div class="pp-l"><div class="pp-a"><b>${esc(t.fornecedor)}</b><small class="pp-d" title="${esc(t.descricao)}">${esc(t.descricao)}</small><small title="${esc(t.obra+" · "+obraNome(t.obra))}">${esc(t.obra==="SEM VÍNCULO"?"Sem obra":t.obra+" · "+obraNome(t.obra))}</small></div>
       <div class="pp-b"><small>Parcela ${x.n} de ${x.de}</small><b class="pp-v">${brl(pa.valor)}</b><small class="pp-q${x.atraso?" bad":!x.falta?" warn":""}">${dbr(pa.vencimento)} · ${quando}</small></div>
-      <button type="button" class="btn af-b" data-terid="${esc(t.id)}">Ver lançamento</button></div>`; };
+      <div class="pp-bt">${podeFinanceiro()?`<button type="button" class="btn primary af-b" data-terpagar="${esc(t.id)}" data-parc="${esc(pa.id)}">Registrar pagamento</button>`:""}<button type="button" class="btn af-b" data-terid="${esc(t.id)}">Ver lançamento</button></div></div>`; };
   return `<section class="card af" id="pvQuadro" aria-labelledby="afPag"><div class="af-h"><h2 id="afPag">Para pagar</h2><span class="af-tot">${brl(tot("VENCIDAS")+tot("HOJE")+tot("SETE"))}</span></div>
     <div class="pp-abas" role="tablist" aria-label="Quando vence">${abas.map(aba).join("")}</div>
     <div class="af-lista" role="tabpanel">${g[q].map(linha).join("")}</div>
-    <p class="pp-nota">O pagamento é registrado no formulário (Outros fornecedores → Marcar como paga).</p></section>`; }
+    ${podeFinanceiro()?"":`<p class="pp-nota">O pagamento é registrado pela equipe Zayda ou pelo financeiro.</p>`}</section>`; }
 /* Mesmos filtros de obra e período do topo (pela data de referência). */
 const terTopo=()=>terTodos().filter(t=>inP(t.dataRef)&&okO(t.obra)&&okE({etapa:t.etapaC}));
 function terContagens(){const L=terTopo(),vivos=L.filter(t=>t.conferencia!=="CANCELADO");
@@ -2786,14 +2791,15 @@ function terObraCard(){
 }
 
 /* ---------- painel lateral: detalhe e conferência ---------- */
-let TER_ID="", terVolta=null, terTimer=null, TER_CONFIRMA=null, terEnviando=false, TER_MSG="";
+let TER_ID="", terVolta=null, terTimer=null, TER_CONFIRMA=null, terEnviando=false, TER_MSG="", TER_PARC="";
 function terLatHtml(t){
   const p=terPag(t), hoje=D.hoje, f=(D.fornecedores||{})[t.fornecedorId]||{}, adm=podeFinanceiro();
   const dd=(k,v,w)=>`<div${w?' class="w"':""}><dt>${k}</dt><dd>${v}</dd></div>`;
+  const pagavel=adm&&t.conferencia!=="CANCELADO";
   const parc=(t.parcelas||[]).map(x=>{const venc=!x.pago&&x.vencimento&&x.vencimento<hoje;
     return `<div class="tl-parc${venc?" venc":""}"><span><b>${esc(x.descricao||"Parcela "+x.numero)}</b><small>${venc?"Vencida em ":"Vence em "}${dbr(x.vencimento)}</small></span><b class="n">${brl(x.valor)}</b>
       <span class="st">${x.pago?`<span class="pill ok">Paga em ${dbr(x.dataPagamento)}${x.forma?" · "+esc(x.forma):""}</span>${x.comprovante?` <a href="${esc(x.comprovante)}" target="_blank" rel="noopener">Comprovante</a>`:""}<small>Registrado por ${esc(terNome(x.registradoPor))}${x.registradoEm?" em "+dataHoraBr(x.registradoEm):""}</small>`
-        :`<span class="pill ${venc?"bad":"info"}">${venc?"Vencida":"A pagar"}</span>`}</span></div>`;}).join("");
+        :`<span class="pill ${venc?"bad":"info"}">${venc?"Vencida":"A pagar"}</span>`}</span>${pagavel?`<span class="tl-pg">${x.pago?`<button type="button" class="btn" data-terop="DESFAZER" data-parc="${esc(x.id)}">Desfazer pagamento</button>`:`<button type="button" class="btn primary" data-terop="PAGAR" data-parc="${esc(x.id)}">Registrar pagamento</button>`}</span>`:""}</div>`;}).join("");
   const hist=[["Lançado por",terNome(t.criadoPor)+" em "+dataHoraBr(t.criadoEm)]];
   if(t.atualizadoEm&&t.atualizadoEm!==t.criadoEm) hist.push(["Última alteração",terNome(t.atualizadoPor)+" em "+dataHoraBr(t.atualizadoEm)]);
   if(t.conferencia!=="AGUARDANDO"&&t.conferidoPor) hist.push([{CONFERIDO:"Conferido por",REPROVADO:"Reprovado por",CANCELADO:"Cancelado por"}[t.conferencia]||"Conferência",terNome(t.conferidoPor)+(t.conferidoEm?" em "+dataHoraBr(t.conferidoEm):"")]);
@@ -2830,7 +2836,19 @@ function fecharTer(){
   const alvo=terVolta&&terVolta.isConnected?terVolta:null; if(alvo&&alvo.focus) alvo.focus({preventScroll:true}); terVolta=null;
 }
 /* Confirmação dentro do próprio painel: Conferir (sem motivo), Reprovar e Cancelar (motivo obrigatório). */
-function terConfirmar(op){const t=terTodos().find(x=>x.id===TER_ID),box=$("terConf");if(!t||!box)return;TER_CONFIRMA=op;
+const TER_BOTAO={CONFERIR:"Confirmar conferência",REPROVAR:"Reprovar",CANCELAR:"Cancelar lançamento",PAGAR:"Confirmar pagamento",DESFAZER:"Desfazer pagamento"};
+/* Pagamento de parcela (equipe Zayda ou financeiro): data (padrão hoje, São Paulo) e forma; desfazer pede motivo. Comprovante só pelo formulário. */
+function terConfirmarPag(op,pid){const t=terTodos().find(x=>x.id===TER_ID),box=$("terConf");if(!t||!box||terEnviando)return;
+  const ps=t.parcelas||[],x=ps.find(q=>q.id===pid);if(!x)return;TER_CONFIRMA=op;TER_PARC=pid;
+  const rot=`Parcela ${x.numero} de ${ps.length} · ${brl(x.valor)} · vence ${dbr(x.vencimento)}`;
+  box.innerHTML=(op==="PAGAR"?`<p>Registrar pagamento?<br><span class="muted">${esc(rot)}</span></p><div class="tl-2"><div><label for="terPgData">Data do pagamento *</label><input type="date" id="terPgData" value="${esc(D.hoje)}" max="${esc(D.hoje)}"></div>
+      <div><label for="terPgForma">Forma de pagamento *</label><select id="terPgForma"><option value="">Escolha</option>${(D.formasPag||[]).map(f=>`<option>${esc(f)}</option>`).join("")}</select></div></div>`
+    :`<p>Desfazer o pagamento?<br><span class="muted">${esc(rot)} · paga em ${dbr(x.dataPagamento)}${x.forma?" · "+esc(x.forma):""}</span></p><label for="terMotivo">Motivo *</label><textarea id="terMotivo" maxlength="300" rows="3" placeholder="Explique o motivo (mínimo 5 caracteres)"></textarea>`)
+    +`<div class="tl-erro" id="terErro" role="alert" hidden></div><div class="tl-acoes"><button type="button" class="btn" id="terNao">Voltar</button><button type="button" class="btn primary${op==="DESFAZER"?" tl-canc":""}" id="terSim">${TER_BOTAO[op]}</button></div>`;
+  box.hidden=false; const pe=$("latTer").querySelector(".tl-pe>.tl-acoes"); if(pe) pe.hidden=true;
+  ($("terPgForma")||$("terMotivo")).focus(); box.scrollIntoView({block:"nearest"});
+}
+function terConfirmar(op){const t=terTodos().find(x=>x.id===TER_ID),box=$("terConf");if(!t||!box||terEnviando)return;TER_CONFIRMA=op;TER_PARC="";
   const txt={CONFERIR:"Conferir este lançamento? "+brl(t.valor)+" passa a contar no custo da obra "+t.obra+" em "+dbr(t.dataRef).slice(3)+".",
     REPROVAR:"Reprovar este lançamento? Ele não entra no custo e volta para quem lançou corrigir no formulário.",
     CANCELAR:"Cancelar este lançamento conferido? "+brl(t.valor)+" sai do custo da obra e ele fica só para consulta."}[op];
@@ -2839,29 +2857,34 @@ function terConfirmar(op){const t=terTodos().find(x=>x.id===TER_ID),box=$("terCo
   box.hidden=false; const pe=$("latTer").querySelector(".tl-pe>.tl-acoes"); if(pe) pe.hidden=true;
   ($("terMotivo")||$("terSim")).focus(); box.scrollIntoView({block:"nearest"});
 }
-function terVoltarConf(){TER_CONFIRMA=null;const box=$("terConf");if(box){box.hidden=true;box.innerHTML="";}const pe=$("latTer").querySelector(".tl-pe>.tl-acoes");if(pe){pe.hidden=false;const b=pe.querySelector("button");if(b)b.focus();}}
+function terVoltarConf(){TER_CONFIRMA=null;TER_PARC="";const box=$("terConf");if(box){box.hidden=true;box.innerHTML="";}const pe=$("latTer").querySelector(".tl-pe>.tl-acoes");if(pe){pe.hidden=false;const b=pe.querySelector("button");if(b)b.focus();}}
 function terEnviar(){
   const t=terTodos().find(x=>x.id===TER_ID), op=TER_CONFIRMA; if(!t||!op||terEnviando) return;
-  const mot=$("terMotivo")?$("terMotivo").value.trim():"", er=$("terErro");
-  if(op!=="CONFERIR"&&mot.length<5){er.textContent="Informe o motivo (mínimo 5 caracteres).";er.hidden=false;$("terMotivo").focus();return;}
+  const mot=$("terMotivo")?$("terMotivo").value.trim():"", er=$("terErro"), pag=op==="PAGAR"||op==="DESFAZER", pid=TER_PARC;
+  const dia=$("terPgData")?$("terPgData").value:"", forma=$("terPgForma")?$("terPgForma").value:"";
+  if(op!=="CONFERIR"&&op!=="PAGAR"&&mot.length<5){er.textContent="Informe o motivo (mínimo 5 caracteres).";er.hidden=false;$("terMotivo").focus();return;}
+  if(op==="PAGAR"&&(!/^\d{4}-\d{2}-\d{2}$/.test(dia)||dia>D.hoje)){er.textContent="Informe a data do pagamento (até hoje).";er.hidden=false;$("terPgData").focus();return;}
+  if(op==="PAGAR"&&!forma){er.textContent="Escolha a forma de pagamento.";er.hidden=false;$("terPgForma").focus();return;}
   terEnviando=true; const sim=$("terSim"), nao=$("terNao"); sim.disabled=nao.disabled=true; sim.textContent="Gravando…"; er.hidden=true;
-  chamarApi({token:TOKEN,acao:"conferirTerceiro",id:t.id,op,motivo:mot,atualizadoEm:t.atualizadoEm},"conferirTerceiro",[TOKEN,t.id,op,mot,t.atualizadoEm]).then(r=>{
+  (pag?chamarApi({token:TOKEN,acao:"pagarParcelaTerceiro",id:pid,op,data:dia,forma,motivo:mot},"pagarParcelaTerceiro",[TOKEN,pid,op,dia,forma,mot])
+    :chamarApi({token:TOKEN,acao:"conferirTerceiro",id:t.id,op,motivo:mot,atualizadoEm:t.atualizadoEm},"conferirTerceiro",[TOKEN,t.id,op,mot,t.atualizadoEm])).then(r=>{
     terEnviando=false;
     if(r&&r.acesso===false){ fecharTer(); esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return; }
-    if(!r||!r.ok){ if($("terSim")){ sim.disabled=nao.disabled=false; sim.textContent={CONFERIR:"Confirmar conferência",REPROVAR:"Reprovar",CANCELAR:"Cancelar lançamento"}[op]; er.textContent=(r&&r.motivo)||"Não foi possível gravar. Tente de novo."; er.hidden=false; }
+    if(!r||!r.ok){ if($("terSim")){ sim.disabled=nao.disabled=false; sim.textContent=TER_BOTAO[op]; er.textContent=(r&&r.motivo)||"Não foi possível gravar. Tente de novo."; er.hidden=false; }
       if(r&&r.atualizar) atualizarAgora(true); return; }
-    D.terceiros=r.terceiros||[]; D.fornecedores=r.fornecedores||{}; aplicarTerceiros(); TER_CONFIRMA=null;
+    D.terceiros=r.terceiros||[]; D.fornecedores=r.fornecedores||{}; aplicarTerceiros(); TER_CONFIRMA=null; TER_PARC="";
     // Mensagem dentro do painel lateral: o aviso de baixo cobriria os botões no celular.
-    TER_MSG={CONFERIDO:"Lançamento conferido: o valor já entrou no custo da obra.",REPROVADO:"Lançamento reprovado.",CANCELADO:"Lançamento cancelado: saiu do custo da obra."}[r.status]||"Gravado.";
+    TER_MSG={CONFERIDO:"Lançamento conferido: o valor já entrou no custo da obra.",REPROVADO:"Lançamento reprovado.",CANCELADO:"Lançamento cancelado: saiu do custo da obra.",PAGO:"Pagamento registrado.",DESFEITO:"Pagamento desfeito."}[r.status]||"Gravado.";
     manterRolagem(()=>renderMantendo(null)); if(!$("latTer").hidden) terPreencher(); else aviso(TER_MSG,5000);
   }).catch(e=>{terEnviando=false; if($("terSim")){ sim.disabled=nao.disabled=false; sim.textContent="Tentar de novo"; er.textContent="Sem conexão: "+(e&&e.message?e.message:e); er.hidden=false; }});
 }
 $("terFundo").addEventListener("click",fecharTer);
 $("latTer").addEventListener("click",e=>{const x=e.target.closest("button,a");if(!x)return;
-  if(x.id==="terX"){fecharTer();return;} if(x.id==="terImp"){imprimirTer(TER_ID);return;} if(x.dataset.terop){terConfirmar(x.dataset.terop);return;} if(x.id==="terNao"){terVoltarConf();return;} if(x.id==="terSim"){terEnviar();return;}
+  if(x.id==="terX"){fecharTer();return;} if(x.id==="terImp"){imprimirTer(TER_ID);return;} if(x.dataset.terop){if(x.dataset.parc)terConfirmarPag(x.dataset.terop,x.dataset.parc);else terConfirmar(x.dataset.terop);return;} if(x.id==="terNao"){terVoltarConf();return;} if(x.id==="terSim"){terEnviar();return;}
   if(x.dataset.terobra){e.preventDefault();const id=x.dataset.terobra;fecharTer();abrirObra(id);}});
 document.addEventListener("keydown",e=>{ if(e.key!=="Escape"||$("latTer").hidden) return; if(TER_CONFIRMA&&!terEnviando){terVoltarConf();return;} fecharTer(); });
 /* Linhas da lista (tela nova e card da obra): mouse, toque, Enter e Espaço. O link da obra dentro da linha abre a obra. */
+document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-terpagar]"); if(!b) return; abrirTer(b.dataset.terpagar); terConfirmarPag("PAGAR",b.dataset.parc); }); // "Para pagar": abre o lançamento já na confirmação
 document.addEventListener("click",e=>{ const r=e.target.closest("#view [data-terid]"); if(!r||e.target.closest("a,[data-irobra]")) return; abrirTer(r.dataset.terid); });
 document.addEventListener("keydown",e=>{ if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#view [data-terid]")){ e.preventDefault(); abrirTer(e.target.dataset.terid); } });
 

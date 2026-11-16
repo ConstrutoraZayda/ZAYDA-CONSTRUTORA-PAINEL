@@ -1059,6 +1059,7 @@ function doPost(e) {
     : c.acao === 'fecharMes' ? fecharMes(c.token, c.mes, c.foto, c.pdf)
     : c.acao === 'reabrirMes' ? reabrirMes(c.token, c.mes, c.motivo)
     : c.acao === 'conferirTerceiro' ? conferirTerceiro(c.token, c.id, c.op, c.motivo, c.atualizadoEm)
+    : c.acao === 'pagarParcelaTerceiro' ? pagarParcelaTerceiro(c.token, c.id, c.op, c.data, c.forma, c.motivo)
     : c.acao === 'backup' ? backupAgora(c.token)
     : c.acao === 'destinosResumo' ? salvarDestinosResumo(c.token, c.destinos)
     : c.acao === 'resumoTeste' ? enviarResumoTeste(c.token)
@@ -1578,7 +1579,7 @@ function dadosPainel_(quem) {
   try { ter = lerTerceiros_(); } catch (e) { Logger.log('Outros fornecedores não lidos: ' + e.message); }
   const conf = ss.getSheetByName(CTRL.conf);
   return {
-    acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores,
+    acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores, formasPag: TERC.formas,
     // Dados técnicos (sincronização, backup e link da planilha): só vão para Admin Zayda; para os outros nem saem do servidor.
     sistema: ehAdminZayda_(quem) ? {sincErro: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('SINC_ERRO') || 'null'); } catch (e) { return null; } })(), sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
     usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: quem ? publico_(quem) : null,
@@ -1620,7 +1621,8 @@ function getEntregasPedido(token, pedido) {
  * TERCEIROS_PARCELAS A ID_PARCELA · B ID_LANCAMENTO · C NUMERO · D DESCRICAO · E VALOR · F VENCIMENTO · G PAGO · H DATA_PAGAMENTO
  *               I FORMA · J COMPROVANTE_URL · K REGISTRADO_POR · L REGISTRADO_EM
  * Só CONFERENCIA = CONFERIDO vira custo da obra (no painel). Abas ausentes: listas vazias. */
-const TERC = Object.freeze({abaForn: 'FORNECEDORES', abaLanc: 'TERCEIROS', abaParc: 'TERCEIROS_PARCELAS', nLanc: 22, nParc: 12, nForn: 9});
+const TERC = Object.freeze({abaForn: 'FORNECEDORES', abaLanc: 'TERCEIROS', abaParc: 'TERCEIROS_PARCELAS', nLanc: 22, nParc: 12, nForn: 9,
+  formas: ['Pix', 'Boleto', 'Cartão', 'Dinheiro', 'Transferência', 'Outro']}); // formas: a mesma lista do formulário (TER.formas em Código.js)
 function linhasOrigem_(origem, nome, n) {
   const sh = origem.getSheetByName(nome);
   if (!sh || sh.getLastRow() < 2) return [];
@@ -1688,6 +1690,53 @@ function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
     SpreadsheetApp.flush();
     const dados = lerTerceiros_(origem);
     return {ok: true, status: novo, terceiros: dados.terceiros, fornecedores: dados.fornecedores};
+  } finally { lock.releaseLock(); }
+}
+
+/** Pagamento de parcela no painel (mesmo caminho da conferência). op = PAGAR (data aaaa-mm-dd até hoje + forma) ou DESFAZER (motivo).
+ *  Grava na aba TERCEIROS_PARCELAS da planilha do formulário, nas mesmas colunas G–L que o formulário usa, e na AUDITORIA.
+ *  Não mexe no custo da obra (que depende só da conferência). Devolve os dados novos. */
+function pagarParcelaTerceiro(token, idParcela, op, data, forma, motivo) {
+  const ac = autenticar_(token); if (ac.erro) return ac.erro;
+  if (!podeFinanceiro_(ac.u)) return {ok: false, motivo: 'Só a equipe Zayda ou o financeiro podem registrar pagamentos.'};
+  const acao = texto_(op).toUpperCase(), alvo = texto_(idParcela);
+  if (['PAGAR', 'DESFAZER'].indexOf(acao) < 0 || !/^TER-\d{8}-[A-Z0-9]{4}-P\d{1,2}$/.test(alvo)) return {ok: false, motivo: 'Pedido inválido.'};
+  const hoje = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'), dia = texto_(data), fp = texto_(forma), mot = texto_(motivo);
+  if (acao === 'PAGAR') {
+    const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(dia), d = m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3])) : null;
+    if (!d || d.getUTCDate() !== +m[3] || dia < '2020-01-01' || dia > hoje) return {ok: false, motivo: 'Data do pagamento inválida (não pode ser depois de hoje).'};
+    if (TERC.formas.indexOf(fp) < 0) return {ok: false, motivo: 'Escolha a forma de pagamento.'};
+  } else {
+    if (mot.length < 5) return {ok: false, motivo: 'Informe o motivo (mínimo 5 caracteres).'};
+    if (mot.length > 300) return {ok: false, motivo: 'Motivo muito longo (máximo 300 caracteres).'};
+    if (/^[=+@\-]/.test(mot)) return {ok: false, motivo: 'O motivo não pode começar com =, +, - ou @.'};
+  }
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) return {ok: false, motivo: 'Sistema ocupado. Tente de novo em instantes.'};
+  try {
+    const origem = origemPlanilha_(), sh = origem.getSheetByName(TERC.abaParc), shL = origem.getSheetByName(TERC.abaLanc);
+    if (!sh || sh.getLastRow() < 2 || !shL || shL.getLastRow() < 2) return {ok: false, motivo: 'Parcela não encontrada.'};
+    const ids = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().map(r => texto_(r[0])), i = ids.indexOf(alvo);
+    if (i < 0) return {ok: false, motivo: 'Parcela não encontrada.'};
+    const linha = i + 2, r = sh.getRange(linha, 1, 1, TERC.nParc).getValues()[0], pago = texto_(r[6]).toUpperCase() === 'SIM';
+    const lids = shL.getRange(2, 1, shL.getLastRow() - 1, 1).getValues().map(x => texto_(x[0])), j = lids.indexOf(texto_(r[1]));
+    if (j < 0) return {ok: false, motivo: 'Lançamento da parcela não encontrado.'};
+    const l = shL.getRange(j + 2, 1, 1, TERC.nLanc).getValues()[0];
+    if ((texto_(l[15]).toUpperCase() || 'AGUARDANDO') === 'CANCELADO') return {ok: false, motivo: 'Este lançamento foi cancelado.'};
+    if (acao === 'PAGAR' && pago) return {ok: false, motivo: 'Esta parcela já foi paga.'};
+    if (acao === 'DESFAZER' && !pago) return {ok: false, motivo: 'Esta parcela não está paga.'};
+    const agora = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss'), quem = ac.u.usuario || ac.u.nome || ac.u.email;
+    const valor = (Number(valor_(r[4])) || 0).toFixed(2).replace('.', ',');
+    // G PAGO · H DATA_PAGAMENTO · I FORMA · J COMPROVANTE_URL · K REGISTRADO_POR · L REGISTRADO_EM (comprovante só pelo formulário)
+    sh.getRange(linha, 7, 1, 6).setNumberFormat('@').setValues([acao === 'PAGAR' ? ['SIM', dia, fp, texto_(r[9]), quem, agora] : ['NAO', '', '', '', '', '']]);
+    const aud = origem.getSheetByName('AUDITORIA');
+    if (aud) aud.appendRow([agora, ac.u.email, acao === 'PAGAR' ? 'TERCEIRO_PAGAMENTO' : 'TERCEIRO_PAGAMENTO_DESFEITO', texto_(r[1]), '', 'Painel: ' +
+      (acao === 'PAGAR' ? 'parcela ' + alvo + ' (' + texto_(r[3]) + ', R$ ' + valor + ') paga em ' + dia + ' por ' + fp + ' · registrado por ' + (ac.u.nome || quem)
+        : 'pagamento desfeito na parcela ' + alvo + ' (R$ ' + valor + ', pago em ' + dataIso_(r[7]) + ' por ' + texto_(r[8]) + ', registrado por ' + texto_(r[10]) +
+          ' em ' + dataHora_(r[11]) + ') por ' + (ac.u.nome || quem) + ' · Motivo: ' + mot)]);
+    SpreadsheetApp.flush();
+    const dados = lerTerceiros_(origem);
+    return {ok: true, status: acao === 'PAGAR' ? 'PAGO' : 'DESFEITO', terceiros: dados.terceiros, fornecedores: dados.fornecedores};
   } finally { lock.releaseLock(); }
 }
 
