@@ -167,6 +167,8 @@ tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 .lat-mat .lat-item small+small{font-family:var(--f-ui)}
 .lat-mat .lat-item>i>u{background:linear-gradient(90deg,var(--brand),var(--brand-2))}
 /* Outros fornecedores: resumo, lista, painel lateral de conferência e divisão por origem */
+.tl-imp{margin-left:auto;min-height:40px;align-self:center}
+@media (max-width:700px){.tl-imp{min-height:44px}}
 .ter-kpis{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:10px;margin-bottom:14px}
 .ter-k{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 13px;box-shadow:var(--shadow);min-width:0}
 .ter-k small{display:block;font-size:11px;font-weight:700;color:var(--ink-3);margin-bottom:3px}
@@ -2798,7 +2800,7 @@ function terLatHtml(t){
   if(t.motivo) hist.push(["Motivo",t.motivo]);
   const acoes=!adm?`<p class="tl-nota">A conferência é feita por administradores da Zayda.</p>`:t.conferencia==="AGUARDANDO"?`<div class="tl-acoes"><button type="button" class="btn primary" data-terop="CONFERIR">Conferir</button><button type="button" class="btn" data-terop="REPROVAR">Reprovar</button></div>`
     :t.conferencia==="CONFERIDO"?`<div class="tl-acoes"><button type="button" class="btn tl-canc" data-terop="CANCELAR">Cancelar lançamento</button></div>`:"";
-  return `<header><div><h2 id="terLatTit">${esc(t.fornecedor)} · ${brl(t.valor)}</h2><div class="lat-sub">${esc(t.id)} · ${esc(t.tipo)}</div></div><button type="button" class="lat-x" id="terX" aria-label="Fechar">×</button></header>
+  return `<header><div><h2 id="terLatTit">${esc(t.fornecedor)} · ${brl(t.valor)}</h2><div class="lat-sub">${esc(t.id)} · ${esc(t.tipo)}</div></div><button type="button" class="btn tl-imp" id="terImp">Imprimir</button><button type="button" class="lat-x" id="terX" aria-label="Fechar">×</button></header>
   <div class="tl-corpo"><div class="tl-selos">${terSeloConf(t)}${terSeloPag(t)}</div>
   <dl class="tl-dl">${dd("Obra",t.obra&&t.obra!=="SEM VÍNCULO"?`<a href="#painel" data-terobra="${esc(t.obra)}"><b>${esc(t.obra)}</b> ${esc(obraNome(t.obra))}</a>`:"Sem obra",true)}${dd("Data de referência",dbr(t.dataRef))}${dd("Tipo",esc(t.tipo))}
    ${dd("Descrição",esc(t.descricao),true)}${dd("Quantidade",t.quantidade!=null?qtd(t.quantidade)+" "+esc(t.unidade||""):"—")}${dd("Nº da nota/orçamento",esc(t.nota||"—"))}
@@ -2856,7 +2858,7 @@ function terEnviar(){
 }
 $("terFundo").addEventListener("click",fecharTer);
 $("latTer").addEventListener("click",e=>{const x=e.target.closest("button,a");if(!x)return;
-  if(x.id==="terX"){fecharTer();return;} if(x.dataset.terop){terConfirmar(x.dataset.terop);return;} if(x.id==="terNao"){terVoltarConf();return;} if(x.id==="terSim"){terEnviar();return;}
+  if(x.id==="terX"){fecharTer();return;} if(x.id==="terImp"){imprimirTer(TER_ID);return;} if(x.dataset.terop){terConfirmar(x.dataset.terop);return;} if(x.id==="terNao"){terVoltarConf();return;} if(x.id==="terSim"){terEnviar();return;}
   if(x.dataset.terobra){e.preventDefault();const id=x.dataset.terobra;fecharTer();abrirObra(id);}});
 document.addEventListener("keydown",e=>{ if(e.key!=="Escape"||$("latTer").hidden) return; if(TER_CONFIRMA&&!terEnviando){terVoltarConf();return;} fecharTer(); });
 /* Linhas da lista (tela nova e card da obra): mouse, toque, Enter e Espaço. O link da obra dentro da linha abre a obra. */
@@ -3589,6 +3591,25 @@ function folhaRelObra(id,ini,fim,periodo){
     `<h2>ENTREGAS NO PERÍODO</h2>`+(ent.length?relTabela(["Data","Pedido","Material",["Qtd","n"],"Un",["Valor unit.","n"],["Total","n"],"Recebido por"],ent.map(l=>{ const c=l.situacao==="CUSTO CONFIRMADO"; return [dbr(l.data),esc(l.pedido||"—"),esc(l.material),qtd(l.qtd),esc(l.un),c&&l.custo!=null?brl(l.custo):"—",c?brl(l.valor):"Sem custo confirmado",esc(partesEntrega(l.obs).nome||"—")]; }),["TOTAL (custo confirmado)","","","","","",brl(sum(d.conf.filter(l=>!l.ter),l=>l.valor)),""]):relVazio("Nenhuma entrega neste período."))+
     relTerceiros(ini,fim,id)+`<h2>MATERIAIS QUE AINDA FALTAM CHEGAR</h2>`+(faltam.length?relTabela(["Pedido","Material",["Quantidade pedida","n"],["Entregue","n"],["Falta","n"]],faltam.map(i=>[esc(i.pedido),esc(i.material),qtd(i.qtdSol)+" "+esc(i.un),qtd(i.entregue)+" "+esc(i.un),qtd(i.saldo)+" "+esc(i.un)])):relVazio("Nenhum material pendente nesta obra.")));
 }
+/* Folha de um lançamento de Outros fornecedores (mesmo padrão dos relatórios impressos; sempre clara). */
+function folhaTer(t){ const f=(D.fornecedores||{})[t.fornecedorId]||{}, hoje=D.hoje, ps=t.parcelas||[], pg=terPag(t);
+  const CONF={AGUARDANDO:["#946000","AGUARDANDO CONFERÊNCIA"],CONFERIDO:["#00632B","CONFERIDO"],REPROVADO:["#C62828","REPROVADO"],CANCELADO:["#5A5A5A","CANCELADO"]}[t.conferencia]||["#3A4A40",t.conferencia];
+  const dd=(k,v,cl)=>`<div${cl?` class="${cl}"`:""}><dt>${k}</dt><dd>${v||"—"}</dd></div>`;
+  const dias=(a,b)=>{const d=s=>Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10));return Math.round((d(b)-d(a))/864e5);};
+  const sit=x=>x.pago?"Paga em "+dbr(x.dataPagamento)+(x.forma?" · "+esc(x.forma):""):x.vencimento&&x.vencimento<hoje?"Vencida há "+dias(x.vencimento,hoje)+(dias(x.vencimento,hoje)===1?" dia":" dias"):"Não paga";
+  const custo="Sim, no custo de "+relMesAno(String(t.dataRef||"").slice(0,7))+" (mês da data de referência)";
+  const quem=D.eu?(D.eu.nome||D.eu.usuario||""):"";
+  const corpo=relCab("LANÇAMENTO DE OUTRO FORNECEDOR",[esc(t.id),`<span class="marca" style="border-color:${CONF[0]};color:${CONF[0]}">${esc(CONF[1])}</span>`])+
+    `<h2>OBRA</h2><dl class="blk">${dd("OBRA",t.obra&&t.obra!=="SEM VÍNCULO"?`<small>${esc(t.obra)}</small>${esc(obraNome(t.obra))}`:"Sem obra","w2")}${dd("ETAPA DA OBRA",esc(t.etapaC||t.etapa||""))}</dl>`+
+    `<h2>FORNECEDOR</h2><dl class="blk">${dd("FORNECEDOR",esc(t.fornecedor),"w2")}${dd("TIPO",esc(f.tipo||t.tipo))}${f.doc?dd("CPF/CNPJ",esc(f.doc)):""}${f.telefone?dd("TELEFONE",esc(f.telefone)):""}</dl>`+
+    `<h2>COMPRA / SERVIÇO</h2><dl class="blk">${dd("TIPO",esc(t.tipo))}${dd("Nº DA NOTA/ORÇAMENTO",esc(t.nota||""))}${dd("DATA DE REFERÊNCIA",dbr(t.dataRef))}${dd("DESCRIÇÃO",esc(t.descricao),"w3")}${t.quantidade!=null?dd("QUANTIDADE",qtd(t.quantidade)+" "+esc(t.unidade||"")):""}</dl>`+
+    `<h2>VALORES</h2><div class="tot"><div><span>VALOR TOTAL</span><b>${brl(t.valor)}</b></div><div><span>FORMA DE PAGAMENTO</span><b>${t.forma==="PARCELADO"?"Parcelado em "+ps.length:"Único"}</b></div>${t.conferencia==="CONFERIDO"?`<div><span>ENTROU NO CUSTO DA OBRA</span><b>${custo}</b></div>`:""}</div>`+
+    `<h2>PARCELAS</h2>`+(ps.length?relTabela([["Nº"],"Descrição",["Valor","n"],"Vencimento","Situação"],ps.map(x=>[x.numero,esc(x.descricao||"Parcela "+x.numero),brl(x.valor),dbr(x.vencimento),sit(x)])):relVazio("Sem parcelas."))+
+    `<div class="tot q2"><div><span>PAGO</span><b>${brl(pg.pago)}</b></div><div><span>A PAGAR</span><b>${brl(pg.aPagar)}</b></div></div>`+
+    (t.obs||t.motivo||t.anexo?`<h2>OBSERVAÇÕES</h2><dl class="blk">${t.obs?dd("OBSERVAÇÃO",esc(t.obs),"w3"):""}${t.conferencia==="REPROVADO"&&t.motivo?dd("MOTIVO DA REPROVAÇÃO",esc(t.motivo),"w3"):t.conferencia==="CANCELADO"&&t.motivo?dd("MOTIVO DO CANCELAMENTO",esc(t.motivo),"w3"):""}${t.anexo?dd("ANEXO","Nota anexada no sistema","w3"):""}</dl>`:"")+
+    `<h2>REGISTRO</h2><dl class="blk">${dd("LANÇADO POR",esc(terNome(t.criadoPor))+" em "+dataHoraBr(t.criadoEm))}${t.conferidoPor?dd({CONFERIDO:"CONFERIDO POR",REPROVADO:"REPROVADO POR",CANCELADO:"CANCELADO POR"}[t.conferencia]||"CONFERÊNCIA",esc(terNome(t.conferidoPor))+(t.conferidoEm?" em "+dataHoraBr(t.conferidoEm):"")):dd("CONFERÊNCIA","Ainda não conferido")}</dl>`;
+  return relFolha(corpo).replace('<div class="emit">Emitido por: ______________________</div>',`<div class="emit">Emitido por ${esc(quem||"—")} em ${relAgora()}</div>`); }
+function imprimirTer(id){ const t=terTodos().find(x=>x.id===id); if(!t) return; imprimirFolha(folhaTer(t),"Zayda - Lançamento "+t.id+".pdf"); }
 /* Quem entregou o material de um lançamento: "entregue por" da entrega (mesmo ID); sem esse dado, o entregador do pedido. */
 const entreguePorLanc = l => { const P=(D.pedidos||{})[l.pedido]||{}, e=(P.entregas||[]).find(x=>x.id===l.id); return (e&&e.entreguePor)||P.entregador||""; };
 /* Relatório do dia: uma obra, ou todas agrupadas com subtotal e total geral. */
