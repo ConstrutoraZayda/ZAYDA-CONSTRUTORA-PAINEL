@@ -674,6 +674,64 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .cmp-seg{flex:none}
 .rk-sem{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;display:grid;gap:4px}
 .rk-sem-l{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-2)}.rk-sem-l small{color:var(--ink-3)}
+/* Outros fornecedores: Resumo, A fazer e Histórico */
+.tsec{margin:0 0 10px;font-size:16px;font-weight:800}
+.rs-card{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:0;padding:0;margin-bottom:16px;overflow:hidden}
+.rs-n{display:grid;gap:4px;padding:16px 18px;min-width:0;border-left:1px solid var(--line)}.rs-n:first-child{border-left:0}
+.rs-n small{font-size:13px;font-weight:700;color:var(--ink-2)}.rs-n b{font-size:22px;font-weight:800;text-align:right;white-space:nowrap}.rs-n span{font-size:12px;color:var(--ink-3)}
+.rs-n.ok b{color:var(--brand)}.rs-n.warn b{color:var(--amber)}
+.rs-venc{font-style:normal;font-weight:800;color:var(--red)}
+@media (max-width:900px){.rs-card{grid-template-columns:repeat(2,minmax(0,1fr))}.rs-n:nth-child(3){border-left:0}.rs-n:nth-child(n+3){border-top:1px solid var(--line)}.rs-n b{font-size:19px}}
+.af-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,380px),1fr));gap:16px;margin-bottom:16px;align-items:start}
+.af{display:grid;gap:10px}
+.af-h{display:flex;align-items:center;justify-content:space-between;gap:10px}.af-h h2{margin:0;font-size:16px;font-weight:800}
+.af-q{display:inline-grid;place-items:center;min-width:28px;height:28px;padding:0 8px;border-radius:99px;font-weight:800}.af-q.warn{background:var(--amber-soft);color:var(--amber)}
+.af-tot{font-size:18px;font-weight:800}
+.af-lista{display:grid}
+.af-l{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 12px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.af-a{min-width:0}.af-a b{display:block;overflow-wrap:anywhere}.af-a small{display:block;font-size:12px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.af-v{white-space:nowrap;text-align:right}
+.af-b{min-height:40px;white-space:nowrap}
+.af-todos{justify-self:start;border:0;background:none;color:var(--brand);font:inherit;font-weight:800;text-decoration:underline;cursor:pointer;min-height:40px;padding:0}
+.af-ok{margin:0 0 16px;padding:14px 18px;border:1px solid var(--line);border-radius:14px;background:var(--surface);font-weight:800;color:var(--brand)}.af-ok small{display:block;margin-top:2px;font-weight:600;color:var(--ink-3)}
+.pp-abas{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:4px;padding:4px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.pp-aba{display:grid;gap:1px;justify-items:center;min-width:0;min-height:48px;padding:6px 8px;border:0;border-radius:9px;background:transparent;color:var(--ink-2);font:inherit;font-size:13px;font-weight:800;cursor:pointer;text-align:center}
+.pp-aba small{font-size:12px;font-weight:700;color:var(--ink-3)}.pp-aba span{overflow-wrap:anywhere}
+.pp-aba[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 0 0 1px var(--line),0 1px 3px rgba(0,0,0,.08)}
+.pp-aba.bad[aria-selected="true"]{color:var(--red);box-shadow:0 0 0 1.5px var(--red)}.pp-aba.warn[aria-selected="true"]{color:var(--amber);box-shadow:0 0 0 1.5px var(--amber)}
+.pp-aba.bad:not(:disabled) span{color:var(--red)}.pp-aba.warn:not(:disabled) span{color:var(--amber)}
+.pp-aba:disabled{opacity:.45;cursor:default}
+.pp-aba:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.pp-l{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px 14px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.pp-a{min-width:0}.pp-a b{display:block;overflow-wrap:anywhere}.pp-a small{display:block;font-size:12px;color:var(--ink-3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pp-b{display:grid;justify-items:end;text-align:right;gap:1px}.pp-b small{font-size:12px;color:var(--ink-3);white-space:nowrap}.pp-v{font-size:15px;white-space:nowrap}
+.pp-q.bad{color:var(--red);font-weight:800}.pp-q.warn{color:var(--amber);font-weight:800}
+.pp-nota{margin:0;font-size:12px;color:var(--ink-3)}
+@media (max-width:560px){.af-l,.pp-l{grid-template-columns:minmax(0,1fr) auto}.af-b{grid-column:1/-1;justify-self:stretch}.pp-aba{font-size:12px;padding:6px 4px}}
+.tl-tool{margin:4px 0 8px}
+.tl-mais .tl-n{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:6px;padding:0 6px;border-radius:99px;background:var(--brand);color:#fff;font-size:12px}
+.tl-csv{border:0;background:none;color:var(--ink-2);font:inherit;font-size:13px;font-weight:700;text-decoration:underline;cursor:pointer;min-height:40px;padding:0 6px;margin-left:auto}
+.tl-maisbox{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin:0 0 10px;padding:10px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.tl-maisbox[hidden]{display:none}
+.tl-q{display:inline-block;margin-left:6px;padding:1px 9px;border-radius:99px;background:var(--surface-2);font-size:13px;color:var(--ink-2);vertical-align:2px}
+.tl-mes{padding:14px 8px 6px;font-size:13px;font-weight:800;color:var(--ink-2);border-bottom:1px solid var(--line)}
+.tl-row{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1.5fr) minmax(0,auto);gap:6px 20px;align-items:center;padding:12px 8px;border-bottom:1px solid var(--line);cursor:pointer;min-height:56px}
+@media (hover:hover) and (pointer:fine){.tl-row:hover{background:var(--surface-2)}}
+.tl-row:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.tl-a,.tl-b,.tl-c{min-width:0}
+.tl-a b{display:block;font-size:14px;overflow-wrap:anywhere}.tl-a small{display:block;font-size:12px;color:var(--ink-3)}
+.tl-d{display:block;margin-top:2px;font-size:13px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tl-ob{display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;color:var(--ink);text-decoration:none;font-size:13px;line-height:1.35}
+.tl-ob b{font-family:var(--f-mono);font-size:12px;color:var(--brand)}
+@media (hover:hover) and (pointer:fine){.tl-ob:hover{text-decoration:underline}}
+.tl-c{display:grid;justify-items:end;gap:6px;text-align:right}.tl-v{font-size:15px;font-weight:800;white-space:nowrap}
+.tl-s{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:700px){
+ .tl-row{grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"a c" "b b";padding:12px 4px}
+ .tl-a{grid-area:a}.tl-b{grid-area:b}.tl-c{grid-area:c;align-self:start}
+ .tl-csv{margin-left:0}
+}
+@media (max-width:420px){.tl-row{grid-template-columns:1fr;grid-template-areas:"a" "b" "c"}.tl-c{justify-items:start;text-align:left}.tl-s{justify-content:flex-start}}
 /* [Função 2] Pagamentos a vencer */
 .pv{margin-bottom:16px}
 .pv-chips{margin-bottom:10px}
@@ -2639,20 +2697,20 @@ function parcelasAVencer(){ const hoje=D.hoje, ate=terMaisDias(hoje,7), g={VENCI
       g[k].push({t,p,n:p.numero||i+1,de:ps.length,atraso:k==="VENCIDAS"?diasEntre(v,hoje):0,falta:k==="SETE"?diasEntre(hoje,v):0}); }); });
   const ord=(a,b)=>a.p.vencimento.localeCompare(b.p.vencimento)||a.t.fornecedor.localeCompare(b.t.fornecedor,"pt-BR");
   Object.values(g).forEach(a=>a.sort(ord)); return g; }
-function quadroParcelas(){ const g=parcelasAVencer(), q=S.terQ||"", tot=k=>sum(g[k],x=>x.p.valor), nTot=g.VENCIDAS.length+g.HOJE.length+g.SETE.length;
-  const chip=(k,t,n)=>`<button type="button" class="ped-chip pv-chip" data-terq="${k}" aria-pressed="${q===k}">${t}${n==null?"":` <b>${n}</b>`}</button>`;
-  const linha=x=>{ const t=x.t, p=x.p, quando=x.atraso?`<b class="pv-at">${x.atraso} ${x.atraso===1?"dia":"dias"} de atraso</b>`:x.falta?`em ${x.falta} ${x.falta===1?"dia":"dias"}`:"hoje";
-    return `<div class="pv-row" role="button" tabindex="0" data-terid="${esc(t.id)}" aria-label="${esc(t.fornecedor+" · parcela "+x.n+" de "+x.de+" · "+brl(p.valor)+" · vence "+dbr(p.vencimento)+" · abrir lançamento")}">
-      <span class="pv-f" data-r="Fornecedor"><b>${esc(t.fornecedor)}</b><small>${esc(t.descricao)}</small></span>
-      <span class="pv-o" data-r="Obra">${terObraLink(t.obra)}</span>
-      <span class="pv-p" data-r="Parcela">${x.n} de ${x.de}${p.descricao?`<small>${esc(p.descricao)}</small>`:""}</span>
-      <span class="pv-v" data-r="Valor"><b>${brl(p.valor)}</b></span>
-      <span class="pv-d" data-r="Vencimento">${dbr(p.vencimento)}<small>${quando}</small></span></div>`; };
-  const grupo=([k,t])=>(!q||q===k)?`<div class="pv-g pv-${k.toLowerCase()}"><div class="pv-gh"><span><span class="pv-ico" aria-hidden="true">${k==="VENCIDAS"?"!":k==="HOJE"?"●":"○"}</span>${t} · ${g[k].length}</span><b>${brl(tot(k))}</b></div>
-    ${g[k].length?g[k].map(linha).join(""):`<p class="pv-nada">Nenhuma parcela neste grupo.</p>`}</div>`:"";
-  return `<section class="card pv" id="pvQuadro" aria-labelledby="pvTit"><div class="cardhead"><div><h2 id="pvTit">Pagamentos a vencer</h2><div class="sub">Parcelas não pagas de lançamentos válidos (sem cancelados e reprovados)${S.obra?" desta obra":""}. Toque para abrir o lançamento.</div></div></div>
-    ${nTot?`<div class="ped-chips pv-chips">${chip("","Todos")}${chip("VENCIDAS","Vencidas",g.VENCIDAS.length)}${chip("HOJE","Hoje",g.HOJE.length)}${chip("SETE","Próximos 7 dias",g.SETE.length)}</div>${PARC_GRUPOS.map(grupo).join("")}`
-      :`<div class="empty tudo-ok"><b>Nenhum pagamento vencendo ✓</b>Nenhuma parcela vencida nem vencendo nos próximos 7 dias.</div>`}</section>`; }
+/* "Para pagar": parcelas não pagas (mesma conta de parcelasAVencer), em 3 abas. O pagamento é registrado no formulário. */
+function paraPagar(){ const g=parcelasAVencer(), abas=[["VENCIDAS","Vencidos","bad"],["HOJE","Hoje","warn"],["SETE","Próximos 7 dias",""]], n=g.VENCIDAS.length+g.HOJE.length+g.SETE.length;
+  if(!n) return "";
+  let q=S.terQ==="PROX"?(g.HOJE.length?"HOJE":"SETE"):S.terQ; if(!g[q]||!g[q].length) q=abas.find(([k])=>g[k].length)[0];
+  const tot=k=>sum(g[k],x=>x.p.valor);
+  const aba=([k,t,cl])=>`<button type="button" class="pp-aba${cl?" "+cl:""}" role="tab" aria-selected="${q===k}" data-terq="${k}"${g[k].length?"":" disabled"}><span>${t} · ${g[k].length}</span><small>${brl(tot(k))}</small></button>`;
+  const linha=x=>{ const t=x.t, pa=x.p, quando=x.atraso?`há ${x.atraso} ${x.atraso===1?"dia":"dias"}`:x.falta?`em ${x.falta} ${x.falta===1?"dia":"dias"}`:"vence hoje";
+    return `<div class="pp-l"><div class="pp-a"><b>${esc(t.fornecedor)}</b><small class="pp-d" title="${esc(t.descricao)}">${esc(t.descricao)}</small><small title="${esc(t.obra+" · "+obraNome(t.obra))}">${esc(t.obra==="SEM VÍNCULO"?"Sem obra":t.obra+" · "+obraNome(t.obra))}</small></div>
+      <div class="pp-b"><small>Parcela ${x.n} de ${x.de}</small><b class="pp-v">${brl(pa.valor)}</b><small class="pp-q${x.atraso?" bad":!x.falta?" warn":""}">${dbr(pa.vencimento)} · ${quando}</small></div>
+      <button type="button" class="btn af-b" data-terid="${esc(t.id)}">Ver lançamento</button></div>`; };
+  return `<section class="card af" id="pvQuadro" aria-labelledby="afPag"><div class="af-h"><h2 id="afPag">Para pagar</h2><span class="af-tot">${brl(tot("VENCIDAS")+tot("HOJE")+tot("SETE"))}</span></div>
+    <div class="pp-abas" role="tablist" aria-label="Quando vence">${abas.map(aba).join("")}</div>
+    <div class="af-lista" role="tabpanel">${g[q].map(linha).join("")}</div>
+    <p class="pp-nota">O pagamento é registrado no formulário (Outros fornecedores → Marcar como paga).</p></section>`; }
 /* Mesmos filtros de obra e período do topo (pela data de referência). */
 const terTopo=()=>terTodos().filter(t=>inP(t.dataRef)&&okO(t.obra)&&okE({etapa:t.etapaC}));
 function terContagens(){const L=terTopo(),vivos=L.filter(t=>t.conferencia!=="CANCELADO");
@@ -2662,35 +2720,59 @@ const terOrdem=(a,b)=>(b.dataRef||"").localeCompare(a.dataRef||"")||(b.criadoEm|
 const terObraLink=id=>!id||id==="SEM VÍNCULO"?'<span class="pill bad">Sem obra</span>':`<a class="lc-ob ped-ob" href="#painel" data-irobra="${esc(id)}" title="${esc("Abrir a obra "+id+" · "+obraNome(id))}"><b>${esc(id)}</b> ${esc(obraCurta(id))}</a>`;
 
 function vTer(){
-  if(S.terRota!==S.rota){ S.terRota=S.rota; S.terTipo=""; S.terForn=""; S.terPag=""; S.terN=50; S.terQ="";
+  if(S.terRota!==S.rota){ S.terRota=S.rota; S.terTipo=""; S.terForn=""; S.terPag=""; S.terN=50; S.terQ=""; S.terMais=false;
     if(/^pag:/.test(S.sit)){ S.terPag=S.sit.slice(4); S.sit=""; } else if(/^parc:/.test(S.sit)){ S.terQ=S.sit.slice(5); S.sit=""; S.terQFoco=true; } else if(/^conf:/.test(S.sit)) S.sit=S.sit.slice(5); }
   if(!terTodos().length) return `<section class="card"><div class="empty"><b>Nenhuma compra de outro fornecedor ainda</b>As compras aparecem aqui quando lançadas no formulário → Outros fornecedores.</div></section>`;
-  const base=terTopo(), vivos=base.filter(t=>t.conferencia!=="CANCELADO"), P=vivos.map(terPag), ag=base.filter(t=>t.conferencia==="AGUARDANDO");
-  const card=(t,v,sub,cl,f)=>`<div class="ter-k${cl?" "+cl:""}"><small>${t}</small><b>${v}</b>${sub?`<span>${sub}</span>`:""}</div>`;
-  const resumo=`<section class="ter-kpis" aria-label="Resumo">${card("Total contratado (conferido)",brl(sum(base.filter(t=>t.conferencia==="CONFERIDO"),t=>t.valor)),base.filter(t=>t.conferencia==="CONFERIDO").length+" conferido(s)")}
-    ${card("Aguardando conferência",brl(sum(ag,t=>t.valor)),ag.length+" lançamento(s)",ag.length?"warn":"")}${card("Pago",brl(sum(P,p=>p.pago)))}${card("A pagar",brl(sum(P,p=>p.aPagar)))}
-    ${card("Vencido",brl(sum(P,p=>p.vencido)),"",sum(P,p=>p.vencido)>0?"bad":"")}${card("Vence em 7 dias",brl(sum(P,p=>p.vence7)),"",sum(P,p=>p.vence7)>0?"warn":"")}</section>`;
+  const base=terTopo(), vivos=base.filter(t=>t.conferencia!=="CANCELADO"), P=vivos.map(terPag), ag=base.filter(t=>t.conferencia==="AGUARDANDO"), conf=base.filter(t=>t.conferencia==="CONFERIDO");
+  /* 1. Resumo: um cartão, 4 números */
+  const vencido=sum(P,x=>x.vencido);
+  const num=(t,v,ex,cl)=>`<div class="rs-n${cl?" "+cl:""}"><small>${t}</small><b>${v}</b><span>${ex}</span></div>`;
+  const resumo=`<section class="card rs-card" aria-label="Resumo do período">
+    ${num("Custo confirmado",brl(sum(conf,t=>t.valor)),"Conferidos. É o que entra no custo da obra.","ok")}
+    ${num("Aguardando conferência",brl(sum(ag,t=>t.valor)),"Ainda não conta no custo.",ag.length?"warn":"")}
+    ${num("Pago",brl(sum(P,x=>x.pago)),"Parcelas já pagas.")}
+    ${num("A pagar",brl(sum(P,x=>x.aPagar)),vencido>0?`<em class="rs-venc">${brl(vencido)} vencidos</em>`:"Parcelas ainda não pagas.")}</section>`;
+  /* 2. A fazer: Para conferir + Para pagar */
+  const adm=ehAdminZayda(), agOrd=[...ag].sort((a,b)=>(a.dataRef||"").localeCompare(b.dataRef||"")||a.id.localeCompare(b.id)); // espera há mais tempo primeiro
+  const conferir=ag.length?`<section class="card af" aria-labelledby="afConf"><div class="af-h"><h2 id="afConf">Para conferir</h2><span class="af-q warn">${ag.length}</span></div>
+    <div class="af-lista">${agOrd.slice(0,5).map(t=>`<div class="af-l"><div class="af-a"><b>${esc(t.fornecedor)}</b><small title="${esc(t.obra+" · "+obraNome(t.obra))}">${esc(t.obra==="SEM VÍNCULO"?"Sem obra":t.obra+" · "+obraNome(t.obra))}</small></div><b class="af-v">${brl(t.valor)}</b>
+      <button type="button" class="btn${adm?" primary":""} af-b" data-terconf="${esc(t.id)}">${adm?"Conferir":"Ver"}</button></div>`).join("")}</div>
+    ${ag.length>5?`<button type="button" class="af-todos" data-tertodos>Ver todos (${ag.length})</button>`:""}</section>`:"";
+  const pagar=paraPagar();
+  const afazer=conferir||pagar?`<div class="af-grid">${conferir}${pagar}</div>`:`<p class="af-ok"><span aria-hidden="true">✓</span> Tudo em dia ✓ <small>Nada para conferir nem para pagar nos próximos 7 dias.</small></p>`;
+  /* 3. Histórico de lançamentos */
   const tipos=uniq(base.map(t=>t.tipo)).sort((a,b)=>a.localeCompare(b,"pt-BR")), forns=uniq(base.map(t=>t.fornecedor)).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  const obrasTer=uniq(terTodos().filter(t=>inP(t.dataRef)).map(t=>t.obra).filter(Boolean)).sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true}));
   const sel=(id,k,rot,ops,atual)=>`<select ${id?`id="${id}"`:""} ${k?`data-terf="${k}"`:""} aria-label="${rot}"><option value="">${rot}</option>${ops.map(([v,t])=>`<option value="${esc(v)}"${v===atual?" selected":""}>${esc(t)}</option>`).join("")}</select>`;
-  const tool=`<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar fornecedor, descrição ou nota" value="${esc(S.busca)}" aria-label="Buscar compras de outros fornecedores"><button type="button" class="btn" data-csv="ter">Baixar CSV</button>
-    ${sel("","terTipo","Todos os tipos",tipos.map(x=>[x,x]),S.terTipo)}${sel("","terForn","Todos os fornecedores",forns.map(x=>[x,x]),S.terForn)}
-    ${sel("sitSel","","Toda conferência",[["AGUARDANDO","Aguardando conferência"],["CONFERIDO","Conferido"],["REPROVADO","Reprovado"],["CANCELADO","Cancelado"]],S.sit)}
-    ${selEtapa()}${sel("","terPag","Todo pagamento",[["PAGO","Pago"],["PARCIAL","Parcial"],["A_PAGAR","A pagar"],["VENCIDO","Vencido"],["VENCE7","Vence em 7 dias"]],S.terPag)}</div>`;
+  const nMais=[S.terTipo,S.terForn,S.etapa,S.terPag].filter(Boolean).length;
+  const tool=`<div class="toolbar tl-tool"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar fornecedor, descrição ou nota" value="${esc(S.busca)}" aria-label="Buscar compras de outros fornecedores">
+    ${sel("sitSel","","Toda situação",[["AGUARDANDO","Aguardando conferência"],["CONFERIDO","Conferido"],["REPROVADO","Reprovado"],["CANCELADO","Cancelado"]],S.sit)}
+    ${sel("terObraSel","","Todas as obras",obrasTer.map(o=>[o,o==="SEM VÍNCULO"?"Sem obra":o+" · "+enderecoCurto(o)]),S.obra)}
+    <button type="button" class="btn tl-mais" data-termais aria-expanded="${!!S.terMais}" aria-controls="tlMais">Mais filtros${nMais?` <b class="tl-n">${nMais}</b>`:""}</button>
+    <button type="button" class="tl-csv" data-csv="ter">Baixar CSV</button></div>
+    <div class="tl-maisbox" id="tlMais"${S.terMais?"":" hidden"}>${sel("","terTipo","Todos os tipos",tipos.map(x=>[x,x]),S.terTipo)}${sel("","terForn","Todos os fornecedores",forns.map(x=>[x,x]),S.terForn)}${selEtapa()}
+      ${sel("","terPag","Todo pagamento",[["PAGO","Pago"],["PARCIAL","Parcial"],["A_PAGAR","A pagar"],["VENCIDO","Vencido"],["VENCE7","Vence em 7 dias"]],S.terPag)}
+      <button type="button" class="btn" data-terlimpa>Limpar filtros</button></div>`;
   const m=S.busca.trim()?casa(S.busca.trim()):null;
   const L=base.filter(t=>(!m||m([t.fornecedor,t.descricao,t.nota,t.id].join(" ")))&&(!S.terTipo||t.tipo===S.terTipo)&&(!S.terForn||t.fornecedor===S.terForn)&&(!S.sit||t.conferencia===S.sit)
     &&(!S.terPag||(t.conferencia!=="CANCELADO"&&TER_FPAG[S.terPag]&&TER_FPAG[S.terPag](t)))).sort(terOrdem);
-  const chave=JSON.stringify([S.busca,S.sit,S.terTipo,S.terForn,S.terPag,S.obra,S.ini,S.fim]); if(chave!==S.terChave){S.terChave=chave;S.terN=50;}
-  const cab=`<div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">Lançados no formulário. Só os conferidos entram no custo da obra, no mês da data de referência. Toque para ver o detalhe${ehAdminZayda()?" e conferir":""}.</div></div></div>`;
-  const linha=t=>`<div class="ter-row" role="button" tabindex="0" data-terid="${esc(t.id)}" aria-label="${esc(t.fornecedor+" · "+brl(t.valor)+" · ver detalhe")}">
-    <span class="tr-d" data-r="Data">${dbr(t.dataRef)}</span><span class="tr-o" data-r="Obra">${terObraLink(t.obra)}${etqEtapa(t.etapaC)}</span>
-    <span class="tr-f"><b>${esc(t.fornecedor)}</b><small>${esc(t.tipo)}</small></span><span class="tr-x">${esc(t.descricao)}</span>
-    <span class="tr-v"><b>${brl(t.valor)}</b></span><span class="tr-s">${terSeloConf(t)}${terSeloPag(t)}</span></div>`;
-  const vazio=!terTodos().length?`<div class="empty"><b>Nenhuma compra de outro fornecedor ainda</b>As compras aparecem aqui quando são lançadas no formulário (botão “Outros fornecedores”).</div>`
-    :`<div class="empty"><b>Nada encontrado</b>Ajuste a busca, os filtros ou o período e a obra no topo.</div>`;
+  const chave=JSON.stringify([S.busca,S.sit,S.terTipo,S.terForn,S.terPag,S.obra,S.ini,S.fim,S.etapa]); if(chave!==S.terChave){S.terChave=chave;S.terN=50;}
+  const linha=t=>{ const ob=t.obra&&t.obra!=="SEM VÍNCULO";
+    return `<div class="tl-row" role="button" tabindex="0" data-terid="${esc(t.id)}" aria-label="${esc(t.fornecedor+" · "+brl(t.valor)+" · "+dbr(t.dataRef)+" · ver detalhe")}">
+    <div class="tl-a"><b>${esc(t.fornecedor)}</b><small>${esc(t.tipo)} · ${dbr(t.dataRef)}</small><span class="tl-d" title="${esc(t.descricao)}">${esc(t.descricao)}</span></div>
+    <div class="tl-b">${ob?`<a class="tl-ob" href="#painel" data-irobra="${esc(t.obra)}" title="${esc(t.obra+" · "+obraNome(t.obra))}"><b>${esc(t.obra)}</b> ${esc(obraNome(t.obra))}</a>`:'<span class="pill bad">Sem obra</span>'}${etqEtapa(t.etapaC)}</div>
+    <div class="tl-c"><b class="tl-v">${brl(t.valor)}</b><span class="tl-s">${terSeloConf(t)}${seloPagTer(t)}</span></div></div>`; };
   const vis=L.slice(0,S.terN), resta=L.length-vis.length;
-  return quadroParcelas()+resumo+tool+`<section class="card">${cab}${L.length?`<div class="ter-lista"><div class="ter-row cab" aria-hidden="true"><span>Data</span><span>Obra</span><span>Fornecedor</span><span>Descrição</span><span class="tr-v">Valor</span><span>Situação</span></div>${vis.map(linha).join("")}</div>`:vazio}
-    ${resta>0?`<div class="lc-mais"><button type="button" class="btn" id="terMais">Ver mais (${resta} restantes)</button></div>`:""}</section>`;
+  let mes="", corpo=""; vis.forEach(t=>{ const k=String(t.dataRef||"").slice(0,7); if(k!==mes){ mes=k; corpo+=`<div class="tl-mes">${k?MESES_LONGO[+k.slice(5,7)-1]+" de "+k.slice(0,4):"Sem data"}</div>`; } corpo+=linha(t); });
+  const lista=`<section class="card tl" id="terLista" aria-labelledby="tlTit"><div class="cardhead"><div><h2 class="tsec" id="tlTit">Histórico de lançamentos <span class="tl-q">${L.length}</span></h2><div class="sub">Lançados no formulário. Só os conferidos entram no custo da obra, no mês da data de referência. Toque para ver o detalhe${adm?" e conferir":""}.</div></div></div>
+    ${tool}${L.length?`<div class="tl-lista">${corpo}</div>`:`<div class="empty"><b>Nada encontrado</b>Ajuste a busca, os filtros ou o período e a obra no topo.</div>`}${resta>0?`<div class="lc-mais"><button type="button" class="btn" id="terMais">Ver mais (${resta} restantes)</button></div>`:""}</section>`;
+  return resumo+afazer+lista;
 }
+const MESES_LONGO=["Janeiro","Fevereiro","Março","Abril","Maio","Junho","Julho","Agosto","Setembro","Outubro","Novembro","Dezembro"];
+/* Selo de pagamento da linha: "Pago", "1 de 3 pagas", "Vencido" ou "A pagar" (mesma situação de terPag). */
+function seloPagTer(t){ if(t.conferencia==="CANCELADO") return ""; const ps=t.parcelas||[], x=terPag(t), np=ps.filter(q=>q.pago).length;
+  const [c,txt]=x.sit==="PAGO"?["ok","Pago"]:x.sit==="VENCIDO"?["bad","Vencido"]:np?["parc",np+" de "+ps.length+" pagas"]:["info","A pagar"];
+  return `<span class="pill ${c}">${txt}</span>`; }
 /* Card na página da obra: lançamentos do período (conferidos e pendentes) com os totais. */
 function terObraCard(){
   const L=terTopo().filter(t=>t.obra===S.obra&&t.conferencia!=="CANCELADO").sort(terOrdem); if(!L.length) return "";
@@ -2790,7 +2872,7 @@ function relTerceiros(ini,fim,obra){
     :relVazio("Nenhuma compra de outro fornecedor conferida neste período."));
 }
 const relOrigem=d=>`<div class="tot q2"><div><span>LOJA BSJ</span><b>${brl(sum(d.conf.filter(l=>!l.ter),l=>l.valor))}</b></div><div><span>OUTROS FORNECEDORES (CONFERIDOS)</span><b>${brl(sum(d.conf.filter(l=>l.ter),l=>l.valor))}</b></div></div>`;
-const TITLES={fechamento:["Fechamento do mês","Fotografia dos números de cada mês encerrado, com PDF no Drive e aviso se algo mudar depois. Só administradores da Zayda veem esta tela."],sistema:["Sistema","Sincronização, backup e planilha. Só administradores da Zayda veem esta tela."],usuarios:["Usuários","Quem acessa o formulário e o painel. Só administradores da Zayda veem esta tela."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],terceiros:["Outros fornecedores","Compras e serviços de fornecedores que não são a loja BSJ, lançados no formulário. Só os conferidos entram no custo das obras."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
+const TITLES={fechamento:["Fechamento do mês","Fotografia dos números de cada mês encerrado, com PDF no Drive e aviso se algo mudar depois. Só administradores da Zayda veem esta tela."],sistema:["Sistema","Sincronização, backup e planilha. Só administradores da Zayda veem esta tela."],usuarios:["Usuários","Quem acessa o formulário e o painel. Só administradores da Zayda veem esta tela."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],terceiros:["Outros fornecedores","Compras e serviços fora da loja BSJ: confira os lançamentos e acompanhe os pagamentos."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
 /* Mesmo efeito de escolher a obra no filtro OBRA: tela Painel com a página da obra, no topo. */
 function abrirObra(id){ S.obra=id; S.mes=null; if(S.view==="painel"){ render(); irTopo(); } else location.hash="painel"; }
 /* Tela nova começa no topo: chamar depois de desenhar. O segundo passo cobre o que só ganha altura no quadro seguinte. */
@@ -2907,7 +2989,13 @@ function render(){
   const lm=$("lcMais"); if(lm) lm.addEventListener("click",()=>{S.lcN+=50;manterRolagem(render)});
   const lc=$("lcCsv"); if(lc) lc.addEventListener("click",baixarCsvLanc);
   const tm=$("terMais"); if(tm) tm.addEventListener("click",()=>{S.terN+=50;manterRolagem(render)});
-  document.querySelectorAll("[data-terq]").forEach(b=>b.addEventListener("click",()=>{S.terQ=b.dataset.terq;manterRolagem(render)})); // [Função 2]
+  document.querySelectorAll("[data-terq]").forEach(b=>b.addEventListener("click",()=>{S.terQ=b.dataset.terq;manterRolagem(render)})); // aba do "Para pagar"
+  document.querySelectorAll("[data-terconf]").forEach(b=>b.addEventListener("click",()=>{ abrirTer(b.dataset.terconf); const c=document.querySelector('#latTer [data-terop="CONFERIR"]'); if(c){ c.scrollIntoView({block:"nearest"}); c.focus({preventScroll:true}); } }));
+  document.querySelectorAll("[data-tertodos]").forEach(b=>b.addEventListener("click",()=>{S.sit="AGUARDANDO";S.terListaFoco=true;manterRolagem(render)}));
+  document.querySelectorAll("[data-termais]").forEach(b=>b.addEventListener("click",()=>{S.terMais=!S.terMais;manterRolagem(render)}));
+  document.querySelectorAll("[data-terlimpa]").forEach(b=>b.addEventListener("click",()=>{S.terTipo="";S.terForn="";S.terPag="";S.etapa="";S.sit="";cancelarBusca();S.busca="";manterRolagem(render)}));
+  const tos=$("terObraSel"); if(tos) tos.addEventListener("change",()=>{S.obra=tos.value;S.mes=null;render()});
+  if(v==="terceiros"&&S.terListaFoco){ S.terListaFoco=false; const l=$("terLista"); if(l) requestAnimationFrame(()=>l.scrollIntoView({block:"start"})); }
   if(v==="terceiros"&&S.terQFoco){ S.terQFoco=false; const q=$("pvQuadro"); if(q) requestAnimationFrame(()=>q.scrollIntoView({block:"start"})); }
   document.querySelectorAll("[data-terf]").forEach(x=>x.addEventListener("change",()=>{S[x.dataset.terf]=x.value;render()}));
   document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr));
