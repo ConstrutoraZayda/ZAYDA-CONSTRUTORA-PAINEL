@@ -1172,7 +1172,8 @@ function usuarioPorLogin_(login) {
 }
 const podePainel_ = u => !!u && u.painel && u.ativo;
 const ehAdmin_ = u => !!u && texto_(u.perfil).toUpperCase() === 'ADMIN';
-const ehAdminZayda_ = u => ehAdmin_(u) && texto_(u.empresa).toUpperCase() === 'ZAYDA';
+/** Admin Zayda (ativo, empresa Zayda, perfil Admin): a única regra das áreas Usuários, Sistema e Fechamento do mês. */
+const ehAdminZayda_ = u => ehAdmin_(u) && !!u.ativo && texto_(u.empresa).toUpperCase() === 'ZAYDA';
 /** Outros fornecedores: quem pode conferir lançamentos e registrar pagamentos. Ativo e da Zayda (qualquer perfil) ou perfil Admin
  *  (hoje, a Mayara, financeiro da BSJ). A mesma regra está no formulário (Código.js, podeFinanceiro_). */
 const podeFinanceiro_ = u => !!u && !!u.ativo && (texto_(u.empresa).toUpperCase() === 'ZAYDA' || ehAdmin_(u));
@@ -1383,7 +1384,7 @@ function sairAparelho(token) {
 }
 
 /* ===================== GESTÃO DE USUÁRIOS (só Admin da Zayda) ===================== */
-const SO_ADMIN_ZAYDA = 'Somente administradores da Zayda podem gerenciar usuários.';
+const SO_ADMIN_ZAYDA = 'Acesso restrito ao administrador.'; // usuários, sistema (backup e resumo) e fechamento do mês
 function adminZayda_(token) {
   const a = autenticar_(token);
   if (a.erro) return a;
@@ -1589,7 +1590,8 @@ function dadosPainel_(quem) {
     sincronizadoEm: texto_(conf.getRange(CTRL.celulaUltimaSinc).getValue()).split(' · ')[0],
     limitesOrc: ALERTA_ORC, // [Função 1]
     areas: areasObras_(), // [Função 3] m² de cada obra
-    fechamentos: (() => { try { return lerFechamentos_(); } catch (e) { return []; } })(), // [Função 4] meses fechados (cadeado e conferência)
+    // [Função 4] meses fechados: detalhes só para Admin Zayda; os outros recebem só mês e tipo (para o cadeado 🔒 dos gráficos).
+    fechamentos: (() => { try { const f = lerFechamentos_(); return ehAdminZayda_(quem) ? f : f.map(x => ({mes: x.mes, tipo: x.tipo})); } catch (e) { return []; } })(),
     resumo: ehAdminZayda_(quem) ? {destinos: destinosResumo_(), ultimo: ultimoResumo_(), hora: RESUMO.hora} : null, // [Função 5] só Admin Zayda
     planilhaUrl: ehAdminZayda_(quem) ? ss.getUrl() : '', versaoPainel: versaoPainel_(), obras, itens, lanc
   };

@@ -3407,7 +3407,7 @@ function renderMantendo(n,manual){
   MODO=manual?null:n?"novo":"auto"; render(); if(foto) aplicarTrans(foto); destacar(n);
   abertos.forEach(id=>{const d=document.querySelector(`details.ped[data-id="${CSS.escape(id)}"]`);if(d)d.open=true;});
 }
-function route(){S.rota=(S.rota||0)+1;$("view").style.minHeight="";cancelarBusca();cancelarEntrada();esconderSeg();esconderToque();const h=location.hash.replace("#","");S.view=TITLES[h]&&((h!=="usuarios"&&h!=="sistema"&&h!=="fechamento")||ehAdminZayda())?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";if(S.irBuscaTxt){S.busca=S.irBuscaTxt;S.irBuscaTxt="";}S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
+function route(){S.rota=(S.rota||0)+1;$("view").style.minHeight="";cancelarBusca();cancelarEntrada();esconderSeg();esconderToque();const h=location.hash.replace("#","");const restrito=["usuarios","sistema","fechamento"].includes(h)&&!ehAdminZayda();if(restrito&&D){try{history.replaceState(null,"","#painel")}catch(e){}aviso("Acesso restrito ao administrador.",4000);}S.view=TITLES[h]&&!restrito?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";if(S.irBuscaTxt){S.busca=S.irBuscaTxt;S.irBuscaTxt="";}S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
   if(S.pedFoco){const d=document.querySelector(`details.ped[data-id="${CSS.escape(S.pedFoco)}"]`);if(d)d.open=true}irTopo()}}
 window.addEventListener("hashchange",route);
 /* [Etapa 0] Menu do topo no celular: degradê na borda direita enquanto houver itens escondidos à direita. */
