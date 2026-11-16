@@ -2735,7 +2735,7 @@ function vTer(){
     ${num("Pago",brl(sum(P,x=>x.pago)),"Parcelas já pagas.")}
     ${num("A pagar",brl(sum(P,x=>x.aPagar)),vencido>0?`<em class="rs-venc">${brl(vencido)} vencidos</em>`:"Parcelas ainda não pagas.")}</section>`;
   /* 2. A fazer: Para conferir + Para pagar */
-  const adm=ehAdminZayda(), agOrd=[...ag].sort((a,b)=>(a.dataRef||"").localeCompare(b.dataRef||"")||a.id.localeCompare(b.id)); // espera há mais tempo primeiro
+  const adm=podeFinanceiro(), agOrd=[...ag].sort((a,b)=>(a.dataRef||"").localeCompare(b.dataRef||"")||a.id.localeCompare(b.id)); // espera há mais tempo primeiro
   const conferir=ag.length?`<section class="card af" aria-labelledby="afConf"><div class="af-h"><h2 id="afConf">Para conferir</h2><span class="af-q warn">${ag.length}</span></div>
     <div class="af-lista">${agOrd.slice(0,5).map(t=>`<div class="af-l"><div class="af-a"><b>${esc(t.fornecedor)}</b><small title="${esc(t.obra+" · "+obraNome(t.obra))}">${esc(t.obra==="SEM VÍNCULO"?"Sem obra":t.obra+" · "+obraNome(t.obra))}</small></div><b class="af-v">${brl(t.valor)}</b>
       <button type="button" class="btn${adm?" primary":""} af-b" data-terconf="${esc(t.id)}">${adm?"Conferir":"Ver"}</button></div>`).join("")}</div>
@@ -2788,7 +2788,7 @@ function terObraCard(){
 /* ---------- painel lateral: detalhe e conferência ---------- */
 let TER_ID="", terVolta=null, terTimer=null, TER_CONFIRMA=null, terEnviando=false, TER_MSG="";
 function terLatHtml(t){
-  const p=terPag(t), hoje=D.hoje, f=(D.fornecedores||{})[t.fornecedorId]||{}, adm=ehAdminZayda();
+  const p=terPag(t), hoje=D.hoje, f=(D.fornecedores||{})[t.fornecedorId]||{}, adm=podeFinanceiro();
   const dd=(k,v,w)=>`<div${w?' class="w"':""}><dt>${k}</dt><dd>${v}</dd></div>`;
   const parc=(t.parcelas||[]).map(x=>{const venc=!x.pago&&x.vencimento&&x.vencimento<hoje;
     return `<div class="tl-parc${venc?" venc":""}"><span><b>${esc(x.descricao||"Parcela "+x.numero)}</b><small>${venc?"Vencida em ":"Vence em "}${dbr(x.vencimento)}</small></span><b class="n">${brl(x.valor)}</b>
@@ -2798,7 +2798,7 @@ function terLatHtml(t){
   if(t.atualizadoEm&&t.atualizadoEm!==t.criadoEm) hist.push(["Última alteração",terNome(t.atualizadoPor)+" em "+dataHoraBr(t.atualizadoEm)]);
   if(t.conferencia!=="AGUARDANDO"&&t.conferidoPor) hist.push([{CONFERIDO:"Conferido por",REPROVADO:"Reprovado por",CANCELADO:"Cancelado por"}[t.conferencia]||"Conferência",terNome(t.conferidoPor)+(t.conferidoEm?" em "+dataHoraBr(t.conferidoEm):"")]);
   if(t.motivo) hist.push(["Motivo",t.motivo]);
-  const acoes=!adm?`<p class="tl-nota">A conferência é feita por administradores da Zayda.</p>`:t.conferencia==="AGUARDANDO"?`<div class="tl-acoes"><button type="button" class="btn primary" data-terop="CONFERIR">Conferir</button><button type="button" class="btn" data-terop="REPROVAR">Reprovar</button></div>`
+  const acoes=!adm?`<p class="tl-nota">A conferência é feita pela equipe Zayda ou pelo financeiro.</p>`:t.conferencia==="AGUARDANDO"?`<div class="tl-acoes"><button type="button" class="btn primary" data-terop="CONFERIR">Conferir</button><button type="button" class="btn" data-terop="REPROVAR">Reprovar</button></div>`
     :t.conferencia==="CONFERIDO"?`<div class="tl-acoes"><button type="button" class="btn tl-canc" data-terop="CANCELAR">Cancelar lançamento</button></div>`:"";
   return `<header><div><h2 id="terLatTit">${esc(t.fornecedor)} · ${brl(t.valor)}</h2><div class="lat-sub">${esc(t.id)} · ${esc(t.tipo)}</div></div><button type="button" class="btn tl-imp" id="terImp">Imprimir</button><button type="button" class="lat-x" id="terX" aria-label="Fechar">×</button></header>
   <div class="tl-corpo"><div class="tl-selos">${terSeloConf(t)}${terSeloPag(t)}</div>
@@ -3693,6 +3693,7 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharRelatorio();
 
 /* ---------- Usuários (só Admin da Zayda; o servidor confere de novo em cada função) ---------- */
 const ehAdminZayda=()=>!!(D&&D.eu&&D.eu.adminZayda);
+const podeFinanceiro=()=>!!(D&&D.eu&&D.eu.financeiro); // conferir outros fornecedores (mesma regra do servidor)
 /* Nome, empresa e o que cada um pode ver: barra lateral, menu Usuários e botões de orçamento (só Admin). */
 function aplicarEu(){
   const eu=D&&D.eu;

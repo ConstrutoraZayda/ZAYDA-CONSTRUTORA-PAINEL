@@ -1172,8 +1172,11 @@ function usuarioPorLogin_(login) {
 const podePainel_ = u => !!u && u.painel && u.ativo;
 const ehAdmin_ = u => !!u && texto_(u.perfil).toUpperCase() === 'ADMIN';
 const ehAdminZayda_ = u => ehAdmin_(u) && texto_(u.empresa).toUpperCase() === 'ZAYDA';
+/** Outros fornecedores: quem pode conferir lançamentos e registrar pagamentos. Ativo e da Zayda (qualquer perfil) ou perfil Admin
+ *  (hoje, a Mayara, financeiro da BSJ). A mesma regra está no formulário (Código.js, podeFinanceiro_). */
+const podeFinanceiro_ = u => !!u && !!u.ativo && (texto_(u.empresa).toUpperCase() === 'ZAYDA' || ehAdmin_(u));
 const publico_ = u => ({nome: u.nome || u.usuario, usuario: u.usuario, empresa: u.empresa, perfil: u.perfil, email: u.email,
-  admin: ehAdmin_(u), adminZayda: ehAdminZayda_(u), dono: u.usuario === USUARIO_DONO});
+  admin: ehAdmin_(u), adminZayda: ehAdminZayda_(u), financeiro: podeFinanceiro_(u), dono: u.usuario === USUARIO_DONO});
 
 /* Senha guardada como "v2:<repetições>:<sal>:<hash>": SHA-256 de (sal + senha), repetido sobre o próprio hash até
  * completar as repetições. O cálculo é feito aqui mesmo, em JavaScript (10.000 chamadas ao Utilities deixariam o login lento).
@@ -1654,7 +1657,7 @@ function lerTerceiros_(origem) {
  *  Reprovar e cancelar exigem motivo. Grava na aba TERCEIROS e na AUDITORIA da planilha do formulário e devolve os dados novos. */
 function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
   const ac = autenticar_(token); if (ac.erro) return ac.erro;
-  if (!ehAdminZayda_(ac.u)) return {ok: false, motivo: 'Somente administradores da Zayda podem conferir lançamentos de outros fornecedores.'};
+  if (!podeFinanceiro_(ac.u)) return {ok: false, motivo: 'Só a equipe Zayda ou o financeiro podem conferir lançamentos.'};
   const acao = texto_(op).toUpperCase(), alvo = texto_(id);
   if (['CONFERIR', 'REPROVAR', 'CANCELAR'].indexOf(acao) < 0 || !/^TER-\d{8}-[A-Z0-9]{4}$/.test(alvo)) return {ok: false, motivo: 'Pedido inválido.'};
   const mot = texto_(motivo);
