@@ -621,8 +621,92 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .acesso .ac-pw button.olho .fechado,.acesso .ac-pw button.olho[aria-pressed="true"] .aberto{display:none}
 .acesso .ac-pw button.olho[aria-pressed="true"] .fechado{display:block}
 /* Conta na barra lateral; botões de orçamento só para Admin; menu Usuários só para Admin da Zayda */
+/* [Função 6] Custo por etapa */
+.etq-et{display:block;margin-top:2px;font-size:12px;font-weight:600;color:var(--ink-3);font-family:var(--f-ui)}
+.p-obra .etq-et{display:inline;margin-left:8px}
+.et-lista{display:grid;gap:4px}
+.et-lin{display:grid;grid-template-columns:minmax(90px,1.1fr) minmax(0,2fr) auto 44px;gap:10px;align-items:center;width:100%;min-height:40px;padding:6px 8px;border:0;border-radius:10px;background:none;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
+.et-lin .nm{font-weight:700;overflow-wrap:anywhere}.et-lin .v{font-weight:800;white-space:nowrap}.et-lin small{color:var(--ink-3);text-align:right}
+.et-lin .track{height:10px;border-radius:99px;background:var(--hatch-bg);overflow:hidden}.et-lin .track span{display:block;height:100%;border-radius:99px;background:var(--brand-2)}
+.et-lin.zero{color:var(--ink-3)}.et-lin.sel{background:var(--brand-soft);box-shadow:inset 0 0 0 1px var(--brand)}
+@media (hover:hover) and (pointer:fine){.et-lin:not(.sel):hover{background:var(--surface-2)}}
+.et-tot{display:flex;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-size:14px}
+@media (max-width:560px){.et-lin{grid-template-columns:1fr auto;gap:4px 10px}.et-lin .track{grid-column:1/-1;grid-row:2}.et-lin small{grid-column:2;grid-row:1;display:none}}
+.etapas li .et-b{display:flex;flex-direction:column;gap:2px;width:100%;margin:0;padding:0;border:0;background:none;color:inherit;font:inherit;text-align:inherit;cursor:pointer;min-height:44px}
+.et-c{display:block;margin-top:4px;font-size:12px;font-weight:800;color:var(--ink)}.et-c em{display:block;font-style:normal;font-weight:600;color:var(--ink-3)}
+.etapas li.sel{outline:2px solid var(--brand);outline-offset:1px}
+.et-nota{margin:10px 0 0;font-size:12px;color:var(--ink-3)}
+.et-det{margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2);display:grid;gap:6px}.et-det small{color:var(--ink-3)}
+/* [Função 5] Resumo semanal por e-mail */
+.rs-lista{list-style:none;margin:0 0 10px;padding:0;display:grid;gap:6px}
+.rs-lista li{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:6px 10px;border:1px solid var(--line);border-radius:10px;font-size:13px;overflow-wrap:anywhere}
+.rs-lista li span{min-width:0}.rs-lista .rs-vazio{color:var(--ink-3)}
+.rs-add{display:grid;gap:4px;margin-bottom:10px;font-size:13px}.rs-add label{font-weight:700}
+.rs-l{display:flex;gap:8px;flex-wrap:wrap}.rs-l input{flex:1;min-width:0;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;min-height:44px}
+.sis-card .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.rs-ok{color:var(--brand)!important;font-weight:700}.rs-ult{margin-top:10px}
+.sis-card .btn{min-height:44px}
+/* [Função 4] Fechamento do mês */
+.cad{font-size:.85em;margin-right:3px}
+.fc-topo{margin-bottom:16px;border-color:var(--amber);background:var(--amber-soft);color:var(--ink);display:grid;gap:4px}.fc-topo b{color:var(--amber)}
+.fc-lista{display:grid}
+.fc-row{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1.4fr) auto;gap:6px 14px;align-items:center;padding:12px 4px;border-bottom:1px solid var(--line)}
+.fc-row:last-child{border-bottom:0}
+.fc-m b{display:block;font-size:15px}.fc-m small,.fc-s small{display:block;font-size:12px;color:var(--ink-3);overflow-wrap:anywhere;margin-top:2px}
+.fc-a{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}
+.fc-a .btn{min-height:40px}.fc-a .btn.pri,.fc-conf .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.fc-oc{font-weight:700;color:var(--ink-2)}
+.fc-conf{grid-column:1/-1;display:grid;gap:8px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.fc-conf p{margin:0}.fc-conf .acoes{display:flex;gap:8px;flex-wrap:wrap}
+.fc-conf textarea{width:100%;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit}
+.fc-dif{grid-column:1/-1;display:grid;gap:2px;padding:10px 12px;border-radius:10px;background:var(--amber-soft);color:var(--ink);font-size:13px;overflow-wrap:anywhere}.fc-dif b{color:var(--amber)}
+.fc-msg{grid-column:1/-1;margin:0;color:var(--red);font-weight:700;font-size:13px}
+.fc-hist{grid-column:1/-1;font-size:12px;color:var(--ink-2)}.fc-hist summary{cursor:pointer;min-height:32px;display:flex;align-items:center;font-weight:700}.fc-hist ul{margin:4px 0 0;padding-left:18px}
+@media (max-width:700px){.fc-row{grid-template-columns:1fr}.fc-a{justify-content:flex-start}}
+/* [Função 3] Custo por m² e área construída */
+.area-v{display:flex;align-items:center;justify-content:space-between;gap:8px 12px;flex-wrap:wrap;margin-top:12px;padding-top:12px;border-top:1px solid var(--line);font-size:13px}
+.area-v small{color:var(--ink-3)}
+.area-f{margin-top:12px;padding-top:12px;border-top:1px solid var(--line);display:grid;gap:6px;font-size:13px}
+.area-f label{font-weight:700}.area-l{display:flex;gap:8px;flex-wrap:wrap}
+.area-f input{width:160px;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:10px;padding:8px 10px;font:inherit;font-weight:700;min-height:40px}
+.area-f .btn.pri{background:var(--brand);border-color:var(--brand);color:#fff}
+.ob-m2{margin-top:4px;font-size:13px;color:var(--ink-2)}.ob-m2 small{color:var(--ink-3)}
+.cmp-seg{flex:none}
+.rk-sem{margin-top:12px;padding-top:10px;border-top:1px solid var(--line);font-size:13px;display:grid;gap:4px}
+.rk-sem-l{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;color:var(--ink-2)}.rk-sem-l small{color:var(--ink-3)}
+/* [Função 2] Pagamentos a vencer */
+.pv{margin-bottom:16px}
+.pv-chips{margin-bottom:10px}
+.pv-g{margin-top:12px}
+.pv-gh{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:8px 10px;border-radius:10px;background:var(--surface-2);font-weight:800;font-size:13px}
+.pv-g.pv-vencidas .pv-gh{background:var(--red-soft);color:var(--red)}.pv-g.pv-hoje .pv-gh{background:var(--amber-soft);color:var(--amber)}
+.pv-ico{display:inline-block;width:1.2em;text-align:center;margin-right:4px}
+.pv-row{display:grid;grid-template-columns:minmax(0,2.2fr) minmax(0,1.4fr) minmax(0,.9fr) minmax(0,1fr) minmax(0,1.1fr);gap:4px 12px;align-items:center;padding:10px;border-bottom:1px solid var(--line);cursor:pointer;min-height:44px}
+.pv-row:last-child{border-bottom:0}
+.pv-row small{display:block;font-size:12px;color:var(--ink-3);overflow-wrap:anywhere}
+.pv-row b{overflow-wrap:anywhere}.pv-v{text-align:right}
+.pv-at{color:var(--red);font-size:12px}
+@media (hover:hover) and (pointer:fine){.pv-row:hover{background:var(--surface-2)}}
+.pv-row:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.pv-nada{margin:8px 10px;color:var(--ink-3);font-size:13px}
+@media (max-width:700px){
+ .pv-row{grid-template-columns:1fr auto;gap:4px 10px;padding:12px 4px}
+ .pv-f{grid-column:1/-1}.pv-o{grid-column:1/-1}.pv-v{text-align:right}
+ .pv-p::before,.pv-d::before{content:attr(data-r) ": ";font-size:12px;color:var(--ink-3)}
+}
+/* [Função 1] Alerta de orçamento */
+.al-selo{white-space:nowrap}
+.al-bar{display:flex;align-items:center;gap:6px;flex:1;min-width:140px}.al-bar .oc-t{flex:1}.al-bar small{font-size:12px;color:var(--ink-2);white-space:nowrap}
+.al-prev{display:block;margin:6px 0 0;font-size:12px;font-weight:700;color:var(--amber);overflow-wrap:anywhere}
+.al-ico{display:inline-grid;place-items:center;width:16px;height:16px;margin-right:4px;border-radius:50%;font-size:10px;font-weight:900;vertical-align:1px}
+.al-ico.ok{background:var(--brand-soft);color:var(--brand)}.al-ico.warn{background:var(--amber-soft);color:var(--amber)}.al-ico.bad{background:var(--red-soft);color:var(--red)}
+.ob-resumo .or-al{grid-column:1/-1;display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:700;font-size:13px}
+.ob-resumo .or-al span:not(.pill){color:var(--red)}
+.ob-resumo .or-c.neg b{color:var(--red)}
+.ob-resumo .or-prev{grid-column:1/-1}.ob-resumo .or-prev .al-prev{margin:0}
+.ob-resumo.al-estourado{border-color:var(--red)}.ob-resumo.al-atencao{border-color:var(--amber)}
 /* [Etapa 3B] Página da obra, tabelas largas, busca geral, carregando e alvos de toque */
-.ob-resumo{grid-column:1/-1;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px 14px;margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+.ob-resumo{grid-column:1/-1;display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px 14px;margin:12px 0 4px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
 .ob-resumo .or-c{min-width:0}.ob-resumo small{display:block;font-size:12px;font-weight:700;color:var(--ink-3)}.ob-resumo b{display:block;font-size:16px;font-weight:800;overflow-wrap:anywhere}
 .ob-resumo .oc-t{display:block;margin-top:5px}
 @media (max-width:700px){.ob-resumo{grid-template-columns:1fr 1fr}}
@@ -768,7 +852,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .sis-card .sc-sist{margin:0;padding:0;border:0;font-size:13px}
 .sis-card .sc-sist .l{margin-top:4px}.sis-card .sc-sist b{font-size:13px}
 .sis-card .sc-sist button{min-height:44px;font-size:13px;padding:8px 14px}
-body.nao-admin [data-orc]{display:none!important}
+body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 .nav a[hidden]{display:none}
 /* Usuários */
 .usu-resumo{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px;margin-bottom:16px}
@@ -1207,6 +1291,7 @@ body.nao-admin [data-orc]{display:none!important}
         <a href="#terceiros" data-v="terceiros"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h11v10H3z"/><path d="M14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/></svg>Outros fornecedores<span class="count" id="navTer" hidden></span></a>
         <a href="#usuarios" data-v="usuarios" id="navUsuarios" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><path d="M16 4.6a3.5 3.5 0 0 1 0 6.8M18.5 14.8c1.6.8 2.6 2.6 3 5.2"/></svg>Usuários</a>
         <a href="#sistema" data-v="sistema" id="navSistema" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Sistema<i class="nav-av" id="navSisAv" role="img" hidden></i></a>
+        <a href="#fechamento" data-v="fechamento" id="navFech" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="10" width="14" height="10" rx="2"/><path d="M8 10V7a4 4 0 0 1 8 0v3"/></svg>Fechamento do mês<i class="nav-av" id="navFechAv" role="img" hidden></i></a>
       </nav>
     </div>
     <div class="side-pe">
@@ -1396,7 +1481,7 @@ const casa = q => { const w=semAc(q).split(/\s+/).filter(Boolean), c=compacto(q)
 const stCls = s => ({"EM EXECUÇÃO":"ok","PLANEJADA":"info","PARALISADA":"warn","CONCLUÍDA":"off","A VERIFICAR":"warn"})[s]||"off";
 const stTxt = o => o.statusTxt || (o.status ? o.status.charAt(0)+o.status.slice(1).toLowerCase() : "Sem status");
 let CORES = {};
-function definirCores(){ const t={}; D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&inP(l.data)&&okS(l.sku)&&okOr(l)).forEach(l=>{t[l.obra]=(t[l.obra]||0)+l.valor});
+function definirCores(){ const t={}; D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&inP(l.data)&&okS(l.sku)&&okOr(l)&&okE(l)).forEach(l=>{t[l.obra]=(t[l.obra]||0)+l.valor});
   // Regra única: obra com 3% ou mais do custo do período ganha cor própria (no máximo 10, as maiores); o resto é "Outras".
   const total=Object.values(t).reduce((a,b)=>a+b,0);
   CORES={}; Object.entries(t).filter(([k,v])=>k!=="SEM VÍNCULO"&&v/total>=0.03).sort((a,b)=>b[1]-a[1]).slice(0,COR_OBRA.length).forEach(([k],i)=>{ CORES[k]=COR_OBRA[i]; }); }
@@ -1416,8 +1501,8 @@ function setPreset(p){
 const inP = d => d && d>=S.ini && d<=S.fim;
 const okO = o => !S.obra || o===S.obra;
 const okS = s => !S.sku || s===S.sku;
-const lancF = () => D.lanc.filter(l=>inP(l.data)&&okO(l.obra)&&okS(l.sku)&&okOr(l));
-const itensF = () => D.itens.filter(i=>inP(i.data)&&okO(i.obra)&&okS(i.sku));
+const lancF = () => D.lanc.filter(l=>inP(l.data)&&okO(l.obra)&&okS(l.sku)&&okOr(l)&&okE(l));
+const itensF = () => D.itens.filter(i=>inP(i.data)&&okO(i.obra)&&okS(i.sku)&&okE(i));
 const sum = (a,f) => a.reduce((s,x)=>s+(f(x)||0),0);
 const uniq = a => [...new Set(a)];
 
@@ -1432,17 +1517,23 @@ function stats(){
     alertas: L.filter(comAviso).length,
     semPreco: I.filter(i=>i.precoRef==null).length, // itens (card Valor dos pedidos)
     cotar: G.filter(SOL_SIT_F.COTACAO).length, // pedidos com item sem preço (Pendências → chip Sem preço)
-    ...(t=>({terAguard:t.aguard,terVencidas:t.vencidas,terVence7:t.vence7}))(terContagens()) // outros fornecedores (mesma contagem da tela nova)
+    terAguard: terContagens().aguard, // outros fornecedores (mesma contagem da tela nova)
+    ...(g=>({terVencidas:g.VENCIDAS.length,terHoje:g.HOJE.length,terVence7:g.SETE.length}))(parcelasAVencer()), // [Função 2] parcelas, como no quadro "Pagamentos a vencer"
+    orcAtencao: contaAlerta("ATENCAO"), orcEstourado: contaAlerta("ESTOURADO"), // [Função 1] obras (todo o custo, sem o período)
+    fechMudou: ehAdminZayda()?mesesAlterados().length:0 // [Função 4] meses fechados que mudaram (só Admin Zayda, que fecha e reabre)
   };
   const entRef=sum(I,i=>i.precoRef==null?0:Math.min(i.entregue,i.qtdSol)*i.precoRef), faltaRef=sum(I,i=>i.precoRef==null?0:Math.max(i.saldo,0)*i.precoRef);
   return {L,I,conf,nAEntregar:I.filter(i=>i.saldo>0).length,custo:sum(conf,l=>l.valor),custoBsj:sum(conf.filter(l=>!l.ter),l=>l.valor),custoTer:sum(conf.filter(l=>l.ter),l=>l.valor),nBsj:conf.filter(l=>!l.ter).length,nTer:conf.filter(l=>l.ter).length,ref:sum(I,i=>i.valorRef),entRef,faltaRef,pedidos:uniq(I.map(i=>i.pedido)).length,
     pedSaldo:uniq(I.filter(i=>i.saldo>0).map(i=>i.pedido)).length,p,
-    pendTotal:p.semCusto+p.conferir+p.saldo+p.semObra+p.alertas+p.terAguard+p.terVencidas};
+    pendTotal:p.semCusto+p.conferir+p.saldo+p.semObra+p.alertas+p.terAguard+p.terVencidas+p.terHoje+p.orcAtencao+p.orcEstourado+p.fechMudou};
 }
 
 /* ---------- pendências em linguagem simples ---------- */
 function pendencias(s){
   return [
+    {n:s.p.fechMudou, t:"Meses fechados que mudaram", c:"Mês fechado mudou", d:"O custo de um mês já fechado ficou diferente da fotografia do fechamento. Veja o valor fechado, o atual e as obras afetadas.", v:"fechamento", f:""},
+    {n:s.p.orcEstourado, t:"Obras com orçamento estourado", c:"Orçamento estourado", d:"Obras que já gastaram 100% ou mais do orçamento (todo o custo confirmado, desde o início).", v:"obras", f:"alerta:ESTOURADO"},
+    {n:s.p.orcAtencao, t:"Obras em atenção no orçamento", c:"Orçamento em atenção", d:"Obras que já gastaram 80% ou mais do orçamento, sem passar dele.", v:"obras", f:"alerta:ATENCAO"},
     {n:s.p.saldo, t:"Materiais que ainda não chegaram", c:"Ainda não chegaram", d:"Itens pedidos que ninguém marcou como entregues no formulário.", v:"solicitacoes", f:"FALTA"},
     {n:s.p.semObra, t:"Pedidos sem obra reconhecida", c:"Pedidos sem obra", d:"O endereço digitado não bate com nenhuma obra. Abra o pedido no formulário e escolha o endereço da lista.", v:"solicitacoes", f:"OBRA NÃO IDENTIFICADA"},
     {n:s.p.semCusto, t:"Entregas sem valor", c:"Entregas sem valor", d:"Chegou material que não tinha preço no pedido. Informe o custo na aba MATERIAIS_E_CUSTOS.", v:"lancamentos", f:"PENDENTE DE CUSTO"},
@@ -1450,8 +1541,9 @@ function pendencias(s){
     {n:s.p.alertas, t:"Entregas com aviso", c:"Com aviso", d:"Algo não bate, como quantidade acima do pedido ou obra diferente. O aviso aparece em vermelho na lista.", v:"lancamentos", f:"COM AVISO"},
     {n:s.p.cotar, t:"Materiais pedidos sem preço", c:"Sem preço", d:"Itens “a cotar”: o valor do pedido fica incompleto até alguém informar o preço.", v:"solicitacoes", f:"COTACAO"},
     {n:s.p.terAguard, t:"Compras aguardando conferência", c:"Compras a conferir", d:"Compras de outros fornecedores lançadas no formulário que ainda não foram conferidas. Só entram no custo depois de conferidas.", v:"terceiros", f:"conf:AGUARDANDO"},
-    {n:s.p.terVencidas, t:"Parcelas vencidas", c:"Parcelas vencidas", d:"Compras de outros fornecedores com alguma parcela não paga e vencimento já passado.", v:"terceiros", f:"pag:VENCIDO"},
-    {n:s.p.terVence7, t:"Parcelas vencendo em 7 dias", c:"Vencem em 7 dias", d:"Compras de outros fornecedores com parcela não paga que vence nos próximos 7 dias.", v:"terceiros", f:"pag:VENCE7"}
+    {n:s.p.terVencidas, t:"Parcelas vencidas", c:"Parcelas vencidas", d:"Parcelas de outros fornecedores não pagas com vencimento já passado.", v:"terceiros", f:"parc:VENCIDAS"},
+    {n:s.p.terHoje, t:"Parcelas que vencem hoje", c:"Vencem hoje", d:"Parcelas de outros fornecedores não pagas que vencem hoje.", v:"terceiros", f:"parc:HOJE"},
+    {n:s.p.terVence7, t:"Parcelas vencendo em 7 dias", c:"Vencem em 7 dias", d:"Parcelas de outros fornecedores não pagas que vencem nos próximos 7 dias.", v:"terceiros", f:"parc:SETE"}
   ];
 }
 const irPara = (v,f) => `href="#${v}" data-ir="${v}|${esc(f)}"`;
@@ -1521,12 +1613,14 @@ function vPainel(){
       <div class="cardhead"><div><h2>Solicitações desta obra</h2><div class="sub">Pedidos do período na revisão vigente${somente()}</div></div><a class="btn" href="#solicitacoes">Ver detalhes</a></div>
       ${pedidosObra(s)}
     </article>`:`<article class="card">
-      <div class="cardhead"><div><h2>Comparativo entre obras</h2><div class="sub">Custo confirmado no período. Toque para ver só a obra.${somente()}</div></div></div>
+      <div class="cardhead"><div><h2>Comparativo entre obras</h2><div class="sub">${S.cmpModo==="m2"?"Custo confirmado total (desde o início) ÷ área construída. Em obra em andamento, é parcial (até agora).":"Custo confirmado no período. Toque para ver só a obra."}${S.cmpModo==="m2"?"":somente()}</div></div>
+        <div class="seg cmp-seg" role="group" aria-label="Comparar por"><button type="button" data-cmp="" aria-pressed="${S.cmpModo!=="m2"}">Total em R$</button><button type="button" data-cmp="m2" aria-pressed="${S.cmpModo==="m2"}">R$ por m²</button></div></div>
       <div class="rank" id="rank" data-lista="rank">${rankHtml()}</div>
     </article>`}
   </section>
 
   ${tabelaMensal(s)}
+  ${cardEtapas()}
   ${S.obra?terObraCard():""}
 
   <section class="card" style="margin-top:16px">
@@ -1552,6 +1646,13 @@ function vPainel(){
     ${lancTable(s.L.filter(l=>l.situacao!=="CANCELADO").sort((a,b)=>b.data.localeCompare(a.data)||b.id.localeCompare(a.id)).slice(0,10), false)}
   </section>`;
 }
+/* [Função 6] Quadro "Custo por etapa": mesmo custo do período, filtros de obra, material e origem (sem o de etapa, para poder trocar). */
+function cardEtapas(){ const L=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&inP(l.data)&&okO(l.obra)&&okS(l.sku)&&okOr(l)), g=custoPorEtapa(L), tot=sum(L,l=>l.valor);
+  const ks=ordemEtapas(Object.keys(g)).filter(k=>g[k]||(D.nomesEtapas||[]).includes(k)), max=Math.max(1,...ks.map(k=>g[k]||0));
+  const lin=k=>{ const v=g[k]||0, on=S.etapa===k; return `<button type="button" class="et-lin${on?" sel":""}${v?"":" zero"}" data-etf="${esc(k)}" aria-pressed="${on}"><span class="nm">${esc(nomeEtapa(k))}</span><span class="track"><span style="width:${(v/max*100).toFixed(1)}%"></span></span><span class="v">${brl(v)}</span><small>${tot?pct(v/tot):"—"}</small></button>`; };
+  return `<section class="card" style="margin-top:16px" aria-labelledby="etCardT"><div class="cardhead"><div><h2 id="etCardT">Custo por etapa</h2><div class="sub">Custo confirmado do período em cada etapa da obra (a etapa vem do pedido ou do lançamento). Toque numa etapa para ver só ela.${somente()}</div></div>${S.etapa?`<button type="button" class="btn" data-fx-etapa>✕ Todas as etapas</button>`:""}</div>
+    ${tot?`<div class="et-lista">${ks.map(lin).join("")}</div><div class="et-tot"><span>Total</span><b>${brl(tot)}</b></div>`:`<div class="empty"><b>Nenhum custo confirmado neste período</b>As etapas aparecem quando há entregas com custo ou compras conferidas.</div>`}</section>`; }
+document.addEventListener("click",e=>{ if(e.target.closest("[data-fx-etapa]")){ e.preventDefault(); S.etapa=""; S.mes=null; manterRolagem(render); } });
 /* Tabela: gasto de cada obra mês a mês (ou de cada material, com uma obra escolhida) */
 /* ---------- entregas por dia ---------- */
 /* Só entregas com custo confirmado, em todas as datas: os filtros do topo não valem aqui. */
@@ -1602,7 +1703,7 @@ function tabelaMensal(s){
   const rows=Object.values(g).sort((a,b)=>b.t-a.t);
   const head=`<div class="cardhead"><div><h2>${porObra?"Gasto de cada obra, mês a mês":"Gasto de cada material desta obra, mês a mês"}</h2><div class="sub">${porObra?"Valor dos materiais entregues em cada obra por mês. Toque numa obra para ver só ela.":"Valor de cada material entregue nesta obra por mês."}${somente()}</div></div></div>`;
   if(!rows.length) return `<section class="card" style="margin-top:16px">${head}<div class="empty"><b>Nenhum gasto neste período</b>A tabela é preenchida quando as entregas são confirmadas no formulário.</div></section>`;
-  const mt=k=>MESES[+k.slice(5,7)-1]+"/"+k.slice(2,4);
+  const mt=k=>(mesFechado(k)?"🔒 ":"")+MESES[+k.slice(5,7)-1]+"/"+k.slice(2,4);
   const tot=ms.map(k=>sum(rows,r=>r.m[k]||0));
   const nome=r=>porObra?`<b title="${esc(obraNome(r.k))}"><i class="sw" style="background:${obraCor(r.k)}"></i>${esc(enderecoCurto(r.k))}</b><small>${r.k==="SEM VÍNCULO"?"":esc(r.k)}</small>`:`<b>${esc(r.mat)}</b><small>${esc(skuTxt(r.k))}</small>`;
   return `<section class="card" style="margin-top:16px">${head}<div class="tw"><table class="mtable"><thead><tr><th>${porObra?"Obra":"Material"}</th>${ms.map(k=>`<th class="n">${mt(k)}</th>`).join("")}<th class="n">Total</th></tr></thead><tbody>
@@ -1633,45 +1734,67 @@ function obraHead(id){
   </section>`;
 }
 /* Quadro do orçamento na ficha da obra: compara com todo o gasto da obra (mesma regra e mesma janela da tela Orçamentos). */
+/* [Função 3] Área construída: mostrada e editada (Admin) ao lado do orçamento. */
+function areaFicha(o){ const a=areaObra(o.id), info=(D.areas||{})[o.id];
+  if(S.areaEd===o.id) return `<form class="area-f" data-areaf="${esc(o.id)}"><label for="areaV">Área construída (m²)</label><span class="area-l"><input id="areaV" data-areav inputmode="decimal" autocomplete="off" value="${a?String(a).replace(".",","):""}" placeholder="Ex.: 120,5" aria-describedby="areaMsg"><button type="submit" class="btn pri">Salvar</button><button type="button" class="btn" data-areax>Cancelar</button></span><small class="oc-ok" id="areaMsg" role="status"></small></form>`;
+  return `<div class="area-v"><span><b>Área construída:</b> ${a?fmtM2(a):"não informada"}${info&&info.por?`<small> · por ${esc(info.por)} em ${esc(info.em)}</small>`:""}</span><button type="button" class="btn oc-ed" data-area="${esc(o.id)}">${a?"Editar área":"Informar área"}</button></div>`; }
 function orcFicha(o){
   const x=orcObras()[o.id], nota=`<small class="ob-q-n">O orçamento compara com todo o gasto da obra, independente do período escolhido no filtro.</small>`;
-  if(x.sit==="SEM") return `<div class="ob-q"><div class="ob-q-top"><b>Orçamento de materiais</b><button type="button" class="btn oc-ed" data-orc="${esc(o.id)}">Definir orçamento</button></div><p class="ob-q-s">Esta obra ainda não tem orçamento</p>${nota}</div>`;
+  if(x.sit==="SEM") return `<div class="ob-q"><div class="ob-q-top"><b>Orçamento de materiais</b><button type="button" class="btn oc-ed" data-orc="${esc(o.id)}">Definir orçamento</button></div><p class="ob-q-s">Esta obra ainda não tem orçamento</p>${nota}${areaFicha(o)}</div>`;
   const u=Math.round(x.usado*100), c=o.pct==null?null:Math.round(o.pct*100);
   return `<div class="ob-q"><div class="ob-q-top"><b>Orçamento de materiais</b><div class="oc-acao">${seloOrc(x.sit)}<button type="button" class="btn oc-ed" data-orc="${esc(o.id)}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 20l1-4L16 5l3 3L8 19z"/><path d="M14 7l3 3"/></svg>Editar</button></div></div>
     <div class="oc-met"><div class="oc-c"><small><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1"/></svg>Orçamento (planejado)</small><b>${brl(x.orc)}</b></div><div class="oc-c"><small>Gasto até agora (custo confirmado)</small><b class="oc-gasto">${brl(x.gasto)}</b></div>
       <div class="oc-c oc-bar"><small>${brl(x.gasto)} gastos de ${brl(x.orc)} orçados${c==null?"":" · "+c+"% concluído"}</small><div class="oc-t"><span style="width:${Math.min(100,u)}%;background:${ORC_SIT[x.sit].cor}"></span>${c==null?"":`<i style="left:${Math.min(100,Math.max(0,c))}%" title="${c}% concluído"></i>`}</div></div>
       <div class="oc-c"><small>Saldo</small><b ${x.saldo<0?'class="neg"':""}>${brl(x.saldo)}</b></div>
-      <div class="oc-c"><small>Projeção do gasto final</small>${x.proj==null?'<span class="oc-n">projeção a partir de 15% concluído</span>':`<b>${brl(x.proj)}</b>`}</div></div>${nota}</div>`;
+      <div class="oc-c"><small>Projeção do gasto final</small>${x.proj==null?'<span class="oc-n">projeção a partir de 15% concluído</span>':`<b>${brl(x.proj)}</b>`}</div></div>${nota}${areaFicha(o)}</div>`;
 }
 /* Etapas da obra (aba ETAPAS da planilha Controle e Planejamento de Obras) */
 const etCls = s => { const k=semAc(s); return /conclu/.test(k)?"ok":/andamento/.test(k)?"info":/paralis/.test(k)?"bad":/verificar/.test(k)?"warn":"off"; };
 function etapasHtml(o){
-  const nomes=D.nomesEtapas||[]; if(!nomes.length||!(o.etapas||[]).length) return "";
+  const nomes=D.nomesEtapas||[]; if(!nomes.length) return "";
+  // [Função 6] custo confirmado TOTAL da obra (desde o início) em cada etapa
+  const Lo=D.lanc.filter(l=>l.obra===o.id&&l.situacao==="CUSTO CONFIRMADO"), g=custoPorEtapa(Lo), tot=sum(Lo,l=>l.valor), area=areaObra(o.id);
+  const extras=ordemEtapas(Object.keys(g)).filter(k=>!nomes.includes(k)&&g[k]);
+  const custo=k=>{ const v=g[k]||0; return `<span class="et-c">${brl(v)}<em>${tot?pct(v/tot):"—"}${area&&v?" · "+m2Txt(v/area):""}</em></span>`; };
+  const detalhe=k=>{ if(S.etObra!==k) return ""; const L=Lo.filter(l=>(l.etapa||ET_SEM)===k).sort((a,b)=>b.data.localeCompare(a.data)), peds=uniq(L.filter(l=>l.pedido).map(l=>l.pedido));
+    return `<div class="et-det" role="region" aria-label="${esc(nomeEtapa(k))}"><b>${esc(nomeEtapa(k))} · ${brl(g[k]||0)}</b><small>${peds.length} ${peds.length===1?"pedido":"pedidos"} · ${L.filter(l=>l.ter).length} ${L.filter(l=>l.ter).length===1?"compra":"compras"} de outros fornecedores</small>${L.length?lancTable(L,false):`<p class="muted">Nenhum custo confirmado nesta etapa.</p>`}</div>`; };
   const p=o.pct==null?null:Math.round(o.pct*100);
   const html=`<div class="etapas"><div class="et-top"><b>Etapas da obra</b>${p==null?"":`<span class="et-pct">${p}% concluído</span>`}</div>
     ${p==null?"":`<div class="et-bar" aria-hidden="true"><span style="width:${Math.min(100,Math.max(0,p))}%"></span></div>`}
-    <ol>${nomes.map((n,i)=>{const st=o.etapas[i]||"";return `<li class="${etCls(st)}" title="${esc(n)}: ${esc(st||"sem informação")}"><span>${esc(n)}</span><small>${esc(st||"—")}</small></li>`}).join("")}</ol></div>`;
-  // [Etapa 3B] Todas "A verificar": recolhidas numa linha.
-  if(!o.etapas.every(s=>semAc(s).trim()==="a verificar")) return html;
+    <ol>${nomes.map((n,i)=>{const st=(o.etapas||[])[i]||"";return `<li class="${etCls(st)}${S.etObra===n?" sel":""}"><button type="button" class="et-b" data-eto="${esc(n)}" aria-expanded="${S.etObra===n}" title="${esc(n)}: ${esc(st||"sem informação")} · ${brl(g[n]||0)}"><span>${esc(n)}</span><small>${esc(st||"—")}</small>${custo(n)}</button></li>`}).join("")}
+    ${extras.concat(g[ET_SEM]?[ET_SEM]:[]).map(k=>`<li class="off et-sem${S.etObra===k?" sel":""}"><button type="button" class="et-b" data-eto="${esc(k)}" aria-expanded="${S.etObra===k}"><span>${esc(nomeEtapa(k))}</span><small>—</small>${custo(k)}</button></li>`).join("")}</ol>
+    ${tot?`<p class="et-nota">Custo confirmado de toda a obra, desde o início: ${brl(tot)}. Toque numa etapa para ver os pedidos e lançamentos dela.</p>`:""}${ordemEtapas(Object.keys(g).concat(nomes)).map(detalhe).join("")}</div>`;
+  // [Etapa 3B] Todas "A verificar" e sem custo: recolhidas numa linha.
+  if(tot||!(o.etapas||[]).length||!o.etapas.every(s=>semAc(s).trim()==="a verificar")) return html;
   return `<details class="et-pend"><summary>Etapas ainda não atualizadas na planilha de obras <span class="ver">ver</span></summary>${html}</details>`;
 }
 
 function rankHtml(){
-  const rows = D.obras.map(o=>{const c=D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)&&l.situacao==="CUSTO CONFIRMADO");return {o,v:sum(c,l=>l.valor),n:c.length}})
+  if(S.cmpModo==="m2") return rankM2Html(); // [Função 3]
+  const rows = D.obras.map(o=>{const c=D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)&&okE(l)&&l.situacao==="CUSTO CONFIRMADO");return {o,v:sum(c,l=>l.valor),n:c.length}})
     .filter(r=>r.v>0||r.o.id===S.obra).sort((a,b)=>b.v-a.v).slice(0,10);
   const max = Math.max(1,...rows.map(r=>r.v)), tot = sum(rows,r=>r.v);
   if(!D.obras.length) return `<div class="empty"><b>Nenhuma obra cadastrada</b>As obras vêm da planilha Controle e Planejamento de Obras.</div>`;
   if(!rows.length) return `<div class="empty"><b>Nenhuma obra com custo neste período</b>As obras aparecem aqui quando recebem entregas com custo confirmado.</div>`;
   const orc=orcObras(), adm=ehAdminZayda();
-  return rows.map(r=>{ const x=orc[r.o.id], comOrc=x&&x.sit!=="SEM", u=comOrc?Math.round(x.usado*100):0;
+  return rows.map(r=>{ const x=alertaOrc(r.o.id), comOrc=!!x, u=comOrc?x.pct:0; // [Função 1] alerta (todo o custo confirmado)
     return `<div class="rk-lin"><button type="button" data-obra="${esc(r.o.id)}" class="${S.obra===r.o.id?"sel":""}" aria-pressed="${S.obra===r.o.id}">
     <span class="nm" title="${esc(obraNome(r.o.id))}">${esc(enderecoCurto(r.o.id))}<small><span class="cd">${esc(r.o.id)}</span>${esc(r.o.cliente||"")}</small></span><span class="v" ${tA("cmp|"+r.o.id,r.v)}>${brl(r.v)}</span>
-    ${comOrc?`<span class="track orc"><span ${bA("cmp|"+r.o.id,u)} style="width:${Math.min(100,u)}%;background:${corOrc(u)}"></span></span>
-    <span class="pct"><b style="color:${corOrc(u)}">${u>999?"mais de 999":u}% do orçamento</b> · ${brl(x.gasto)} de ${brl(x.orc)}</span>`
+    ${comOrc?`<span class="track orc"><span ${bA("cmp|"+r.o.id,u)} style="width:${Math.min(100,u)}%;background:${ALERTA_NIV[x.nivel].cor}"></span></span>
+    <span class="pct"><span class="al-ico ${ALERTA_NIV[x.nivel].c}" aria-hidden="true">${ALERTA_NIV[x.nivel].i}</span><b>${pctTxt(u)} do orçamento</b> · ${ALERTA_NIV[x.nivel].t} · ${brl(x.gasto)} de ${brl(x.orc)}</span>`
     :`<span class="track"><span ${bA("cmp|"+r.o.id,r.v)} style="width:${(r.v/max*100).toFixed(1)}%"></span></span>
     <span class="pct">${r.n} ${r.n===1?"entrega":"entregas"} · <span ${tA("cmpp|"+r.o.id,tot?r.v/tot:0,"pct")}>${pct(tot?r.v/tot:0)}</span> do total</span>`}</button>${!comOrc&&adm?`<button type="button" class="rk-def" data-orc="${esc(r.o.id)}">Definir orçamento</button>`:""}</div>`; }).join("");
 }
 
+/* [Função 3] Comparativo em R$ por m²: custo confirmado total (desde o início) ÷ área. Obras sem área no fim, com "Informar área". */
+function rankM2Html(){ const adm=!document.body.classList.contains("nao-admin");
+  const obras=D.obras.filter(o=>gastoTotal(o.id)>0||o.id===S.obra), com=obras.filter(o=>custoM2(o.id)!=null).sort((a,b)=>custoM2(b.id)-custoM2(a.id)), sem=obras.filter(o=>custoM2(o.id)==null);
+  if(!obras.length) return `<div class="empty"><b>Nenhuma obra com custo ainda</b>O custo por m² aparece quando a obra tem custo confirmado e área informada.</div>`;
+  const max=Math.max(1,...com.map(o=>custoM2(o.id)));
+  return com.map(o=>{ const m=custoM2(o.id); return `<div class="rk-lin"><button type="button" data-obra="${esc(o.id)}" class="${S.obra===o.id?"sel":""}" aria-pressed="${S.obra===o.id}">
+    <span class="nm" title="${esc(obraNome(o.id))}">${esc(enderecoCurto(o.id))}<small><span class="cd">${esc(o.id)}</span>${esc(o.cliente||"")}</small></span><span class="v">${m2Txt(m)}</span>
+    <span class="track"><span style="width:${(m/max*100).toFixed(1)}%"></span></span><span class="pct">${brl(gastoTotal(o.id))} ÷ ${fmtM2(areaObra(o.id))} · ${obraConcluida(o)?"concluída":"até agora"}</span></button></div>`; }).join("")
+   +(sem.length?`<div class="rk-sem"><b>Sem área informada (${sem.length})</b>${sem.map(o=>`<div class="rk-sem-l"><span>${esc(o.id)} · ${esc(enderecoCurto(o.id))}</span>${adm?`<button type="button" class="rk-def" data-area="${esc(o.id)}">Informar área</button>`:"<small>Informar área</small>"}</div>`).join("")}</div>`:""); }
 /* Todos os materiais do período (mesmo filtro do card), do maior custo para o menor. */
 function matGrupos(s){
   const g = {}; s.conf.forEach(l=>{const k=l.sku; g[k]=g[k]||{sku:k,mat:l.material,un:l.un,q:0,v:0,ter:!!l.ter}; g[k].q+=l.qtd; g[k].v+=l.valor});
@@ -1700,7 +1823,7 @@ function lancTable(rows, full){
   return `<div class="tw"><table><thead><tr><th>Data</th><th>Material</th><th class="n">Qtd</th><th class="n">Custo unit.</th><th class="n">Valor</th><th>Situação</th><th>Obra</th><th>Pedido</th>${full?"<th>Responsável</th>":""}</tr></thead><tbody>
   ${rows.map(l=>`<tr data-lanc="${esc(l.id)}" title="Lançamento ${esc(l.id)}"><td style="white-space:nowrap">${dbr(l.data)}</td><td class="mat">${l.ter?`${esc(l.descricao)}<small>${esc(l.material)}</small>`:`${esc(l.material)}<small>${esc(l.sku)}</small>`}${l.alertas?`<span class="alert">${esc(l.alertas)}</span>`:""}${full&&l.obs?`<small style="font-family:var(--f-ui)">${esc(l.obs)}</small>`:""}</td>
   <td class="n">${l.ter&&!l.qtd?'<span class="muted">—</span>':qtd(l.qtd)+' <span class="muted">'+esc(l.un)+'</span>'}</td><td class="n">${l.custo==null?'<span class="muted">—</span>':brl(l.custo)}</td><td class="n"><b>${l.valor==null?'<span class="muted">—</span>':brl(l.valor)}</b></td>
-  <td>${sitPill(l.situacao)}</td><td>${obraCel(l.obra)}</td><td class="mono">${l.ter?`<span class="lc-forn">${esc(l.fornecedor)}<small class="etq-ter">outro fornecedor</small></span>`:l.pedido?esc(l.pedido):'<span class="pill info">Excepcional</span>'}</td>${full?`<td>${esc(l.resp)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
+  <td>${sitPill(l.situacao)}</td><td>${obraCel(l.obra)}${etqEtapa(l.etapa)}</td><td class="mono">${l.ter?`<span class="lc-forn">${esc(l.fornecedor)}<small class="etq-ter">outro fornecedor</small></span>`:l.pedido?esc(l.pedido):'<span class="pill info">Excepcional</span>'}</td>${full?`<td>${esc(l.resp)}</td>`:""}</tr>`).join("")}</tbody></table></div>`;
 }
 
 /* ---------- orçamento de materiais ---------- */
@@ -1716,6 +1839,55 @@ function orcObras(){
     out[o.id]={o,gasto,orc,data:od?od.data:"",obs:od?od.obs:"",usado:orc?gasto/orc:0,saldo:orc==null?null:orc-gasto,proj,sit}; });
   return out;
 }
+/* [Função 1] Alerta de orçamento: custo confirmado TOTAL da obra (desde o início, loja BSJ + outros fornecedores conferidos), sem o filtro de período.
+   Limites vêm do servidor (ALERTA_ORC em Controle.js). Previsão: custo confirmado + o que ainda falta entregar (pelo preço do pedido). */
+const ALERTA_NIV={DENTRO:{t:"Dentro do orçamento",c:"ok",i:"✓",cor:"var(--brand-2)"},ATENCAO:{t:"Atenção",c:"warn",i:"!",cor:"var(--amber)"},ESTOURADO:{t:"Estourado",c:"bad",i:"▲",cor:"var(--red)"}};
+let ALERTA_CACHE=null;
+function alertasOrc(){
+  const chave=JSON.stringify(D.orcamentos||{})+"|"+JSON.stringify(D.limitesOrc||{});
+  if(ALERTA_CACHE&&ALERTA_CACHE.lanc===D.lanc&&ALERTA_CACHE.itens===D.itens&&ALERTA_CACHE.chave===chave) return ALERTA_CACHE.m;
+  const L=Object.assign({atencao:0.8,estouro:1},D.limitesOrc||{}), g={}, ae={}, m={};
+  D.lanc.forEach(l=>{ if(l.situacao==="CUSTO CONFIRMADO") g[l.obra]=(g[l.obra]||0)+(l.valor||0); });
+  D.itens.forEach(i=>{ if(i.precoRef!=null&&i.saldo>0) ae[i.obra]=(ae[i.obra]||0)+i.saldo*i.precoRef; });
+  D.obras.forEach(o=>{ const od=(D.orcamentos||{})[o.id], orc=od&&od.valor>0?od.valor:null; if(orc==null) return;
+    const gasto=Math.round((g[o.id]||0)*100)/100, u=gasto/orc, aEnt=Math.round((ae[o.id]||0)*100)/100, prev=gasto+aEnt;
+    m[o.id]={orc,gasto,usado:u,pct:Math.round(u*100),saldo:orc-gasto,passou:Math.max(0,gasto-orc),aEntregar:aEnt,previsto:prev,vaiPassar:aEnt>0&&prev>orc,
+      nivel:u>=L.estouro?"ESTOURADO":u>=L.atencao?"ATENCAO":"DENTRO"}; });
+  ALERTA_CACHE={lanc:D.lanc,itens:D.itens,chave,m}; return m;
+}
+const alertaOrc = id => alertasOrc()[id]||null;
+/* [Função 4] Fechamento do mês. A fotografia usa as mesmas regras do custo confirmado do painel (todas as obras, loja BSJ + outros fornecedores conferidos).
+   A cada carga, o mês fechado é recalculado e comparado com a fotografia. */
+const ETQ_SEM_ETAPA="Sem etapa informada";
+function fotoMes(k){ const L=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&ym(l.data)===k), r=v=>Math.round(v*100)/100, porObra={}, porEtapa={};
+  L.forEach(l=>{ porObra[l.obra]=r((porObra[l.obra]||0)+l.valor); const e=l.etapa||ETQ_SEM_ETAPA; porEtapa[e]=r((porEtapa[e]||0)+l.valor); });
+  return {mes:k,total:r(sum(L,l=>l.valor)),bsj:r(sum(L.filter(l=>!l.ter),l=>l.valor)),ter:r(sum(L.filter(l=>l.ter),l=>l.valor)),nEnt:L.filter(l=>!l.ter).length,nLanc:L.filter(l=>l.ter).length,porObra,porEtapa}; }
+const fechLista = () => (D&&D.fechamentos)||[];
+function estadoMes(k){ const l=fechLista().filter(f=>f.mes===k), u=l[l.length-1]||null, f=[...l].reverse().find(x=>x.tipo==="FECHAMENTO")||null;
+  return {fechado:!!u&&u.tipo==="FECHAMENTO",ultimo:u,fech:u&&u.tipo==="FECHAMENTO"?u:f,hist:l}; }
+const mesFechado = k => estadoMes(k).fechado;
+const cadeado = k => mesFechado(k)?`<span class="cad" title="Mês fechado" aria-label="mês fechado">🔒</span>`:"";
+/* Diferença entre o mês fechado e os números de agora: total e as obras que mudaram. */
+function difMes(k){ const e=estadoMes(k); if(!e.fechado) return null; const f=e.ultimo, a=fotoMes(k), obras=[];
+  uniq(Object.keys(f.porObra||{}).concat(Object.keys(a.porObra))).forEach(o=>{ const x=(f.porObra||{})[o]||0, y=a.porObra[o]||0; if(Math.abs(x-y)>=0.005) obras.push({obra:o,antes:x,agora:y}); });
+  if(Math.abs(f.total-a.total)<0.005&&!obras.length) return null;
+  return {mes:k,fechado:f.total,atual:a.total,dif:Math.round((a.total-f.total)*100)/100,obras}; }
+const mesesAlterados = () => uniq(fechLista().map(f=>f.mes)).map(difMes).filter(Boolean);
+/* [Função 3] Custo por m²: custo confirmado TOTAL da obra (desde o início) ÷ área construída. Em obra em andamento o valor é parcial ("até agora"). */
+let GASTO_CACHE=null;
+function gastoTotal(id){ if(!GASTO_CACHE||GASTO_CACHE.lanc!==D.lanc){ const g={}; D.lanc.forEach(l=>{ if(l.situacao==="CUSTO CONFIRMADO") g[l.obra]=(g[l.obra]||0)+(l.valor||0); }); GASTO_CACHE={lanc:D.lanc,g}; } return GASTO_CACHE.g[id]||0; }
+const areaObra = id => { const a=(D.areas||{})[id]; return a&&a.m2>0?a.m2:null; };
+const custoM2 = id => { const a=areaObra(id); return a?gastoTotal(id)/a:null; };
+const m2Txt = v => brl(v)+"/m²";
+const obraConcluida = o => /CONCLU/i.test(String(o&&o.status||""));
+const notaParcial = o => obraConcluida(o)?"custo total ÷ área":"parcial: obra em andamento";
+const fmtM2 = v => Number(v).toLocaleString("pt-BR",{maximumFractionDigits:2})+" m²";
+const seloAlerta = a => a?`<span class="pill ${ALERTA_NIV[a.nivel].c} al-selo"><span aria-hidden="true">${ALERTA_NIV[a.nivel].i}</span> ${ALERTA_NIV[a.nivel].t}</span>`:"";
+const pctTxt = u => (u>999?"mais de 999":u)+"%";
+/* Barra + texto: "62% do orçamento" ou "112% do orçamento · passou R$ 1.200,00". */
+const barraAlerta = a => `<span class="al-bar"><span class="oc-t" role="img" aria-label="${pctTxt(a.pct)} do orçamento"><span style="width:${Math.min(100,Math.max(0,a.pct))}%;background:${ALERTA_NIV[a.nivel].cor}"></span></span><small>${pctTxt(a.pct)} do orçamento${a.passou>0?" · passou "+brl(a.passou):""}</small></span>`;
+const previsaoAlerta = a => a&&a.vaiPassar?`<span class="al-prev"><span aria-hidden="true">⚠</span> ${a.passou>0?"Com o que falta entregar, o gasto vai a ":"Vai passar do orçamento quando o restante for entregue: previsto "}${brl(a.previsto)} (${pctTxt(Math.round(a.previsto/a.orc*100))})</span>`:"";
+const contaAlerta = niv => D.obras.filter(o=>okO(o.id)).filter(o=>{ const a=alertaOrc(o.id); return a&&a.nivel===niv; }).length;
 /* Frase do ritmo: compara o % usado do orçamento com o % concluído da obra. */
 function orcDiag(x,u,c){
   if(!c) return '<small class="oc-diag">Obra sem etapas concluídas — acompanhe pelo gasto</small>';
@@ -1762,32 +1934,38 @@ function vObras(){
   if(!D.obras.length) return `<div class="card empty"><b>Nenhuma obra cadastrada</b>As obras vêm da planilha Controle e Planejamento de Obras.</div>`;
   const sts=uniq(D.obras.map(stTxt)).sort((a,b)=>a.localeCompare(b,"pt-BR"));
   const nSt={}; D.obras.forEach(o=>{nSt[stTxt(o)]=(nSt[stTxt(o)]||0)+1});
+  // [Função 1] Atalho das Pendências ("alerta:ESTOURADO" / "alerta:ATENCAO") vira o filtro de orçamento; vale até sair da tela.
+  if(S.obRota!==S.rota){ S.obRota=S.rota; S.obAlerta=""; if(/^alerta:/.test(S.sit)){ S.obAlerta=S.sit.slice(7); S.sit=""; } }
   let lista=D.obras;
   if(S.busca){const m=casa(S.busca); lista=lista.filter(o=>m(o.id+" "+(obraNome(o.id))+" "+(o.cliente||o.empreendimento||"")))}
   if(S.sit) lista=lista.filter(o=>stTxt(o)===S.sit);
+  if(S.obAlerta) lista=lista.filter(o=>{ const a=alertaOrc(o.id); return S.obAlerta==="SEM"?!a:S.obAlerta==="ALERTA"?a&&a.nivel!=="DENTRO":a&&a.nivel===S.obAlerta; });
   // Ordenação: custo = o mesmo do cartão (confirmado no período); obras sem % de etapas ficam no fim.
   const cod=(a,b)=>a.id.localeCompare(b.id,"pt-BR",{numeric:true});
-  const cus={}; lista.forEach(o=>{cus[o.id]=sum(D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)&&l.situacao==="CUSTO CONFIRMADO"),l=>l.valor)});
+  const cus={}; lista.forEach(o=>{cus[o.id]=sum(D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)&&okE(l)&&l.situacao==="CUSTO CONFIRMADO"),l=>l.valor)});
   const pctOrd=dir=>(a,b)=>(a.pct==null)-(b.pct==null)||dir*((a.pct||0)-(b.pct||0))||cod(a,b);
-  const ORD={codigo:cod, maiorCusto:(a,b)=>cus[b.id]-cus[a.id]||cod(a,b), menorCusto:(a,b)=>cus[a.id]-cus[b.id]||cod(a,b), maisEtapas:pctOrd(-1), menosEtapas:pctOrd(1)};
+  const usoOrc=o=>{ const a=alertaOrc(o.id); return a?a.usado:-1; }; // sem orçamento vai para o fim
+  const ORD={codigo:cod, maiorCusto:(a,b)=>cus[b.id]-cus[a.id]||cod(a,b), menorCusto:(a,b)=>cus[a.id]-cus[b.id]||cod(a,b), maisEtapas:pctOrd(-1), menosEtapas:pctOrd(1), maisOrc:(a,b)=>usoOrc(b)-usoOrc(a)||cod(a,b), maisM2:(a,b)=>(custoM2(b.id)??-1)-(custoM2(a.id)??-1)||cod(a,b)};
   lista=[...lista].sort(ORD[S.ord]||cod);
   const tool=`<div class="toolbar obtool"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar código, rua ou cliente (ex.: OB-35, Santa Cecília, Alan)" value="${esc(S.busca)}" aria-label="Buscar obras">
     <select id="sitSel" aria-label="Status da obra"><option value="">Todos os status</option>${sts.map(x=>`<option value="${esc(x)}" ${S.sit===x?"selected":""}>${esc(x)} (${nSt[x]})</option>`).join("")}</select>
-    <select id="ordSel" aria-label="Ordenar por">${[["codigo","Código"],["maiorCusto","Maior gasto no período"],["menorCusto","Menor custo"],["maisEtapas","Mais etapas concluídas"],["menosEtapas","Menos etapas concluídas"]].map(([k,t])=>`<option value="${k}" ${(S.ord||"codigo")===k?"selected":""}>Ordenar por: ${t}</option>`).join("")}</select>
-    ${S.busca||S.sit||(S.ord&&S.ord!=="codigo")?`<button type="button" class="limpar" id="limparObras" title="Limpar busca, status e ordenação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar</button>`:""}
+    <select id="ordSel" aria-label="Ordenar por">${[["codigo","Código"],["maiorCusto","Maior gasto no período"],["menorCusto","Menor custo"],["maisEtapas","Mais etapas concluídas"],["menosEtapas","Menos etapas concluídas"],["maisOrc","Maior % do orçamento usado"],["maisM2","Maior custo por m²"]].map(([k,t])=>`<option value="${k}" ${(S.ord||"codigo")===k?"selected":""}>Ordenar por: ${t}</option>`).join("")}</select>
+    <select id="orcAlSel" aria-label="Orçamento">${[["","Todo orçamento"],["ESTOURADO","Estourado"],["ATENCAO","Atenção"],["ALERTA","Atenção ou estourado"],["DENTRO","Dentro do orçamento"],["SEM","Sem orçamento"]].map(([k,t])=>`<option value="${k}" ${(S.obAlerta||"")===k?"selected":""}>${t}</option>`).join("")}</select>
+    ${S.busca||S.sit||S.obAlerta||(S.ord&&S.ord!=="codigo")?`<button type="button" class="limpar" id="limparObras" title="Limpar busca, status e ordenação"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>Limpar</button>`:""}
     <span class="muted" style="align-self:center">${lista.length} de ${D.obras.length} obras</span><button type="button" class="btn" data-csv="obras">Baixar CSV</button></div>`;
   if(!lista.length) return tool+`<div class="card empty"><b>Nenhuma obra encontrada</b>Confira o código, a rua ou o nome do cliente.</div>`;
   const orcS=orcObras();
   const cartao=o=>{
-    const L=D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)), conf=L.filter(l=>l.situacao==="CUSTO CONFIRMADO");
+    const L=D.lanc.filter(l=>l.obra===o.id&&inP(l.data)&&okS(l.sku)&&okOr(l)&&okE(l)), conf=L.filter(l=>l.situacao==="CUSTO CONFIRMADO");
     const I=D.itens.filter(i=>i.obra===o.id&&inP(i.data)&&okS(i.sku));
     const ult=L.filter(l=>l.situacao!=="CANCELADO").map(l=>l.data).sort().pop();
     return `<button type="button" class="card ob" data-obra="${esc(o.id)}">
       <div class="t1"><span class="id">${esc(o.id)}</span><span class="pill ${stCls(o.status)}">${esc(stTxt(o))}</span></div>
       <h3 style="font-size:15px" title="${esc(obraNome(o.id))}">${esc(enderecoCurto(o.id))}</h3><div class="emp">${esc(o.cliente||o.empreendimento||"")}${(o.fase||o.cidade)?" · "+esc(o.fase||o.cidade):""}</div>
-      ${orcS[o.id].sit==="SEM"?"":(x=>{const u=Math.round(x.usado*100);return `<div class="ob-orc">${seloOrc(x.sit)}<span class="ob-orcb"><span class="oc-t"><span style="width:${Math.min(100,u)}%;background:${corOrc(u)}"></span></span><small>${u>999?"mais de 999":u}% do orçamento</small></span></div>`;})(orcS[o.id])}
+      ${(a=>a?`<div class="ob-orc">${seloAlerta(a)}${barraAlerta(a)}</div>${previsaoAlerta(a)}`:"")(alertaOrc(o.id))}
       ${o.pct==null?"":`<div class="obpct"><div class="et-bar"><span style="width:${Math.min(100,Math.max(0,Math.round(o.pct*100)))}%"></span></div><small>${Math.round(o.pct*100)}% das etapas concluídas</small></div>`}
       <div class="big${conf.length?"":" zero"}" ${tA("ob|"+o.id,sum(conf,l=>l.valor))}>${brl(sum(conf,l=>l.valor))}</div><div class="muted">${conf.length?"custo confirmado no período":"Nenhum custo confirmado neste período"}</div>
+      ${(m=>m==null?"":`<div class="ob-m2"><b>${m2Txt(m)}</b> até agora <small>(${fmtM2(areaObra(o.id))} · todo o custo)</small></div>`)(custoM2(o.id))}
       <div class="stats"><div><b>${conf.length}</b>entregas</div><div><b>${uniq(I.map(i=>i.pedido)).length}</b>solicitações</div><div><b>${ult?dbr(ult).slice(0,5):"—"}</b>última entrega</div></div>
     </button>`};
   return tool+`<section class="grid obras">${lista.map(cartao).join("")}</section>`;
@@ -1830,7 +2008,7 @@ function vSol(){
   const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim]); if(chave!==S.solChave){S.solChave=chave;S.solN=50;}
   const seloSit=p=>!p.parcial?sitPill(p.sit):`<span class="pill parc">${ico("alert")}Parcial · atenção</span>${p.sit==="OBRA NÃO IDENTIFICADA"?sitPill(p.sit):""}`;
   const faltaBox=p=>`<div class="fbox" role="alert"><b>${ico("alert")}Materiais não entregues</b><div class="fl cab"><span>Material</span><span>Pedido</span><span>Entregue</span><span>Falta</span></div>${p.pend.map(i=>`<div class="fl"><span>${esc(i.material)}</span><span data-r="Pedido:">${qtd(i.qtdSol)} ${esc(i.un)}</span><span data-r="Entregue:">${qtd(i.entregue)} ${esc(i.un)}</span><strong data-r="Falta:">${qtd(i.saldo)} ${esc(i.un)}</strong></div>`).join("")}</div>`;
-  const tool = `<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações"><button type="button" class="btn" data-csv="sol">Baixar CSV</button></div>`;
+  const tool = `<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar pedido, material, atendente ou endereço" value="${esc(S.busca)}" aria-label="Buscar solicitações">${selEtapa()}<button type="button" class="btn" data-csv="sol">Baixar CSV</button></div>`;
   const chip=(v,t,n)=>`<button type="button" data-solsit="${v}" aria-pressed="${S.sit===v}">${t} <b>${n}</b></button>`;
   const chips=`<div class="chips" role="group" aria-label="Situação da entrega">${chip("","Todas",base.length)}${[["A ENTREGAR","A entregar"],["PARCIAL_FALTA","Parcial"],["COTACAO","Sem preço"],["ENTREGUE","Entregue"],["OBRA NÃO IDENTIFICADA","Sem obra"],["PEDIDO_ENCERRADO","Encerrados"]].map(([v,t])=>chip(v,t,base.filter(SIT_F[v]).length)).join("")}${chip("PEDIDO_CANCELADO","Cancelados",cancelados.length)}${S.sit==="FALTA"?chip("FALTA","Ainda falta entregar",base.filter(SIT_F.FALTA).length):""}</div>`;
   const valor=p=>sum(p.its,i=>i.valorRef), resumo=S.sit==="PEDIDO_CANCELADO"?`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido cancelado":"pedidos cancelados"}</span></div>`:`<div class="sol-res"><span><b>${list.length}</b> ${list.length===1?"pedido":"pedidos"}</span><span>Valor total: <b>${brl(sum(list,valor))}</b></span><span><b>${list.filter(SIT_F["A ENTREGAR"]).length}</b> a entregar</span><span><b>${list.filter(p=>p.parcial).length}</b> ${list.filter(p=>p.parcial).length===1?"parcial":"parciais"}</span></div>`;
@@ -1849,7 +2027,7 @@ function vSol(){
   const dadosPed=p=>{const P=(D.pedidos||{})[p.id]||{},em=String(P.email||"");
    return `<div class="p-dados">Usuário: <b title="${esc(em||"Sem e-mail")}" data-email="${esc(em)}">${esc(usuarioPedido(em))}</b> · <b>${criadoEm(p.id)?dataHoraBr(criadoEm(p.id)):dbr(p.f.data)}</b> · Nº do pedido: <b class="cod" title="${esc(p.id)}">${esc(codigoCurto(p.id))}</b> · Atendente: <b>${esc(p.f.atendente||"—")}</b> · Entregador: <b>${esc(p.f.entregador||"—")}</b> · <b>${p.nTodos} ${p.nTodos===1?"material":"materiais"}</b>${p.f.rev>=2?`<span class="rev" title="Revisão vigente">R${p.f.rev}</span>`:""}</div>`;};
   const linhaPed=(p,atn)=>`<details class="ped ped2" data-id="${esc(p.id)}"><summary>
-     <div class="p-main"><div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted" title="${esc(p.f.obraTexto)}">“${esc(p.f.obraTexto)}”</span>`:`<a class="lc-ob ped-ob" href="#painel" data-pedobra="${esc(p.f.obra)}" title="Abrir a obra ${esc(p.f.obra)}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</a>`}</div>
+     <div class="p-main"><div class="p-obra">${p.f.obra==="SEM VÍNCULO"?`<span class="pill bad">Sem obra</span> <span class="muted" title="${esc(p.f.obraTexto)}">“${esc(p.f.obraTexto)}”</span>`:`<a class="lc-ob ped-ob" href="#painel" data-pedobra="${esc(p.f.obra)}" title="Abrir a obra ${esc(p.f.obra)}"><b>${esc(p.f.obra)}</b> ${esc(obraCurta(p.f.obra))}</a>`}${etqEtapa(p.f.etapa)}</div>
        ${p.parcial?`<div class="p-ent"><small>${p.nTodos-p.pend.length} de ${p.nTodos} itens entregues</small><i><u style="width:${((p.nTodos-p.pend.length)/p.nTodos*100).toFixed(0)}%"></u></i></div>`:""}${dadosPed(p)}</div>
      <div class="p-val"><b>${brl(valor(p))}</b></div>
      <div class="p-sit${atn?" atn":""}">${atn?seloAtn(p):seloSit(p)}</div><button type="button" class="pr" data-print="${esc(p.id)}" title="Imprimir o pedido ${esc(codigoCurto(p.id))}" aria-label="Imprimir o pedido ${esc(codigoCurto(p.id))}">${ico("print")}</button></summary>
@@ -1895,7 +2073,7 @@ function vLanc(){
   const chave=JSON.stringify([S.busca,S.sit,S.obra,S.sku,S.ini,S.fim,S.lcOrd]); if(chave!==S.lcChave){S.lcChave=chave;S.lcN=50;}
   const tool=`<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar lançamento, material ou pedido" value="${esc(S.busca)}" aria-label="Buscar lançamentos">
     <select id="sitSel" aria-label="Situação"><option value="">Todas as situações</option>${["CUSTO CONFIRMADO","PENDENTE DE CUSTO","AGUARDANDO CONFERÊNCIA","CANCELADO","COM AVISO"].map(x=>`<option value="${x}" ${S.sit===x?"selected":""}>${{"CUSTO CONFIRMADO":"Custo confirmado","PENDENTE DE CUSTO":"Pendente de custo","AGUARDANDO CONFERÊNCIA":"A conferir","CANCELADO":"Cancelado","COM AVISO":"Com aviso"}[x]}</option>`).join("")}</select>
-    <a class="btn" id="addLanc" href="#" target="_blank" rel="noopener">Abrir planilha</a><button type="button" class="btn" id="lcCsv" ${L.length?"":"disabled"}>Baixar CSV</button></div>`;
+    ${selEtapa()}<a class="btn" id="addLanc" href="#" target="_blank" rel="noopener">Abrir planilha</a><button type="button" class="btn" id="lcCsv" ${L.length?"":"disabled"}>Baixar CSV</button></div>`;
   const resumo=`<div class="lc-res"><div><small>Total (custo confirmado)</small><b ${tA("lc",total)}>${brl(total)}</b></div><div><small>Entregas</small><b>${ativos.length}</b></div><div><small>Obras</small><b>${uniq(ativos.map(l=>l.obra).filter(o=>o!=="SEM VÍNCULO")).length}</b></div><div><small>Materiais diferentes</small><b>${uniq(ativos.map(l=>l.sku)).length}</b></div></div>`;
   const cab=`<div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">As entregas confirmadas no formulário entram aqui sozinhas; as canceladas ficam visíveis e não somam.${somente()}</div></div></div>`;
   if(!L.length) return tool+`<section class="card">${cab}${resumo}<div class="empty"><b>Nenhum lançamento neste período</b>Ajuste o período ou a obra nos filtros acima.</div></section>`;
@@ -1905,7 +2083,7 @@ function vLanc(){
   const linha=l=>{ const r=l.ter?"":partesEntrega(l.obs).nome;
     return `<tr data-lanc="${esc(l.id)}" title="${esc(l.id)}">${ag?"":`<td data-r="Data" style="white-space:nowrap">${dbr(l.data)}</td>`}<td class="mat" ${l.obs?`title="${esc(l.obs)}"`:""}>${l.ter?`${esc(l.descricao)}<small>${esc(l.material)}</small>`:`${esc(l.material)}<small>${esc(l.sku)}</small>`}${l.alertas?`<span class="alert">${esc(l.alertas)}</span>`:""}</td>
     <td class="n" data-r="Qtd">${l.ter&&!l.qtd?'<span class="muted">—</span>':qtd(l.qtd)+' <span class="muted">'+esc(l.un)+'</span>'}</td><td class="n" data-r="Custo unit.">${l.custo==null?'<span class="muted">—</span>':brl(l.custo)}</td><td class="n" data-r="Valor"><b>${l.valor==null?'<span class="muted">—</span>':brl(l.valor)}</b></td>
-    <td data-r="Situação">${sitPill(l.situacao)}</td><td class="lc-obc" data-r="Obra">${l.obra==="SEM VÍNCULO"?'<span class="pill bad">Sem obra</span>':`<a class="lc-ob ped-ob" href="#painel" data-pedobra="${esc(l.obra)}" title="${esc("Abrir a obra "+l.obra+" · "+obraNome(l.obra))}"><b>${esc(l.obra)}</b> ${esc(obraCurta(l.obra))}</a>`}</td>
+    <td data-r="Situação">${sitPill(l.situacao)}</td><td class="lc-obc" data-r="Obra">${l.obra==="SEM VÍNCULO"?'<span class="pill bad">Sem obra</span>':`<a class="lc-ob ped-ob" href="#painel" data-pedobra="${esc(l.obra)}" title="${esc("Abrir a obra "+l.obra+" · "+obraNome(l.obra))}"><b>${esc(l.obra)}</b> ${esc(obraCurta(l.obra))}</a>`}${etqEtapa(l.etapa)}</td>
     <td class="mono lc-pedc" data-r="Pedido">${l.ter?`<span class="lc-forn">${esc(l.fornecedor)}<small class="etq-ter">outro fornecedor</small></span>`:!l.pedido?'<span class="pill info">Excepcional</span>':peds.has(l.pedido)?`<a class="lc-ped" href="#solicitacoes" data-lcped="${esc(l.pedido)}" title="${esc(l.pedido)}">${esc(codigoCurto(l.pedido))}</a>`:`<span title="${esc(l.pedido)}">${esc(codigoCurto(l.pedido))}</span>`}</td><td data-r="Recebido por">${r?esc(r):'<span class="muted">—</span>'}</td></tr>`; };
   const vis=L.slice(0,S.lcN), dias=ag?Object.fromEntries(Object.entries(relGrupo(L,l=>l.data))):null; let ultimoDia=null;
   const corpo=vis.map(l=>{ let c=""; if(ag&&l.data!==ultimoDia){ ultimoDia=l.data; const a=dias[l.data], n=a.filter(valido).length;
@@ -1939,7 +2117,7 @@ document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.tar
 function drawChart(){
   const el=$("chart"); if(!el) return;
   const ms=months(); const W=Math.max(320,el.clientWidth), H=280, L=58, R=8, T=22, B=34;
-  const conf=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&okO(l.obra)&&okS(l.sku)&&okOr(l)&&ms.includes(ym(l.data)));
+  const conf=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&okO(l.obra)&&okS(l.sku)&&okOr(l)&&okE(l)&&ms.includes(ym(l.data)));
   const chave=l=>S.obra?(l.cat||"Outros"):l.obra;
   const tot={}; conf.forEach(l=>{tot[chave(l)]=(tot[chave(l)]||0)+l.valor});
   let keys=Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
@@ -1980,13 +2158,13 @@ function drawChart(){
     g+=`<g class="col" style="${dl};transform-origin:0 ${T+ih}px">${col}</g>`;
     if(d.t) g+=`<text class="tot fade" data-stt="${d.k}" ${tA("tot|"+d.k,d.t,"k")} style="${dl}" x="${cx}" y="${topo-6}" text-anchor="middle">${brlK(d.t)}</text>`;
     if(on&&bs.length) g+=`<rect class="fade" data-mes="${d.k}" x="${x0-3}" y="${topo-3}" width="${gw+6}" height="${T+ih-topo+3}" rx="5" fill="none" style="${dl};stroke:var(--ink-3);stroke-width:1"/>`;
-    g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`;
+    g+=`<text class="month ${on?"on":""}" x="${cx}" y="${H-10}" text-anchor="middle">${mesFechado(d.k)?"🔒 ":""}${MESES[+d.k.slice(5,7)-1]}${ms.length>1&&(i===0||d.k.slice(5)==="01")?" "+d.k.slice(2,4):""}</text>`; // [Função 4] cadeado no mês fechado
     g+=`<rect class="hit" data-m="${d.k}" x="${L+slot*i}" y="${T}" width="${slot}" height="${ih+B}" aria-label="${MESES[+d.k.slice(5,7)-1]} ${d.k.slice(0,4)}"/>`;
   });
   el.innerHTML=`<svg ${GRAF_ANIM?'class="cresce" ':""}viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="${S.obra?"Gasto mensal desta obra por categoria":"Gasto mensal por obra"}"><defs><pattern id="faixaOutros" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" style="fill:var(--outros-2)"/><rect width="3" height="6" style="fill:var(--outros)"/></pattern></defs>${g}</svg><div class="tip" id="ctip" hidden></div>`;
   const sel=data.find(d=>d.k===S.mes);
   const linhas=keys.map((k,ki)=>({k,ki,v:sel.v[k]})).filter(r=>r.v).sort(outrosPorUltimo), maiorL=Math.max(...linhas.map(r=>r.v),0);
-  $("chartDet").innerHTML=`<b>${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk${r.k==="__OUTROS"?" outros":abrivel(r.k)?" ir":""}" data-ki="${r.ki}"${r.k==="__OUTROS"?` tabindex="0" role="button" title="${esc(rot(r.k,sel.outros))}"`:abrivel(r.k)?` data-irob="${esc(r.k)}" tabindex="0" role="link" title="${esc("Abrir a obra "+r.k)}"`:` title="${esc(rot(r.k,sel.outros))}"`}><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${r.k==="__OUTROS"?'class="faixa" ':""}${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/maiorL*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
+  $("chartDet").innerHTML=`<b>${cadeado(sel.k)}${MESES[+sel.k.slice(5,7)-1]} ${sel.k.slice(0,4)}<span ${tA("rkt|"+sel.k,sel.t)}>${brl(sel.t)}</span></b>`+(linhas.length?`<div data-lista="rk">${linhas.map(r=>`<div class="rk${r.k==="__OUTROS"?" outros":abrivel(r.k)?" ir":""}" data-ki="${r.ki}"${r.k==="__OUTROS"?` tabindex="0" role="button" title="${esc(rot(r.k,sel.outros))}"`:abrivel(r.k)?` data-irob="${esc(r.k)}" tabindex="0" role="link" title="${esc("Abrir a obra "+r.k)}"`:` title="${esc(rot(r.k,sel.outros))}"`}><i style="background:${cor(r.k,r.ki)}"></i><em>${esc(rot(r.k,sel.outros))}</em><div class="rb"><i ${r.k==="__OUTROS"?'class="faixa" ':""}${bA("rk|"+sel.k+"|"+r.k,r.v)} style="width:${(r.v/maiorL*100).toFixed(1)}%;background:${cor(r.k,r.ki)}"></i></div><strong ${tA("rk|"+sel.k+"|"+r.k,r.v)}>${brl(r.v)}</strong>${linhas.length===1?"<small></small>":`<small ${tA("rkp|"+sel.k+"|"+r.k,sel.t?r.v/sel.t:0,"mes")}>${FMT_T.mes(sel.t?r.v/sel.t:0)}</small>`}</div>`).join("")}</div>`:`<div><span><em>Nenhuma entrega neste mês</em></span></div>`);
   let tipoPonteiro=""; el.querySelector("svg").addEventListener("pointerdown",e=>{tipoPonteiro=e.pointerType});
   el.querySelectorAll(".hit").forEach(h=>h.addEventListener("click",e=>{
     const r=el.querySelector("svg").getBoundingClientRect(), px=(e.clientX-r.left)*W/r.width, py=(e.clientY-r.top)*H/r.height;
@@ -2048,7 +2226,7 @@ function drawChart(){
 /* ---------- gráfico de linhas: gasto acumulado ---------- */
 function drawLines(){
   const el=$("lines"), lg=$("lleg"); if(!el) return;
-  const L=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&inP(l.data)&&okO(l.obra)&&okS(l.sku)&&okOr(l));
+  const L=D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&inP(l.data)&&okO(l.obra)&&okS(l.sku)&&okOr(l)&&okE(l));
   const chave=l=>S.obra?l.sku:l.obra, nome=k=>S.obra?(L.find(l=>l.sku===k)||{}).material||k:nomeObraCurto(k);
   const tot={}; L.forEach(l=>{tot[chave(l)]=(tot[chave(l)]||0)+l.valor});
   let series=Object.entries(tot).sort((a,b)=>b[1]-a[1]).map(([k])=>k);
@@ -2424,14 +2602,59 @@ const TER_PAGS={PAGO:["ok","Pago"],PARCIAL:["parc","Parcial"],A_PAGAR:["info","A
 const terSeloConf=t=>{const c=TER_CONF[t.conferencia]||["sem",t.conferencia];return `<span class="pill ${c[0]}">${esc(c[1])}</span>`;};
 const terSeloPag=t=>{if(t.conferencia==="CANCELADO")return "";const p=terPag(t),c=TER_PAGS[p.sit];return `<span class="pill ${c[0]}">${esc(p.sit==="PARCIAL"?"Parcial: "+brl(p.pago)+" de "+brl(t.valor):c[1])}</span>`;};
 const terNome=e=>{const m=String(e||"").toLowerCase(),u=D&&D.usuarios&&D.usuarios[m];return u&&u.nome?u.nome+(u.empresa?" · "+u.empresa:""):m||"—";};
+/* [Função 6] Etapa construtiva de cada custo. Lista e ordem: cabeçalho da aba _IMPORT_ETAPAS (D.nomesEtapas), sem repetir os nomes no código.
+   Entrega: etapa do pedido (revisão vigente). Outro fornecedor conferido: etapa do lançamento. Sem etapa: "Sem etapa informada".
+   Só agrupa: nenhuma regra de custo muda, e a soma das etapas + "Sem etapa informada" é o custo confirmado total. */
+const ET_SEM="__SEM";
+function etapaCanon(v){ const s=String(v||"").trim(); if(!s) return ""; const k=semAc(s).replace(/\s+/g," "); const n=(D&&D.nomesEtapas||[]).find(x=>semAc(x).replace(/\s+/g," ")===k); return n||s; }
+function aplicarEtapas(){ const P=D.pedidos||{};
+  (D.itensTodos||D.itens).forEach(i=>{ i.etapa=etapaCanon((P[i.pedido]||{}).etapa); });
+  terTodos().forEach(t=>{ t.etapaC=etapaCanon(t.etapa); });
+  const tid={}; terTodos().forEach(t=>{ tid[t.id]=t.etapaC; });
+  D.lanc.forEach(l=>{ l.etapa=l.ter?(tid[l.id]||""):etapaCanon((P[l.pedido]||{}).etapa); }); }
+const okE = x => !S.etapa || (S.etapa===ET_SEM ? !x.etapa : x.etapa===S.etapa);
+const nomeEtapa = k => k===ET_SEM||!k ? ETQ_SEM_ETAPA : k;
+/* Ordem das etapas: a da planilha de obras; etapa que não está na lista vem depois; "Sem etapa informada" por último. */
+function ordemEtapas(chaves){ const n=D.nomesEtapas||[], fora=chaves.filter(k=>k&&k!==ET_SEM&&!n.includes(k)).sort((a,b)=>a.localeCompare(b,"pt-BR"));
+  return n.concat(fora).concat(chaves.includes(ET_SEM)?[ET_SEM]:[]); }
+function custoPorEtapa(L){ const g={}; L.forEach(l=>{ const k=l.etapa||ET_SEM; g[k]=(g[k]||0)+(l.valor||0); }); return g; }
+const opcoesEtapa = () => `<option value="">Todas as etapas</option>${ordemEtapas([ET_SEM]).map(k=>`<option value="${esc(k)}" ${S.etapa===k?"selected":""}>${esc(nomeEtapa(k))}</option>`).join("")}`;
+const selEtapa = () => `<select id="etSel" aria-label="Etapa da obra">${opcoesEtapa()}</select>`;
+const etqEtapa = e => e?`<small class="etq-et" title="Etapa da obra">Etapa: ${esc(e)}</small>`:"";
 /* Lançamentos conferidos viram linhas de custo (marcadas com ter:true); chamado a cada leitura e depois de conferir. */
 function aplicarTerceiros(){
   D.lanc=D.lanc.filter(l=>!l.ter).concat(terTodos().filter(t=>t.conferencia==="CONFERIDO"&&t.dataRef&&t.valor>0).map(t=>({id:t.id,data:t.dataRef,obra:t.obra||"SEM VÍNCULO",tipo:"OUTRO FORNECEDOR",pedido:"",
     sku:TER_SKU+t.tipo,material:t.tipo+TER_ETQ,cat:t.tipo+TER_ETQ,un:t.unidade||"",qtd:t.quantidade||0,custo:null,valor:t.valor,resp:t.criadoPor,conf:"CONFIRMADO",
     obs:t.descricao,situacao:"CUSTO CONFIRMADO",alertas:"",ter:true,fornecedor:t.fornecedor,descricao:t.descricao})));
+  aplicarEtapas(); // [Função 6]
 }
+/* [Função 2] Parcelas a vencer: parcelas não pagas dos lançamentos válidos (fora os cancelados e reprovados), em três grupos.
+   Datas como texto aaaa-mm-dd do dia de São Paulo (D.hoje vem do servidor), comparadas como texto: sem erro de fuso.
+   Vale o filtro de obra do topo; o período não, porque o vencimento independe da data de referência da compra. */
+const diasEntre=(a,b)=>{ const d=s=>{ const m=/^(\d{4})-(\d{2})-(\d{2})/.exec(s||""); return m?Date.UTC(+m[1],+m[2]-1,+m[3]):NaN; }; return Math.round((d(b)-d(a))/864e5); };
+const PARC_GRUPOS=[["VENCIDAS","Vencidas"],["HOJE","Vencem hoje"],["SETE","Vencem nos próximos 7 dias"]];
+function parcelasAVencer(){ const hoje=D.hoje, ate=terMaisDias(hoje,7), g={VENCIDAS:[],HOJE:[],SETE:[]};
+  terTodos().filter(t=>t.conferencia!=="CANCELADO"&&t.conferencia!=="REPROVADO"&&okO(t.obra)&&okE({etapa:t.etapaC})).forEach(t=>{ const ps=t.parcelas||[];
+    ps.forEach((p,i)=>{ if(p.pago||!p.vencimento) return; const v=p.vencimento, k=v<hoje?"VENCIDAS":v===hoje?"HOJE":v<=ate?"SETE":""; if(!k) return;
+      g[k].push({t,p,n:p.numero||i+1,de:ps.length,atraso:k==="VENCIDAS"?diasEntre(v,hoje):0,falta:k==="SETE"?diasEntre(hoje,v):0}); }); });
+  const ord=(a,b)=>a.p.vencimento.localeCompare(b.p.vencimento)||a.t.fornecedor.localeCompare(b.t.fornecedor,"pt-BR");
+  Object.values(g).forEach(a=>a.sort(ord)); return g; }
+function quadroParcelas(){ const g=parcelasAVencer(), q=S.terQ||"", tot=k=>sum(g[k],x=>x.p.valor), nTot=g.VENCIDAS.length+g.HOJE.length+g.SETE.length;
+  const chip=(k,t,n)=>`<button type="button" class="ped-chip pv-chip" data-terq="${k}" aria-pressed="${q===k}">${t}${n==null?"":` <b>${n}</b>`}</button>`;
+  const linha=x=>{ const t=x.t, p=x.p, quando=x.atraso?`<b class="pv-at">${x.atraso} ${x.atraso===1?"dia":"dias"} de atraso</b>`:x.falta?`em ${x.falta} ${x.falta===1?"dia":"dias"}`:"hoje";
+    return `<div class="pv-row" role="button" tabindex="0" data-terid="${esc(t.id)}" aria-label="${esc(t.fornecedor+" · parcela "+x.n+" de "+x.de+" · "+brl(p.valor)+" · vence "+dbr(p.vencimento)+" · abrir lançamento")}">
+      <span class="pv-f" data-r="Fornecedor"><b>${esc(t.fornecedor)}</b><small>${esc(t.descricao)}</small></span>
+      <span class="pv-o" data-r="Obra">${terObraLink(t.obra)}</span>
+      <span class="pv-p" data-r="Parcela">${x.n} de ${x.de}${p.descricao?`<small>${esc(p.descricao)}</small>`:""}</span>
+      <span class="pv-v" data-r="Valor"><b>${brl(p.valor)}</b></span>
+      <span class="pv-d" data-r="Vencimento">${dbr(p.vencimento)}<small>${quando}</small></span></div>`; };
+  const grupo=([k,t])=>(!q||q===k)?`<div class="pv-g pv-${k.toLowerCase()}"><div class="pv-gh"><span><span class="pv-ico" aria-hidden="true">${k==="VENCIDAS"?"!":k==="HOJE"?"●":"○"}</span>${t} · ${g[k].length}</span><b>${brl(tot(k))}</b></div>
+    ${g[k].length?g[k].map(linha).join(""):`<p class="pv-nada">Nenhuma parcela neste grupo.</p>`}</div>`:"";
+  return `<section class="card pv" id="pvQuadro" aria-labelledby="pvTit"><div class="cardhead"><div><h2 id="pvTit">Pagamentos a vencer</h2><div class="sub">Parcelas não pagas de lançamentos válidos (sem cancelados e reprovados)${S.obra?" desta obra":""}. Toque para abrir o lançamento.</div></div></div>
+    ${nTot?`<div class="ped-chips pv-chips">${chip("","Todos")}${chip("VENCIDAS","Vencidas",g.VENCIDAS.length)}${chip("HOJE","Hoje",g.HOJE.length)}${chip("SETE","Próximos 7 dias",g.SETE.length)}</div>${PARC_GRUPOS.map(grupo).join("")}`
+      :`<div class="empty tudo-ok"><b>Nenhum pagamento vencendo ✓</b>Nenhuma parcela vencida nem vencendo nos próximos 7 dias.</div>`}</section>`; }
 /* Mesmos filtros de obra e período do topo (pela data de referência). */
-const terTopo=()=>terTodos().filter(t=>inP(t.dataRef)&&okO(t.obra));
+const terTopo=()=>terTodos().filter(t=>inP(t.dataRef)&&okO(t.obra)&&okE({etapa:t.etapaC}));
 function terContagens(){const L=terTopo(),vivos=L.filter(t=>t.conferencia!=="CANCELADO");
  return {aguard:L.filter(t=>t.conferencia==="AGUARDANDO").length,vencidas:vivos.filter(t=>terPag(t).temVenc).length,vence7:vivos.filter(t=>terPag(t).temV7).length};}
 const TER_FPAG={PAGO:t=>terPag(t).sit==="PAGO",PARCIAL:t=>terPag(t).sit==="PARCIAL",A_PAGAR:t=>terPag(t).sit==="A_PAGAR",VENCIDO:t=>terPag(t).temVenc,VENCE7:t=>terPag(t).temV7};
@@ -2439,8 +2662,8 @@ const terOrdem=(a,b)=>(b.dataRef||"").localeCompare(a.dataRef||"")||(b.criadoEm|
 const terObraLink=id=>!id||id==="SEM VÍNCULO"?'<span class="pill bad">Sem obra</span>':`<a class="lc-ob ped-ob" href="#painel" data-irobra="${esc(id)}" title="${esc("Abrir a obra "+id+" · "+obraNome(id))}"><b>${esc(id)}</b> ${esc(obraCurta(id))}</a>`;
 
 function vTer(){
-  if(S.terRota!==S.rota){ S.terRota=S.rota; S.terTipo=""; S.terForn=""; S.terPag=""; S.terN=50;
-    if(/^pag:/.test(S.sit)){ S.terPag=S.sit.slice(4); S.sit=""; } else if(/^conf:/.test(S.sit)) S.sit=S.sit.slice(5); }
+  if(S.terRota!==S.rota){ S.terRota=S.rota; S.terTipo=""; S.terForn=""; S.terPag=""; S.terN=50; S.terQ="";
+    if(/^pag:/.test(S.sit)){ S.terPag=S.sit.slice(4); S.sit=""; } else if(/^parc:/.test(S.sit)){ S.terQ=S.sit.slice(5); S.sit=""; S.terQFoco=true; } else if(/^conf:/.test(S.sit)) S.sit=S.sit.slice(5); }
   if(!terTodos().length) return `<section class="card"><div class="empty"><b>Nenhuma compra de outro fornecedor ainda</b>As compras aparecem aqui quando lançadas no formulário → Outros fornecedores.</div></section>`;
   const base=terTopo(), vivos=base.filter(t=>t.conferencia!=="CANCELADO"), P=vivos.map(terPag), ag=base.filter(t=>t.conferencia==="AGUARDANDO");
   const card=(t,v,sub,cl,f)=>`<div class="ter-k${cl?" "+cl:""}"><small>${t}</small><b>${v}</b>${sub?`<span>${sub}</span>`:""}</div>`;
@@ -2452,20 +2675,20 @@ function vTer(){
   const tool=`<div class="toolbar"><input type="search" id="busca" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" placeholder="Buscar fornecedor, descrição ou nota" value="${esc(S.busca)}" aria-label="Buscar compras de outros fornecedores"><button type="button" class="btn" data-csv="ter">Baixar CSV</button>
     ${sel("","terTipo","Todos os tipos",tipos.map(x=>[x,x]),S.terTipo)}${sel("","terForn","Todos os fornecedores",forns.map(x=>[x,x]),S.terForn)}
     ${sel("sitSel","","Toda conferência",[["AGUARDANDO","Aguardando conferência"],["CONFERIDO","Conferido"],["REPROVADO","Reprovado"],["CANCELADO","Cancelado"]],S.sit)}
-    ${sel("","terPag","Todo pagamento",[["PAGO","Pago"],["PARCIAL","Parcial"],["A_PAGAR","A pagar"],["VENCIDO","Vencido"],["VENCE7","Vence em 7 dias"]],S.terPag)}</div>`;
+    ${selEtapa()}${sel("","terPag","Todo pagamento",[["PAGO","Pago"],["PARCIAL","Parcial"],["A_PAGAR","A pagar"],["VENCIDO","Vencido"],["VENCE7","Vence em 7 dias"]],S.terPag)}</div>`;
   const m=S.busca.trim()?casa(S.busca.trim()):null;
   const L=base.filter(t=>(!m||m([t.fornecedor,t.descricao,t.nota,t.id].join(" ")))&&(!S.terTipo||t.tipo===S.terTipo)&&(!S.terForn||t.fornecedor===S.terForn)&&(!S.sit||t.conferencia===S.sit)
     &&(!S.terPag||(t.conferencia!=="CANCELADO"&&TER_FPAG[S.terPag]&&TER_FPAG[S.terPag](t)))).sort(terOrdem);
   const chave=JSON.stringify([S.busca,S.sit,S.terTipo,S.terForn,S.terPag,S.obra,S.ini,S.fim]); if(chave!==S.terChave){S.terChave=chave;S.terN=50;}
   const cab=`<div class="cardhead"><div><h2>${L.length} ${L.length===1?"lançamento":"lançamentos"}</h2><div class="sub">Lançados no formulário. Só os conferidos entram no custo da obra, no mês da data de referência. Toque para ver o detalhe${ehAdminZayda()?" e conferir":""}.</div></div></div>`;
   const linha=t=>`<div class="ter-row" role="button" tabindex="0" data-terid="${esc(t.id)}" aria-label="${esc(t.fornecedor+" · "+brl(t.valor)+" · ver detalhe")}">
-    <span class="tr-d" data-r="Data">${dbr(t.dataRef)}</span><span class="tr-o" data-r="Obra">${terObraLink(t.obra)}</span>
+    <span class="tr-d" data-r="Data">${dbr(t.dataRef)}</span><span class="tr-o" data-r="Obra">${terObraLink(t.obra)}${etqEtapa(t.etapaC)}</span>
     <span class="tr-f"><b>${esc(t.fornecedor)}</b><small>${esc(t.tipo)}</small></span><span class="tr-x">${esc(t.descricao)}</span>
     <span class="tr-v"><b>${brl(t.valor)}</b></span><span class="tr-s">${terSeloConf(t)}${terSeloPag(t)}</span></div>`;
   const vazio=!terTodos().length?`<div class="empty"><b>Nenhuma compra de outro fornecedor ainda</b>As compras aparecem aqui quando são lançadas no formulário (botão “Outros fornecedores”).</div>`
     :`<div class="empty"><b>Nada encontrado</b>Ajuste a busca, os filtros ou o período e a obra no topo.</div>`;
   const vis=L.slice(0,S.terN), resta=L.length-vis.length;
-  return resumo+tool+`<section class="card">${cab}${L.length?`<div class="ter-lista"><div class="ter-row cab" aria-hidden="true"><span>Data</span><span>Obra</span><span>Fornecedor</span><span>Descrição</span><span class="tr-v">Valor</span><span>Situação</span></div>${vis.map(linha).join("")}</div>`:vazio}
+  return quadroParcelas()+resumo+tool+`<section class="card">${cab}${L.length?`<div class="ter-lista"><div class="ter-row cab" aria-hidden="true"><span>Data</span><span>Obra</span><span>Fornecedor</span><span>Descrição</span><span class="tr-v">Valor</span><span>Situação</span></div>${vis.map(linha).join("")}</div>`:vazio}
     ${resta>0?`<div class="lc-mais"><button type="button" class="btn" id="terMais">Ver mais (${resta} restantes)</button></div>`:""}</section>`;
 }
 /* Card na página da obra: lançamentos do período (conferidos e pendentes) com os totais. */
@@ -2567,7 +2790,7 @@ function relTerceiros(ini,fim,obra){
     :relVazio("Nenhuma compra de outro fornecedor conferida neste período."));
 }
 const relOrigem=d=>`<div class="tot q2"><div><span>LOJA BSJ</span><b>${brl(sum(d.conf.filter(l=>!l.ter),l=>l.valor))}</b></div><div><span>OUTROS FORNECEDORES (CONFERIDOS)</span><b>${brl(sum(d.conf.filter(l=>l.ter),l=>l.valor))}</b></div></div>`;
-const TITLES={sistema:["Sistema","Sincronização, backup e planilha. Só administradores da Zayda veem esta tela."],usuarios:["Usuários","Quem acessa o formulário e o painel. Só administradores da Zayda veem esta tela."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],terceiros:["Outros fornecedores","Compras e serviços de fornecedores que não são a loja BSJ, lançados no formulário. Só os conferidos entram no custo das obras."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
+const TITLES={fechamento:["Fechamento do mês","Fotografia dos números de cada mês encerrado, com PDF no Drive e aviso se algo mudar depois. Só administradores da Zayda veem esta tela."],sistema:["Sistema","Sincronização, backup e planilha. Só administradores da Zayda veem esta tela."],usuarios:["Usuários","Quem acessa o formulário e o painel. Só administradores da Zayda veem esta tela."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],terceiros:["Outros fornecedores","Compras e serviços de fornecedores que não são a loja BSJ, lançados no formulário. Só os conferidos entram no custo das obras."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
 /* Mesmo efeito de escolher a obra no filtro OBRA: tela Painel com a página da obra, no topo. */
 function abrirObra(id){ S.obra=id; S.mes=null; if(S.view==="painel"){ render(); irTopo(); } else location.hash="painel"; }
 /* Tela nova começa no topo: chamar depois de desenhar. O segundo passo cobre o que só ganha altura no quadro seguinte. */
@@ -2632,14 +2855,15 @@ function render(){
   $("cObra").classList.toggle("on",!!S.obra); $("cSku").classList.toggle("on",!!S.sku);
   const fa=$("faviso");
   fa.innerHTML=(S.sku?`<span>Filtrando por material: <b title="${esc(nomeSku())}">${esc(nomeSku())}</b><button type="button" data-fx="sku" aria-label="Limpar filtro de material">×</button></span>`:"")+
+    (S.etapa?`<span>Filtrando por etapa: <b>${esc(nomeEtapa(S.etapa))}</b><button type="button" data-fx="etapa" aria-label="Limpar filtro de etapa">×</button></span>`:"")+
     (S.obra?`<span>Filtrando por obra: <b title="${esc(obraNome(S.obra))}">${esc(obraNome(S.obra))}</b><button type="button" data-fx="obra" aria-label="Limpar filtro de obra">×</button></span>`:"");
-  fa.hidden=!(S.sku||S.obra)||v==="orcamentos"||v==="usuarios"||v==="sistema";
-  $("filters").hidden=v==="orcamentos"||v==="usuarios"||v==="sistema"; $("btnFiltros").hidden=$("filters").hidden; $("filtrosResumo").textContent=resumoFiltros(); $("context").hidden=v==="orcamentos"||v==="usuarios"||v==="sistema"; // o orçamento usa todo o custo da obra: os filtros de cima não valem aqui
+  fa.hidden=!(S.sku||S.obra||S.etapa)||v==="orcamentos"||v==="usuarios"||v==="sistema"||v==="fechamento";
+  $("filters").hidden=v==="orcamentos"||v==="usuarios"||v==="sistema"||v==="fechamento"; $("btnFiltros").hidden=$("filters").hidden; $("filtrosResumo").textContent=resumoFiltros(); $("context").hidden=v==="orcamentos"||v==="usuarios"||v==="sistema"||v==="fechamento"; // o orçamento usa todo o custo da obra: os filtros de cima não valem aqui
   fa.querySelectorAll("[data-fx]").forEach(b=>b.addEventListener("click",()=>{S[b.dataset.fx]="";S.mes=null;render()}));
   $("context").innerHTML=`Exibindo ${v==="obras"?"":`<b>${S.obra?esc(obraNome(S.obra))+" ("+esc(S.obra)+")":"todas as obras"}</b> · `}<b>${dbr(S.ini)}</b> a <b>${dbr(S.fim)}</b> · <b>${S.sku?esc(D.lanc.concat(D.itens).find(x=>x.sku===S.sku)?.material||S.sku):"todos os materiais"}</b>${S.origem?" · <b>"+(S.origem==="ter"?"só outros fornecedores":"só loja BSJ")+"</b>":""}`;
   definirCores();
   if(S.dia&&S.dia.obra!==S.obra) S.dia=null; // outra obra abre no último dia com entrega
-  const html={painel:vPainel,terceiros:vTer,obras:vObras,orcamentos:vOrc,solicitacoes:vSol,lancamentos:vLanc,usuarios:vUsuarios,sistema:vSistema}[v]();
+  const html={painel:vPainel,terceiros:vTer,obras:vObras,orcamentos:vOrc,solicitacoes:vSol,lancamentos:vLanc,usuarios:vUsuarios,sistema:vSistema,fechamento:vFechamento}[v]();
   const campo=$("busca"), manter=campo&&VISTA_BUSCA===v&&(document.activeElement===campo||buscaTimer||buscaCompondo);
   if(manter&&!buscaTimer&&!buscaCompondo&&campo.value!==S.busca) campo.value=S.busca; // mudou por fora da digitação, como no botão Limpar
   if(!manter||!trocarMantendo($("view"),html,campo)) $("view").innerHTML=html;
@@ -2668,7 +2892,12 @@ function render(){
   document.querySelectorAll("[data-pedobra]").forEach(a=>{const ir=e=>{e.preventDefault();e.stopPropagation();abrirObra(a.dataset.pedobra)};
     a.addEventListener("click",ir);a.addEventListener("keydown",e=>{if(e.key===" "||e.key==="Spacebar")ir(e)});a.addEventListener("keyup",e=>{if(e.key===" ")e.preventDefault()});});
   document.querySelectorAll("[data-irobra]").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();abrirObra(a.dataset.irobra)}));
-  const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{cancelarBusca();S.busca="";S.sit="";S.ord="";render()});
+  const lo=$("limparObras"); if(lo) lo.addEventListener("click",()=>{cancelarBusca();S.busca="";S.sit="";S.ord="";S.obAlerta="";render()});
+  const oa=$("orcAlSel"); if(oa) oa.addEventListener("change",()=>{S.obAlerta=oa.value;render()}); // [Função 1]
+  const es=$("etSel"); if(es) es.addEventListener("change",()=>{S.etapa=es.value;S.mes=null;render()}); // [Função 6]
+  document.querySelectorAll("[data-etf]").forEach(b=>b.addEventListener("click",()=>{S.etapa=S.etapa===b.dataset.etf?"":b.dataset.etf;S.mes=null;manterRolagem(render)}));
+  document.querySelectorAll("[data-eto]").forEach(b=>b.addEventListener("click",()=>{S.etObra=S.etObra===b.dataset.eto?"":b.dataset.eto;manterRolagem(render)}));
+  document.querySelectorAll("[data-cmp]").forEach(b=>b.addEventListener("click",()=>{S.cmpModo=b.dataset.cmp;manterRolagem(render)})); // [Função 3]
   const al=$("addLanc"); if(al){ al.href=D.planilhaUrl||"#"; al.hidden=!D.planilhaUrl; } // o link da planilha só chega para Admin Zayda
   document.querySelectorAll("[data-lcs]").forEach(b=>b.addEventListener("click",()=>{ const c=b.dataset.lcs, o=S.lcOrd; S.lcOrd=o&&o.c===c?{c,d:-o.d}:!o&&c==="data"?{c,d:1}:{c,d:c==="valor"||c==="data"?-1:1}; render(); }));
   document.querySelectorAll("[data-lcagr]").forEach(b=>b.addEventListener("click",()=>{S.lcOrd=null;render()}));
@@ -2678,6 +2907,8 @@ function render(){
   const lm=$("lcMais"); if(lm) lm.addEventListener("click",()=>{S.lcN+=50;manterRolagem(render)});
   const lc=$("lcCsv"); if(lc) lc.addEventListener("click",baixarCsvLanc);
   const tm=$("terMais"); if(tm) tm.addEventListener("click",()=>{S.terN+=50;manterRolagem(render)});
+  document.querySelectorAll("[data-terq]").forEach(b=>b.addEventListener("click",()=>{S.terQ=b.dataset.terq;manterRolagem(render)})); // [Função 2]
+  if(v==="terceiros"&&S.terQFoco){ S.terQFoco=false; const q=$("pvQuadro"); if(q) requestAnimationFrame(()=>q.scrollIntoView({block:"start"})); }
   document.querySelectorAll("[data-terf]").forEach(x=>x.addEventListener("change",()=>{S[x.dataset.terf]=x.value;render()}));
   document.querySelectorAll("[data-ir]").forEach(a=>a.addEventListener("click",cliqueIr));
   document.querySelectorAll("[data-print]").forEach(b=>b.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();imprimirPedido(b.dataset.print)}));
@@ -2698,6 +2929,7 @@ function carregar(d){
   D.lanc.forEach(l=>{if(!l.obra)l.obra="SEM VÍNCULO"});
   D.terceiros=D.terceiros||[]; D.fornecedores=D.fornecedores||{}; aplicarTerceiros(); // outros fornecedores conferidos viram linhas de custo
   cartaoSistema(); // [Etapa 1] sincronização de hoje e último backup (só Admin da Zayda)
+  D.fechamentos=D.fechamentos||[]; avisoFech(); // [Função 4]
   const semObra = D.itens.concat(D.lanc).some(x=>x.obra==="SEM VÍNCULO");
   CO.items = D.obras.map(o=>({v:o.id,cd:o.id,t:obraNome(o.id),sub:[o.cliente||o.empreendimento,stTxt(o)].filter(Boolean).join(" · "),busca:o.id+" "+(obraNome(o.id))+" "+(o.cliente||o.empreendimento||"")}))
     .concat(semObra?[{v:"SEM VÍNCULO",cd:"",t:"Sem obra identificada",sub:"Pedidos cujo Casa/obra não corresponde a nenhuma obra",busca:"sem obra vinculo identificada"}]:[]);
@@ -2706,13 +2938,16 @@ function carregar(d){
 }
 function boot(d){ carregar(d); setPreset(S.preset); route(); iniciarAoVivo(); }
 /* [Etapa 3B] Faixa de resumo da página da obra: gasto total, orçamento, % usado, última entrega e pedidos em aberto. */
-function obraResumo(o){ const x=orcObras()[o.id], u=x&&x.orc?Math.round(x.usado*100):null;
+function obraResumo(o){ const a=alertaOrc(o.id); // [Função 1] todo o custo confirmado da obra, desde o início
+  const gasto=a?a.gasto:sum(D.lanc.filter(l=>l.obra===o.id&&l.situacao==="CUSTO CONFIRMADO"),l=>l.valor);
   const ult=D.lanc.filter(l=>l.obra===o.id&&l.situacao!=="CANCELADO"&&!l.ter&&l.data).map(l=>l.data).sort().pop();
   const abertos=uniq(D.itens.filter(i=>i.obra===o.id&&i.saldo>0).map(i=>i.pedido)).length;
-  const c=(t,v,extra)=>`<div class="or-c"><small>${t}</small><b>${v}</b>${extra||""}</div>`;
-  return `<div class="ob-resumo">${c("Gasto total",brl(x?x.gasto:0))}${c("Orçamento",x&&x.orc?brl(x.orc):"—")}
-    ${c("% usado",u==null?"—":(u>999?"mais de 999":u)+"%",u==null?"":`<span class="oc-t"><span style="width:${Math.min(100,u)}%;background:${corOrc(u)}"></span></span>`)}
-    ${c("Última entrega",ult?dbr(ult):"—")}${c("Pedidos em aberto",abertos)}</div>`; }
+  const c=(t,v,extra,cl)=>`<div class="or-c${cl?" "+cl:""}"><small>${t}</small><b>${v}</b>${extra||""}</div>`;
+  return `<div class="ob-resumo${a?" al-"+a.nivel.toLowerCase():""}">${a?`<div class="or-al">${seloAlerta(a)}${a.passou>0?`<span>Passou ${brl(a.passou)} do orçamento</span>`:""}</div>`:""}
+    ${c("Gasto total (desde o início)",brl(gasto))}${c("Orçamento",a?brl(a.orc):"—")}${c("Saldo",a?brl(a.saldo):"—","",a&&a.saldo<0?"neg":"")}
+    ${c("% usado",a?pctTxt(a.pct):"—",a?`<span class="oc-t"><span style="width:${Math.min(100,a.pct)}%;background:${ALERTA_NIV[a.nivel].cor}"></span></span>`:"")}
+    ${(m=>m==null?"":c("Custo por m² até agora",m2Txt(m),`<span class="oc-n">${brl(gasto)} ÷ ${fmtM2(areaObra(o.id))} · ${notaParcial(o)}</span>`))(custoM2(o.id))}
+    ${c("Última entrega",ult?dbr(ult):"—")}${c("Pedidos em aberto",abertos)}${a&&a.vaiPassar?`<div class="or-prev">${previsaoAlerta(a)}</div>`:""}</div>`; }
 /* CSV: separador ";", vírgula decimal e UTF-8 com BOM (abre certo no Excel); texto que pareça fórmula ganha apóstrofo. */
 function baixarCsv(nome,cab,linhas){
   const txt=v=>{ let s=String(v==null?"":v); if(/^[=+\-@]/.test(s)) s="'"+s; return /[;"\r\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s; };
@@ -2767,7 +3002,7 @@ const enderecoCurto = id => { const t=nomeObraCurto(id), i=t.indexOf(" · "); re
 function custoAnterior(){ if(S.preset==="tudo"||!S.ini||!S.fim) return null;
   const d0=new Date(S.ini+"T12:00:00"), d1=new Date(S.fim+"T12:00:00"), n=Math.round((d1-d0)/864e5)+1, iso=d=>d.getFullYear()+"-"+pad(d.getMonth()+1)+"-"+pad(d.getDate());
   const fim=new Date(d0); fim.setDate(fim.getDate()-1); const ini=new Date(fim); ini.setDate(ini.getDate()-(n-1));
-  const a=iso(ini), b=iso(fim); return sum(D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&l.data>=a&&l.data<=b&&okO(l.obra)&&okS(l.sku)&&okOr(l)),l=>l.valor); }
+  const a=iso(ini), b=iso(fim); return sum(D.lanc.filter(l=>l.situacao==="CUSTO CONFIRMADO"&&l.data>=a&&l.data<=b&&okO(l.obra)&&okS(l.sku)&&okOr(l)&&okE(l)),l=>l.valor); }
 function variacaoCusto(s){ const ant=custoAnterior(); if(!ant) return ""; const p=Math.round((s.custo-ant)/ant*100); if(!isFinite(p)) return "";
   const sobe=p>0; return `<div class="var ${p===0?"":sobe?"sobe":"desce"}" title="Período anterior: ${esc(brl(ant))}">${p===0?"=":sobe?"↑":"↓"} ${Math.abs(p)}% vs. período anterior</div>`; }
 const corOrc = u => u>100?"var(--red)":u>=80?"var(--amber)":"var(--brand-2)";
@@ -2787,6 +3022,18 @@ window.addEventListener("resize",()=>{ if(window.innerWidth>900) fecharFiltros()
 /* Orçamentos: valor direto na lista "Obras sem orçamento" (só Admin da Zayda), com a mesma gravação do "Definir orçamento". */
 let ORC_PEND=false;
 document.addEventListener("input",e=>{ if(!e.target.matches||!e.target.matches("[data-orcv]")) return; const d=e.target.value.replace(/\D/g,"").slice(0,12); e.target.value=d?brl(+d/100):""; });
+/* [Função 3] Área construída: abrir o campo (na página da obra), cancelar e salvar. */
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-area]"); if(b){ e.preventDefault(); if(S.obra!==b.dataset.area){ S.areaEd=b.dataset.area; abrirObra(b.dataset.area); } else { S.areaEd=b.dataset.area; manterRolagem(render); }
+    requestAnimationFrame(()=>{ const i=$("areaV"); if(i){ i.focus(); i.select(); } }); return; }
+  if(e.target.closest("[data-areax]")){ e.preventDefault(); S.areaEd=""; manterRolagem(render); } });
+document.addEventListener("submit",e=>{ const f=e.target.closest&&e.target.closest("form[data-areaf]"); if(!f) return; e.preventDefault();
+  const id=f.dataset.areaf, inp=f.querySelector("[data-areav]"), msg=f.querySelector(".oc-ok"), bt=f.querySelector("button[type=submit]"), v=inp.value.trim();
+  bt.disabled=true; msg.className="oc-ok"; msg.textContent="Salvando…";
+  chamarApi({token:TOKEN,acao:"salvarArea",obra:id,m2:v},"salvarArea",[TOKEN,id,v]).then(r=>{ bt.disabled=false;
+    if(r&&r.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return; }
+    if(!r||!r.ok){ msg.className="oc-ok erro"; msg.textContent=(r&&r.motivo)||"Não foi possível salvar."; return; }
+    D.areas=D.areas||{}; if(r.area) D.areas[id]=r.area; else delete D.areas[id]; assinatura.resto=assinar(D).resto; S.areaEd=""; manterRolagem(render); })
+  .catch(()=>{ bt.disabled=false; msg.className="oc-ok erro"; msg.textContent="Sem conexão. Tente de novo."; }); });
 document.addEventListener("submit",e=>{ const f=e.target.closest&&e.target.closest("form[data-orcf]"); if(!f) return; e.preventDefault();
   const id=f.dataset.orcf, inp=f.querySelector("[data-orcv]"), btn=f.querySelector("button"), ok=f.querySelector(".oc-ok"), d=inp.value.replace(/\D/g,""), v=d?+d/100:0;
   if(!v||v>100000000){ ok.textContent="Informe um valor"; ok.className="oc-ok erro"; ok.hidden=false; inp.focus(); return; }
@@ -2806,14 +3053,66 @@ function orcRedesenhar(){ if(!ORC_PEND||S.view!=="orcamentos") return; const a=d
   if(foco){ const n=document.querySelector(`form[data-orcf="${CSS.escape(foco)}"] [data-orcv]`); if(n) n.focus({preventScroll:true}); } }
 document.addEventListener("focusout",()=>setTimeout(orcRedesenhar,0));
 
+/* ---------- [Função 4] Tela Fechamento do mês (só Admin Zayda) ---------- */
+const FCH={conf:"",reabrir:"",ocupado:"",msg:"",msgMes:""};
+function mesesFech(){ const datas=D.lanc.map(l=>l.data).filter(Boolean).sort(), atual=D.hoje.slice(0,7); let k=datas.length?datas[0].slice(0,7):atual; const out=[];
+  uniq(fechLista().map(f=>f.mes)).forEach(m=>{ if(m<k) k=m; });
+  while(k<=atual&&out.length<120){ out.push(k); let y=+k.slice(0,4), m=+k.slice(5,7)+1; if(m>12){m=1;y++;} k=y+"-"+pad(m); }
+  return out.reverse(); }
+const dhFech = t => { const m=/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(String(t||"")); return m?m[3]+"/"+m[2]+"/"+m[1]+" às "+m[4]+":"+m[5]:"—"; };
+function vFechamento(){ if(!ehAdminZayda()) return `<div class="card empty"><b>Sem acesso</b>Esta tela é só para administradores da Zayda.</div>`;
+  const atual=D.hoje.slice(0,7), alts=mesesAlterados();
+  const linha=k=>{ const e=estadoMes(k), f=fotoMes(k), dif=difMes(k), aberto=!e.fechado, terminou=k<atual;
+    const sit=e.fechado?`<span class="pill ok"><span aria-hidden="true">🔒</span> Fechado</span><small>por ${esc(e.ultimo.por)} em ${dhFech(e.ultimo.em)}</small>`
+      :k===atual?`<span class="pill info">Em andamento</span><small>O mês ainda não terminou</small>`:`<span class="pill sem">Aberto</span>${e.ultimo&&e.ultimo.tipo==="REABERTURA"?`<small>Reaberto por ${esc(e.ultimo.por)} em ${dhFech(e.ultimo.em)} · Motivo: ${esc(e.ultimo.motivo)}</small>`:""}`;
+    const form=FCH.ocupado===k?"":FCH.conf===k?`<div class="fc-conf" role="group" aria-label="Confirmar fechamento"><p>Fechar <b>${relMesAno(k)}</b>? Grava a fotografia do mês (${brl(f.total)}) e o relatório em PDF na pasta “ZAYDA - Fechamentos”.</p><div class="acoes"><button type="button" class="btn pri" data-fch="sim" data-mes="${k}">Fechar mês</button><button type="button" class="btn" data-fch="nao">Voltar</button></div></div>`
+      :FCH.reabrir===k?`<form class="fc-conf" data-fchr="${k}"><label for="fcMot">Motivo da reabertura (obrigatório)</label><textarea id="fcMot" maxlength="300" rows="2" aria-required="true"></textarea><div class="acoes"><button type="submit" class="btn pri">Reabrir mês</button><button type="button" class="btn" data-fch="nao">Voltar</button></div></form>`:"";
+    const acoes=FCH.ocupado===k?`<span class="fc-oc" role="status">Gerando o PDF e gravando…</span>`
+      :form?""
+      :e.fechado?`${e.ultimo.pdf?`<a class="btn" href="${esc(e.ultimo.pdf)}" target="_blank" rel="noopener">Abrir PDF</a>`:""}<button type="button" class="btn" data-fch="reabrir" data-mes="${k}">Reabrir</button>`
+      :terminou?`<button type="button" class="btn pri" data-fch="fechar" data-mes="${k}">Fechar mês</button>`:"";
+    const alerta=dif?`<div class="fc-dif" role="alert"><b><span aria-hidden="true">⚠</span> O mês ${relMesAno(k)} mudou depois de fechado</b><span>Fechado: ${brl(dif.fechado)} · Agora: ${brl(dif.atual)} · Diferença: ${dif.dif>0?"+":""}${brl(dif.dif)}</span>${dif.obras.length?`<span>Obras afetadas: ${dif.obras.map(o=>esc(o.obra==="SEM VÍNCULO"?"Sem obra":o.obra)+" ("+brl(o.antes)+" → "+brl(o.agora)+")").join(" · ")}</span>`:""}</div>`:"";
+    const hist=e.hist.length>1?`<details class="fc-hist"><summary>Histórico (${e.hist.length})</summary><ul>${[...e.hist].reverse().map(h=>`<li>${h.tipo==="FECHAMENTO"?"Fechado":"Reaberto"} por ${esc(h.por)} em ${dhFech(h.em)}${h.tipo==="FECHAMENTO"?" · "+brl(h.total)+(h.pdf?` · <a href="${esc(h.pdf)}" target="_blank" rel="noopener">PDF</a>`:""):" · Motivo: "+esc(h.motivo)}</li>`).join("")}</ul></details>`:"";
+    return `<div class="fc-row${dif?" fc-mudou":""}"><div class="fc-m"><b>${relMesAno(k)}</b><small>${brl(f.total)} · ${f.nEnt} ${f.nEnt===1?"entrega":"entregas"} · ${f.nLanc} ${f.nLanc===1?"compra":"compras"} de outros fornecedores</small></div>
+      <div class="fc-s">${sit}</div><div class="fc-a">${acoes}</div>${form}${alerta}${FCH.msgMes===k&&FCH.msg?`<p class="fc-msg" role="alert">${esc(FCH.msg)}</p>`:""}${hist}</div>`; };
+  return `${alts.length?`<div class="card fc-topo" role="alert"><b><span aria-hidden="true">⚠</span> ${alts.length===1?"1 mês fechado mudou":alts.length+" meses fechados mudaram"} depois do fechamento</b><span>${alts.map(a=>relMesAno(a.mes)).join(", ")}. Confira abaixo e, se a mudança estiver certa, reabra e feche de novo.</span></div>`:""}
+    <section class="card"><div class="cardhead"><div><h2>Meses</h2><div class="sub">Fechar grava os números do mês e o PDF. O painel não altera a planilha do formulário: se alguém mudar algo de um mês fechado, aparece o aviso aqui e em Pendências.</div></div></div>
+    <div class="fc-lista">${mesesFech().map(linha).join("")}</div></section>`; }
+const abParaB64 = buf => { const b=new Uint8Array(buf); let s=""; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); };
+async function fecharMesAgora(k){ FCH.ocupado=k; FCH.conf=""; FCH.msg=""; manterRolagem(render);
+  const fim=(msg)=>{ FCH.ocupado=""; FCH.msg=msg||""; FCH.msgMes=k; manterRolagem(render); };
+  const foto=fotoMes(k), op={destino:true,leve:true};
+  await gerarPdf(folhaRelMes(k),"Fechamento "+k+".pdf",op);
+  if(op.falhou||!op.dados) return fim("Não foi possível gerar o PDF. Tente de novo.");
+  const pdf=abParaB64(op.dados);
+  chamarApi({token:TOKEN,acao:"fecharMes",mes:k,foto,pdf},"fecharMes",[TOKEN,k,foto,pdf]).then(r=>{
+    if(r&&r.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return; }
+    if(r&&r.fechamentos) D.fechamentos=r.fechamentos;
+    fim(r&&r.ok?"":(r&&r.motivo)||"Não foi possível fechar o mês."); }).catch(()=>fim("Sem conexão. Tente de novo.")); }
+document.addEventListener("click",e=>{ const b=e.target.closest("[data-fch]"); if(!b) return; e.preventDefault(); const a=b.dataset.fch, k=b.dataset.mes;
+  if(a==="fechar"){ FCH.conf=k; FCH.reabrir=""; FCH.msg=""; manterRolagem(render); requestAnimationFrame(()=>{ const s=document.querySelector('[data-fch="sim"]'); if(s) s.focus(); }); return; }
+  if(a==="reabrir"){ FCH.reabrir=k; FCH.conf=""; FCH.msg=""; manterRolagem(render); requestAnimationFrame(()=>{ const t=$("fcMot"); if(t) t.focus(); }); return; }
+  if(a==="nao"){ FCH.conf=""; FCH.reabrir=""; manterRolagem(render); return; }
+  if(a==="sim"&&!FCH.ocupado) fecharMesAgora(k); });
+document.addEventListener("submit",e=>{ const f=e.target.closest&&e.target.closest("form[data-fchr]"); if(!f) return; e.preventDefault();
+  const k=f.dataset.fchr, mot=$("fcMot").value.trim();
+  if(mot.length<5){ FCH.msg="Informe o motivo (mínimo 5 caracteres)."; FCH.msgMes=k; manterRolagem(render); requestAnimationFrame(()=>{ const t=$("fcMot"); if(t){ t.value=mot; t.focus(); } }); return; }
+  FCH.ocupado=k; manterRolagem(render);
+  chamarApi({token:TOKEN,acao:"reabrirMes",mes:k,motivo:mot},"reabrirMes",[TOKEN,k,mot]).then(r=>{
+    if(r&&r.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return; }
+    if(r&&r.fechamentos) D.fechamentos=r.fechamentos; FCH.ocupado=""; FCH.reabrir=r&&r.ok?"":k; FCH.msg=r&&r.ok?"":(r&&r.motivo)||"Não foi possível reabrir."; FCH.msgMes=k; manterRolagem(render); })
+  .catch(()=>{ FCH.ocupado=""; FCH.msg="Sem conexão. Tente de novo."; FCH.msgMes=k; manterRolagem(render); }); });
+/* Ponto de aviso no item do menu quando um mês fechado mudou. */
+function avisoFech(){ const av=$("navFechAv"); if(!av) return; const n=ehAdminZayda()?mesesAlterados().length:0; av.hidden=!n; av.title=n?(n===1?"1 mês fechado mudou":n+" meses fechados mudaram"):""; av.setAttribute("aria-label",av.title?"Aviso: "+av.title:""); }
 /* ---------- Tela Sistema (só Admin Zayda): sincronização, backup e planilha ----------
    Os dados (D.sistema e D.planilhaUrl) só chegam do servidor para Admin Zayda. Para um cartão novo (ex.: resumo semanal por e-mail),
    acrescente um item em SIS_CARTOES: {id, titulo, sub, corpo:()=>html}. */
 let BKP_CONF=false, BKP_MSG="";
 const sisDh=t=>{const m=/^(\d{4})-(\d{2})-(\d{2}) (\d{2}):(\d{2})/.exec(String(t||""));return m?m[3]+"/"+m[2]+" às "+m[4]+":"+m[5]:"—";};
 const sisVelho=b=>!b||!b.ok||(Date.now()-new Date(String(b.em).replace(" ","T")+"-03:00").getTime())>8*864e5;
-/* Aviso no item Sistema do menu: sincronização automática com falha, backup com falha ou backup com mais de 8 dias. */
-function sisAviso(){ const s=D&&D.sistema; if(!s) return ""; const b=s.backup;
+/* Aviso no item Sistema do menu: sincronização automática com falha, backup com falha ou com mais de 8 dias, resumo semanal não enviado. */
+function sisAviso(){ const s=D&&D.sistema; if(!s) return ""; const b=s.backup, rs=D.resumo&&D.resumo.ultimo;
+  if(rs&&rs.ok===false) return "Resumo semanal não enviado em "+sisDh(rs.em);
   if(s.sincErro) return "A sincronização automática falhou em "+sisDh(s.sincErro.em);
   if(b&&!b.ok) return "O backup falhou em "+sisDh(b.em);
   if(sisVelho(b)) return b?"Último backup há mais de 8 dias":"Nenhum backup feito ainda";
@@ -2823,7 +3122,34 @@ function htmlSinc(){ const s=D.sistema, q=s.sinc||{}, cl=q.min>80?"bad":q.min>60
   return `<p class="sis-txt">Pedidos e entregas vêm do formulário e entram aqui sozinhos, em até 5 minutos. O custo de cada material é o preço do pedido.</p>
   <dl class="sis-dl"><div><dt>Última sincronização</dt><dd>${esc(D.sincronizadoEm||"—")}</dd></div><div><dt>Execuções hoje</dt><dd>${q.n||0}</dd></div>
   <div><dt>Minutos usados hoje</dt><dd class="${cl}">${sisNum(q.min)} de ${q.cota||90}</dd></div><div><dt>Média por execução</dt><dd>${sisNum(q.media)} s</dd></div></dl>
-  ${s.sincErro?`<p class="sis-erro">A sincronização automática falhou em ${sisDh(s.sincErro.em)}. O painel continua sincronizando quando é aberto.</p>`:""}`; }
+  ${s.sincErro?`<p class="sis-erro">A sincronização automática falhou em ${sisDh(s.sincErro.em)}. O painel continua sincronizando quando é aberto.</p>`:""}${linhaResumo()}`; }
+/* [Função 5] Situação do resumo semanal, em uma linha curta (sem texto técnico). */
+function linhaResumo(){ const r=D.resumo; if(!r) return ""; const u=r.ultimo;
+  return u&&u.ok===false?`<p class="sis-erro">Resumo semanal não enviado (${sisDh(u.em)}).</p>`:`<p class="sis-txt rs-ult">${u&&u.ok?"Último resumo enviado: "+sisDh(u.em)+(u.origem==="teste"?" (teste)":""):"Nenhum resumo enviado ainda."}</p>`; }
+const RSM={msg:"",ok:false,ocupado:false,novo:""};
+function htmlResumoCard(){ const r=D.resumo||{destinos:[]}, l=r.destinos||[];
+  return `<p class="sis-txt">Toda segunda-feira, por volta das ${r.hora||7}h: custo da semana, orçamento das obras, parcelas, meses fechados que mudaram e pendências. Lista vazia: nada é enviado.</p>
+  <ul class="rs-lista" aria-label="Destinatários">${l.length?l.map(e=>`<li><span>${esc(e)}</span><button type="button" class="btn" data-rsx="${esc(e)}" aria-label="Remover ${esc(e)}">Remover</button></li>`).join(""):`<li class="rs-vazio">Nenhum destinatário ainda.</li>`}</ul>
+  <form class="rs-add" data-rsadd><label for="rsNovo">Adicionar e-mail</label><span class="rs-l"><input id="rsNovo" type="text" inputmode="email" autocapitalize="off" spellcheck="false" autocomplete="off" placeholder="nome@empresa.com" value="${esc(RSM.novo)}"><button type="submit" class="btn"${RSM.ocupado?" disabled":""}>Adicionar</button></span></form>
+  <button type="button" class="btn pri" data-rsteste${RSM.ocupado||!l.length?" disabled":""}>Enviar resumo de teste agora</button>
+  ${RSM.msg?`<p class="${RSM.ok?"sis-txt rs-ok":"sis-erro"}" role="status">${esc(RSM.msg)}</p>`:""}${linhaResumo()}`; }
+function salvarDestinos(lista){ RSM.ocupado=true; RSM.msg=""; cartaoSistema();
+  chamarApi({token:TOKEN,acao:"destinosResumo",destinos:lista},"salvarDestinosResumo",[TOKEN,lista]).then(r=>{ RSM.ocupado=false;
+    if(r&&r.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return; }
+    if(r&&r.ok){ D.resumo.destinos=r.destinos; RSM.novo=""; RSM.ok=true; RSM.msg="Lista salva."; } else { RSM.ok=false; RSM.msg=(r&&r.motivo)||"Não foi possível salvar."; }
+    cartaoSistema(); }).catch(()=>{ RSM.ocupado=false; RSM.ok=false; RSM.msg="Sem conexão. Tente de novo."; cartaoSistema(); }); }
+document.addEventListener("submit",e=>{ const f=e.target.closest&&e.target.closest("form[data-rsadd]"); if(!f) return; e.preventDefault();
+  const v=$("rsNovo").value.trim().toLowerCase(); RSM.novo=v;
+  if(!/^[^\s@,;<>"']+@[^\s@,;<>"']+\.[^\s@,;<>"']{2,}$/.test(v)){ RSM.ok=false; RSM.msg="Confira o e-mail (ex.: nome@empresa.com)."; cartaoSistema(); const i=$("rsNovo"); if(i) i.focus(); return; }
+  const l=(D.resumo.destinos||[]); if(l.includes(v)){ RSM.ok=false; RSM.msg="Este e-mail já está na lista."; cartaoSistema(); return; }
+  salvarDestinos(l.concat([v])); });
+document.addEventListener("click",e=>{ const x=e.target.closest("[data-rsx]"); if(x){ e.preventDefault(); salvarDestinos((D.resumo.destinos||[]).filter(m=>m!==x.dataset.rsx)); return; }
+  const t=e.target.closest("[data-rsteste]"); if(!t||RSM.ocupado) return; e.preventDefault();
+  RSM.ocupado=true; RSM.msg="Enviando…"; RSM.ok=true; cartaoSistema();
+  chamarApi({token:TOKEN,acao:"resumoTeste"},"enviarResumoTeste",[TOKEN]).then(r=>{ RSM.ocupado=false;
+    if(r&&r.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(r.motivo)); return; }
+    if(r&&r.ultimo) D.resumo.ultimo=r.ultimo; RSM.ok=!!(r&&r.ok); RSM.msg=r&&r.ok?"Resumo de teste enviado para "+r.n+" "+(r.n===1?"destinatário":"destinatários")+".":(r&&r.motivo)||"Não foi possível enviar.";
+    cartaoSistema(); }).catch(()=>{ RSM.ocupado=false; RSM.ok=false; RSM.msg="Sem conexão. Tente de novo."; cartaoSistema(); }); });
 function htmlBackup(){ const s=D.sistema, b=s.backup, velho=sisVelho(b);
   return `<span class="l ${velho?"bad":""}">${b&&!b.ok?"Backup falhou em "+sisDh(b.em)+" — "+(b.falta==="AUTORIZAR"?"falta autorizar o acesso ao Drive.":"tente de novo."):"Último backup: "+(b?sisDh(b.em):"nenhum ainda")}</span>
     ${BKP_MSG?`<span class="l">${esc(BKP_MSG)}</span>`:""}
@@ -2832,13 +3158,15 @@ function htmlBackup(){ const s=D.sistema, b=s.backup, velho=sisVelho(b);
 const SIS_CARTOES=[
   {id:"sisSinc",titulo:"Sincronização",sub:"Como os dados chegam do formulário",corpo:htmlSinc},
   {id:"sisBackup",titulo:"Backup",sub:"Cópia das planilhas na pasta “ZAYDA - Backups”",corpo:htmlBackup,cls:"sc-sist"},
+  {id:"sisResumo",titulo:"Resumo semanal por e-mail",sub:"Destinatários e envio de teste",corpo:htmlResumoCard},
   {id:"sisPlan",titulo:"Planilha",sub:"Planilha de controle (custos, obras e importações)",corpo:()=>D.planilhaUrl?`<a class="btn" id="sheetLink" href="${esc(D.planilhaUrl)}" target="_blank" rel="noopener">Abrir planilha</a>`:"—"}
 ];
 function vSistema(){ if(!D||!D.sistema) return `<div class="card empty"><b>Sem acesso</b>Esta tela é só para administradores da Zayda.</div>`;
   return `<div class="sis-grid">${SIS_CARTOES.map(c=>`<section class="card sis-card" aria-labelledby="${c.id}T"><div class="cardhead"><div><h2 id="${c.id}T">${c.titulo}</h2><div class="sub">${c.sub}</div></div></div><div id="${c.id}"${c.cls?` class="${c.cls}"`:""}>${c.corpo()}</div></section>`).join("")}</div>`; }
 /* Depois de cada leitura e a cada passo do backup: atualiza o ponto do menu e, com a tela aberta, os cartões. */
 function cartaoSistema(){ const av=$("navSisAv"), msg=sisAviso(); if(av){ av.hidden=!msg; av.title=msg; av.setAttribute("aria-label",msg?"Aviso: "+msg:""); }
-  if(!D||!D.sistema) return; const sc=$("sisSinc"), bk=$("sisBackup"); if(sc) sc.innerHTML=htmlSinc(); if(bk) bk.innerHTML=htmlBackup(); }
+  if(!D||!D.sistema) return; const sc=$("sisSinc"), bk=$("sisBackup"), rs=$("sisResumo"); if(sc) sc.innerHTML=htmlSinc(); if(bk) bk.innerHTML=htmlBackup();
+  if(rs&&D.resumo){ const foco=document.activeElement&&document.activeElement.id==="rsNovo"; rs.innerHTML=htmlResumoCard(); if(foco){ const i=$("rsNovo"); if(i) i.focus(); } } }
 document.addEventListener("click",e=>{ const b=e.target.closest("[data-bkp]"); if(!b) return; const a=b.dataset.bkp;
   if(a==="pedir"){ BKP_CONF=true; BKP_MSG=""; cartaoSistema(); const s=document.querySelector('[data-bkp="sim"]'); if(s) s.focus(); return; }
   if(a==="nao"){ BKP_CONF=false; cartaoSistema(); return; }
@@ -2906,7 +3234,7 @@ function renderMantendo(n,manual){
   MODO=manual?null:n?"novo":"auto"; render(); if(foto) aplicarTrans(foto); destacar(n);
   abertos.forEach(id=>{const d=document.querySelector(`details.ped[data-id="${CSS.escape(id)}"]`);if(d)d.open=true;});
 }
-function route(){S.rota=(S.rota||0)+1;$("view").style.minHeight="";cancelarBusca();cancelarEntrada();esconderSeg();esconderToque();const h=location.hash.replace("#","");S.view=TITLES[h]&&((h!=="usuarios"&&h!=="sistema")||ehAdminZayda())?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";if(S.irBuscaTxt){S.busca=S.irBuscaTxt;S.irBuscaTxt="";}S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
+function route(){S.rota=(S.rota||0)+1;$("view").style.minHeight="";cancelarBusca();cancelarEntrada();esconderSeg();esconderToque();const h=location.hash.replace("#","");S.view=TITLES[h]&&((h!=="usuarios"&&h!=="sistema"&&h!=="fechamento")||ehAdminZayda())?h:"painel";S.pedFoco=S.irPed||"";S.busca=S.pedFoco;S.irPed="";if(S.irBuscaTxt){S.busca=S.irBuscaTxt;S.irBuscaTxt="";}S.sit=S.irSit||"";S.irSit="";if(D){MODO="aba";render();
   if(S.pedFoco){const d=document.querySelector(`details.ped[data-id="${CSS.escape(S.pedFoco)}"]`);if(d)d.open=true}irTopo()}}
 window.addEventListener("hashchange",route);
 /* [Etapa 0] Menu do topo no celular: degradê na borda direita enquanto houver itens escondidos à direita. */
@@ -3045,7 +3373,8 @@ function cortesPdf(el){
   const comBloco=cortes.filter(([a,b])=>blocos.some(x=>x.b>a&&x.t<b)); // trecho sem nenhum bloco não vira página
   return comBloco.length?comBloco:cortes;
 }
-async function gerarPdf(html,nome){
+async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao app, entrega o PDF (fechamento do mês); op.leve: imagens menores
+  op=op||null;
   if(gerandoPdf) return;
   gerandoPdf=true; aviso("Gerando PDF…");
   const el=$("printArea");
@@ -3063,22 +3392,22 @@ async function gerarPdf(html,nome){
     const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), mm=210/794;
     for(let i=0;i<cortes.length;i++){
       const [a,b]=cortes[i], alt=b-a;
-      const escala=Math.min(3,Math.sqrt(16e6/(794*alt))); // o iPhone não desenha imagens acima de cerca de 16,7 milhões de pixels
+      const escala=Math.min(op&&op.leve?2:3,Math.sqrt(16e6/(794*alt))); // o iPhone não desenha imagens acima de cerca de 16,7 milhões de pixels
       const tela=await html2canvas(el,{scale:escala,backgroundColor:"#fff",logging:false,windowWidth:794,scrollX:0,scrollY:0,
         x:0,y:a,width:794,height:alt, // x/y contam a partir do canto do próprio #printArea
         ignoreElements:e=>e.id==="intro"||e.id==="acesso"||e.id==="aviso"||e.classList.contains("app"),
         onclone:d=>{ d.documentElement.setAttribute("data-theme","light"); }});
       if(i) pdf.addPage();
       let img=tela.toDataURL("image/png"), tipo="PNG";
-      if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
+      if(op&&op.leve){ img=tela.toDataURL("image/jpeg",.9); tipo="JPEG"; } else if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
       pdf.addImage(img,tipo,0,i?11:0,210,alt*mm,undefined,"FAST");
       if(rodTxt){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); pdf.text(rodTxt,198,291,{align:"right"}); }
       tela.width=tela.height=0;
     }
     const dados=pdf.output("arraybuffer");
-    window.top.postMessage({zayda:"pdf",nome:String(nome).replace(/[\x2f\x5c:*?<>|\x22]/g,"-"),dados},ORIGEM_APP,[dados]);
-    aviso("");
-  }catch(e){ console.error(e); aviso("Não foi possível gerar o PDF. Confira a internet e tente de novo.",6000); }
+    if(op&&op.destino){ op.dados=dados; aviso(""); }
+    else { window.top.postMessage({zayda:"pdf",nome:String(nome).replace(/[\x2f\x5c:*?<>|\x22]/g,"-"),dados},ORIGEM_APP,[dados]); aviso(""); }
+  }catch(e){ console.error(e); if(op) op.falhou=true; aviso("Não foi possível gerar o PDF. Confira a internet e tente de novo.",6000); }
   finally{ ajuste.remove(); el.style.cssText=""; el.innerHTML=""; gerandoPdf=false; }
 }
 function imprimirPedido(id){
@@ -3139,6 +3468,10 @@ function relCategorias(conf,total,rotulo){
   const c=Object.entries(relGrupo(conf,l=>l.cat||"Outros")).map(([k,a])=>({k,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
   return c.length?relTabela(["Categoria",["Custo confirmado","n"],[rotulo,"n"]],c.map(x=>[esc(x.k),brl(x.v),relPct(x.v,total)]),["TOTAL",brl(total),relPct(total,total)]):relVazio("Nenhum custo confirmado neste período.");
 }
+/* [Função 6] Tabela "Custo por etapa" dos relatórios impressos e do PDF do fechamento (sempre claros). */
+function relEtapas(conf,total,rotulo){ const g=custoPorEtapa(conf), ks=ordemEtapas(Object.keys(g)).filter(k=>g[k]);
+  return ks.length?relTabela(["Etapa",["Custo confirmado","n"],[rotulo,"n"]],ks.map(k=>[esc(nomeEtapa(k)),brl(g[k]),relPct(g[k],total)]),["TOTAL",brl(total),relPct(total,total)]):relVazio("Nenhum custo confirmado.");
+}
 function folhaRelMes(k){
   const [ini,fim]=relDoMes(k), d=relDados(ini,fim), orc=orcObras();
   const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,n:a.length,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
@@ -3150,7 +3483,7 @@ function folhaRelMes(k){
     `<h2>GASTO POR OBRA</h2>`+(obras.length?relTabela(["Obra",["Entregas","n"],["Custo confirmado","n"],["% do mês","n"],["Orçamento (planejado)","n"],"Situação do orçamento"],
       obras.map(o=>{ const x=orc[o.id], tem=x&&x.sit!=="SEM"; return [o.id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(o.id)}</small>${esc(obraNome(o.id))}`,o.n,brl(o.v),relPct(o.v,d.custo),tem?brl(x.orc):"—",tem?ORC_SIT[x.sit].t:"—"]; }),
       ["TOTAL",d.conf.length,brl(d.custo),relPct(d.custo,d.custo),"",""]):relVazio("Nenhum custo confirmado neste mês."))+
-    `<h2>GASTO POR CATEGORIA</h2>`+relCategorias(d.conf,d.custo,"% do mês")+
+    `<h2>GASTO POR CATEGORIA</h2>`+relCategorias(d.conf,d.custo,"% do mês")+`<h2>CUSTO POR ETAPA</h2>`+relEtapas(d.conf,d.custo,"% do mês")+
     `<h2>10 MATERIAIS DE MAIOR GASTO</h2>`+(mats.length?relTabela(["Material",["Quantidade","n"],"Unidade",["Custo confirmado","n"]],mats.map(m=>[esc(m.mat),m.ter?"—":qtd(m.q),m.ter?"—":esc(m.un),brl(m.v)])):relVazio("Nenhum custo confirmado neste mês."))+
     relTerceiros(ini,fim)+`<h2>PENDÊNCIAS DO MÊS</h2>`+relTabela(["Pendência",["Quantidade","n"],"Lista"],[["Materiais que ainda não chegaram",saldo.length,curta(saldo,i=>i.material)],["Pedidos sem obra reconhecida",uniq(semObra.map(i=>i.pedido)).length,curta(semObra,i=>i.pedido)],["Entregas sem valor",semCusto.length,curta(semCusto,l=>l.material)]]));
 }
@@ -3163,7 +3496,7 @@ function folhaRelObra(id,ini,fim,periodo){
     `<h2>DADOS DA OBRA</h2><dl class="blk"><div><dt>FASE ATUAL</dt><dd>${esc(o.fase||o.cidade||"—")}</dd></div><div><dt>% CONCLUÍDO</dt><dd>${c}</dd></div><div><dt>PRAZO</dt><dd>${esc(o.prazo&&o.prazo!=="—"?o.prazo:"—")}</dd></div><div><dt>ENTREGA PREVISTA</dt><dd>${dbr(o.entrega)}</dd></div><div><dt>SITUAÇÃO DA OBRA</dt><dd>${esc(stTxt(o))}</dd></div></dl>`+
     `<h2>ORÇAMENTO DE MATERIAIS</h2>`+(x.sit==="SEM"?relVazio("Obra sem orçamento definido")+`<div class="tot"><div><span>GASTO ATÉ AGORA · CUSTO CONFIRMADO (TODAS AS DATAS)</span><b>${brl(x.gasto)}</b></div></div>`:
       `<div class="tot q4"><div><span>ORÇAMENTO (PLANEJADO)</span><b>${brl(x.orc)}</b></div><div><span>GASTO ATÉ AGORA · CUSTO CONFIRMADO (TODAS AS DATAS)</span><b>${brl(x.gasto)}</b></div><div><span>SALDO</span><b>${brl(x.saldo)}</b></div><div><span>PROJEÇÃO DO GASTO FINAL</span><b>${x.proj==null?"a partir de 15% concluído":brl(x.proj)}</b></div></div><p class="av"><b>Situação: ${ORC_SIT[x.sit].t}.</b> O orçamento compara com todo o gasto da obra.</p>`)+
-    `<h2>GASTO NO PERÍODO</h2><div class="tot"><div><span>CUSTO CONFIRMADO NO PERÍODO</span><b>${brl(d.custo)}</b></div></div>`+relOrigem(d)+relCategorias(d.conf,d.custo,"% do período")+
+    `<h2>GASTO NO PERÍODO</h2><div class="tot"><div><span>CUSTO CONFIRMADO NO PERÍODO</span><b>${brl(d.custo)}</b></div></div>`+relOrigem(d)+relCategorias(d.conf,d.custo,"% do período")+`<h2>CUSTO POR ETAPA</h2>`+relEtapas(d.conf,d.custo,"% do período")+
     (ini.slice(0,7)!==fim.slice(0,7)&&meses.length?`<h2>POR MÊS</h2>`+relTabela(["Mês",["Custo confirmado","n"],["% do período","n"]],meses.map(([m,a])=>[relMesAno(m),brl(sum(a,l=>l.valor)),relPct(sum(a,l=>l.valor),d.custo)]),["TOTAL",brl(d.custo),relPct(d.custo,d.custo)]):"")+
     `<h2>ENTREGAS NO PERÍODO</h2>`+(ent.length?relTabela(["Data","Pedido","Material",["Qtd","n"],"Un",["Valor unit.","n"],["Total","n"],"Recebido por"],ent.map(l=>{ const c=l.situacao==="CUSTO CONFIRMADO"; return [dbr(l.data),esc(l.pedido||"—"),esc(l.material),qtd(l.qtd),esc(l.un),c&&l.custo!=null?brl(l.custo):"—",c?brl(l.valor):"Sem custo confirmado",esc(partesEntrega(l.obs).nome||"—")]; }),["TOTAL (custo confirmado)","","","","","",brl(sum(d.conf.filter(l=>!l.ter),l=>l.valor)),""]):relVazio("Nenhuma entrega neste período."))+
     relTerceiros(ini,fim,id)+`<h2>MATERIAIS QUE AINDA FALTAM CHEGAR</h2>`+(faltam.length?relTabela(["Pedido","Material",["Quantidade pedida","n"],["Entregue","n"],["Falta","n"]],faltam.map(i=>[esc(i.pedido),esc(i.material),qtd(i.qtdSol)+" "+esc(i.un),qtd(i.entregue)+" "+esc(i.un),qtd(i.saldo)+" "+esc(i.un)])):relVazio("Nenhum material pendente nesta obra.")));
@@ -3214,7 +3547,7 @@ const CR=combo("relObra","lRel","xRel","",()=>REL_OBRA,v=>{REL_OBRA=v},{aoMudar:
 let REL_DIA_OBRA="";
 const CD=combo("relDiaObra","lRelDia","xRelDia","Todas as obras",()=>REL_DIA_OBRA,v=>{REL_DIA_OBRA=v},{aoMudar:()=>{CD.sync();relTipos()},todasAoFocar:true,limite:Infinity});
 function abrirRelatorio(){
-  const ms=relMeses().map(k=>`<option value="${k}">${relMesAno(k)}</option>`).join("");
+  const ms=relMeses().map(k=>`<option value="${k}">${relMesAno(k)}${mesFechado(k)?" 🔒 fechado":""}</option>`).join("");
   $("relMes").innerHTML=ms; $("relMes2").innerHTML=ms;
   REL_OBRA=S.obra&&D.obras.some(o=>o.id===S.obra)?S.obra:"";
   CR.items=[...D.obras].sort((a,b)=>a.id.localeCompare(b.id,"pt-BR",{numeric:true})).map(o=>({v:o.id,cd:o.id,t:obraNome(o.id),sub:o.cliente||o.empreendimento||"",busca:o.id+" "+(obraNome(o.id))+" "+(o.cliente||o.empreendimento||"")}));
@@ -3255,7 +3588,7 @@ const ehAdminZayda=()=>!!(D&&D.eu&&D.eu.adminZayda);
 function aplicarEu(){
   const eu=D&&D.eu;
   document.body.classList.toggle("nao-admin",!(eu&&eu.admin));
-  $("navUsuarios").hidden=!ehAdminZayda(); $("navSistema").hidden=!ehAdminZayda();
+  $("navUsuarios").hidden=!ehAdminZayda(); $("navSistema").hidden=!ehAdminZayda(); $("navFech").hidden=!ehAdminZayda();
   $("scConta").hidden=!eu;
   $("euTxt").textContent=eu?"Conectado como "+(eu.nome||eu.usuario)+(eu.empresa?" · "+eu.empresa:""):""; $("scEu").title=$("euTxt").textContent;
   $("trocarPinLnk").hidden=!eu||!!eu.dono;

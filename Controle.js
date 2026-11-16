@@ -113,11 +113,16 @@ function lerOrigem_() {
   // Filtra pelo prefixo do ID: funciona com ou sem cabeçalho na linha 1 da origem.
   // 15ª coluna (O) = ponto de referência, gravada pelo formulário 1.4. É lida à parte para não mudar
   // as 14 colunas originais nem a coluna O de _IMPORT_PEDIDOS (obra identificada).
-  const pedidos = valores(aba(CTRL.celulaAbaPedidos), 15)
+  // [Função 6] ETAPA: procurada pelo nome na 1ª linha; a aba PEDIDOS do formulário não tem cabeçalho, então, sem o nome, vale a coluna P
+  // (16ª, onde o formulário 3.1 grava). Coluna ausente ou vazia: etapa vazia ("Sem etapa informada" no painel).
+  const shPed = aba(CTRL.celulaAbaPedidos), nColP = Math.min(Math.max(shPed.getLastColumn(), 1), 40);
+  const cabPed = shPed.getLastRow() ? shPed.getRange(1, 1, 1, nColP).getValues()[0].map(v => texto_(v).toUpperCase()) : [];
+  const iEtapaP = cabPed.indexOf('ETAPA') >= 0 ? cabPed.indexOf('ETAPA') : 15;
+  const pedidos = valores(shPed, Math.min(Math.max(15, iEtapaP + 1), shPed.getMaxColumns()))
     .filter(valido)
     .map(r => { const p = [texto_(r[0]), Number(r[1]) || 0, dataHora_(r[2]), dataHora_(r[3]), texto_(r[4]), texto_(r[5]),
                texto_(r[6]), texto_(r[7]), texto_(r[8]), texto_(r[9]), valor_(r[10]),
-               Number(valor_(r[11])) || 0, texto_(r[12]), texto_(r[13])]; p.referencia = texto_(r[14]); return p; });
+               Number(valor_(r[11])) || 0, texto_(r[12]), texto_(r[13])]; p.referencia = texto_(r[14]); p.etapa = textoForm_(r[iEtapaP]); return p; });
   const itens = valores(aba(CTRL.celulaAbaItens), 11)
     .filter(valido)
     .map(r => [texto_(r[0]), Number(r[1]) || 0, texto_(r[2]), texto_(r[3]), texto_(r[4]), texto_(r[5]),
@@ -351,6 +356,232 @@ function salvarOrcamento(token, obra, valor, data, obs) {
     return {ok: true, orcamento: {valor: num === '' ? null : num, data: dt, obs: nota}};
   } catch (e) { return {ok: false, motivo: 'Não foi possível salvar: ' + e.message}; }
   finally { lock.releaseLock(); }
+}
+
+/** [Função 5] Resumo semanal por e-mail: toda segunda, por volta das 7h (gatilho criado por instalarSincronizacao).
+ *  Destinatários em ScriptProperties "RESUMO_DESTINOS" (gerenciados no painel, só Admin Zayda). Lista vazia = não envia nada.
+ *  O conteúdo sai dos mesmos dados do painel (dadosPainel_), com as mesmas regras de custo, orçamento, parcelas e fechamento.
+ *  Permissão de e-mail: rodar autorizarEmail() uma vez no editor. */
+const RESUMO = Object.freeze({destinos: 'RESUMO_DESTINOS', ultimo: 'RESUMO_ULTIMO', hora: 7, max: 30});
+const emailValido_ = e => /^[^\s@,;<>"']+@[^\s@,;<>"']+\.[^\s@,;<>"']{2,}$/.test(String(e || ''));
+function destinosResumo_() {
+  try { const l = JSON.parse(PropertiesService.getScriptProperties().getProperty(RESUMO.destinos) || '[]'); return Array.isArray(l) ? l.filter(emailValido_) : []; } catch (e) { return []; }
+}
+function ultimoResumo_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(RESUMO.ultimo) || 'null'); } catch (e) { return null; } }
+/** Permissão de enviar e-mail (rodar uma vez no editor; termina sem erro, sem tela). */
+function autorizarEmail() {
+  ScriptApp.requireScopes(ScriptApp.AuthMode.FULL, ['https://www.googleapis.com/auth/script.send_mail']);
+  console.log('Permissão de e-mail autorizada: o resumo semanal já pode ser enviado.');
+  return 'ok';
+}
+function salvarDestinosResumo(token, lista) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const brutos = (Array.isArray(lista) ? lista : []).map(e => texto_(e).toLowerCase()).filter(Boolean);
+  const ruins = brutos.filter(e => !emailValido_(e));
+  if (ruins.length) return {ok: false, motivo: 'E-mail inválido: ' + ruins.slice(0, 3).join(', ') + '.'};
+  const l = uniq_(brutos);
+  if (l.length > RESUMO.max) return {ok: false, motivo: 'No máximo ' + RESUMO.max + ' destinatários.'};
+  PropertiesService.getScriptProperties().setProperty(RESUMO.destinos, JSON.stringify(l));
+  return {ok: true, destinos: l};
+}
+function enviarResumoTeste(token) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const r = enviarResumo_('teste');
+  return Object.assign(r, {ultimo: ultimoResumo_()});
+}
+/** Gatilho semanal (segunda, por volta das 7h). */
+function resumoSemanal() { return enviarResumo_('semanal'); }
+function enviarResumo_(origem) {
+  const destinos = destinosResumo_(), props = PropertiesService.getScriptProperties();
+  if (!destinos.length) return {ok: false, motivo: 'Nenhum destinatário cadastrado. Nada foi enviado.'};
+  const em = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm');
+  try {
+    try { sincronizarSeHouverNovidade_(); } catch (e) {}
+    const r = montarResumo_(dadosPainel_(null));
+    MailApp.sendEmail({to: destinos.join(','), subject: r.assunto, htmlBody: htmlResumo_(r), name: 'Zayda Construtora'});
+    props.setProperty(RESUMO.ultimo, JSON.stringify({ok: true, em, origem, n: destinos.length}));
+    return {ok: true, em, n: destinos.length};
+  } catch (e) {
+    console.error('Resumo semanal não enviado: ' + (e && e.message || e)); // texto técnico só no registro de execuções
+    props.setProperty(RESUMO.ultimo, JSON.stringify({ok: false, em, origem}));
+    return {ok: false, motivo: 'Não foi possível enviar o resumo. Tente de novo mais tarde.'};
+  }
+}
+const diaMais_ = (iso, n) => { const m = /^(\d{4})-(\d{2})-(\d{2})$/.exec(iso || ''); return m ? new Date(Date.UTC(+m[1], +m[2] - 1, +m[3] + n)).toISOString().slice(0, 10) : ''; };
+const br_ = iso => iso ? iso.slice(8, 10) + '/' + iso.slice(5, 7) + '/' + iso.slice(0, 4) : '—';
+/** Os números do resumo, com as mesmas regras do painel. */
+function montarResumo_(d) {
+  const hoje = d.hoje, ini = diaMais_(hoje, -6), ate7 = diaMais_(hoje, 7), r2 = v => Math.round(v * 100) / 100;
+  const nomeObra = id => { const o = (d.obras || []).find(x => x.id === id); return o ? (o.endereco || o.casa || id) : (id && id !== 'SEM VÍNCULO' ? id : 'Sem obra identificada'); };
+  const canc = id => { const c = ((d.pedidos || {})[id] || {}).cancelamento; return c ? c.tipo : ''; };
+  const ter = d.terceiros || [];
+  const lanc = (d.lanc || []).map(l => Object.assign({}, l, {obra: l.obra || 'SEM VÍNCULO'}))
+    .concat(ter.filter(t => t.conferencia === 'CONFERIDO' && t.dataRef && t.valor > 0).map(t => ({data: t.dataRef, obra: t.obra || 'SEM VÍNCULO', valor: t.valor, situacao: 'CUSTO CONFIRMADO', ter: true, alertas: ''})));
+  const conf = lanc.filter(l => l.situacao === 'CUSTO CONFIRMADO');
+  const semana = conf.filter(l => l.data >= ini && l.data <= hoje), porObra = {};
+  semana.forEach(l => { porObra[l.obra] = (porObra[l.obra] || 0) + (l.valor || 0); });
+  const itens = (d.itens || []).filter(i => canc(i.pedido) !== 'CANCELADO').map(i => Object.assign({}, i, {saldo: canc(i.pedido) === 'ENCERRADO' ? 0 : i.saldo}));
+  // Orçamento (mesma regra da Função 1)
+  const gasto = {}, aEnt = {}; conf.forEach(l => { gasto[l.obra] = (gasto[l.obra] || 0) + (l.valor || 0); });
+  itens.forEach(i => { if (i.precoRef != null && i.saldo > 0) aEnt[i.obra] = (aEnt[i.obra] || 0) + i.saldo * i.precoRef; });
+  const alertas = []; (d.obras || []).forEach(o => { const od = (d.orcamentos || {})[o.id], orc = od && od.valor > 0 ? od.valor : null; if (orc == null) return;
+    const g = r2(gasto[o.id] || 0), u = g / orc, niv = u >= ALERTA_ORC.estouro ? 'ESTOURADO' : u >= ALERTA_ORC.atencao ? 'ATENCAO' : '';
+    if (niv) alertas.push({id: o.id, nome: nomeObra(o.id), nivel: niv, pct: Math.round(u * 100), gasto: g, orc, passou: r2(Math.max(0, g - orc)), previsto: r2(g + (aEnt[o.id] || 0))}); });
+  alertas.sort((a, b) => b.pct - a.pct);
+  // Parcelas (mesma regra da Função 2)
+  const venc = [], prox = [];
+  ter.filter(t => t.conferencia !== 'CANCELADO' && t.conferencia !== 'REPROVADO').forEach(t => (t.parcelas || []).forEach((p, i) => {
+    if (p.pago || !p.vencimento) return; const x = {forn: t.fornecedor, obra: t.obra, desc: t.descricao, n: p.numero || i + 1, de: (t.parcelas || []).length, valor: p.valor, venc: p.vencimento};
+    if (p.vencimento < hoje) venc.push(x); else if (p.vencimento <= ate7) prox.push(x); }));
+  const ordV = (a, b) => a.venc.localeCompare(b.venc); venc.sort(ordV); prox.sort(ordV);
+  // Meses fechados que mudaram (mesma regra da Função 4)
+  const porMes = {}; conf.forEach(l => { const k = String(l.data || '').slice(0, 7); if (!k) return; const m = porMes[k] = porMes[k] || {total: 0, obras: {}}; m.total += l.valor || 0; m.obras[l.obra] = (m.obras[l.obra] || 0) + (l.valor || 0); });
+  const ultimoF = {}; (d.fechamentos || []).forEach(f => { ultimoF[f.mes] = f; });
+  const mudaram = Object.keys(ultimoF).filter(k => ultimoF[k].tipo === 'FECHAMENTO').map(k => { const f = ultimoF[k], a = porMes[k] || {total: 0, obras: {}}, obras = [];
+    uniq_(Object.keys(f.porObra || {}).concat(Object.keys(a.obras))).forEach(o => { if (Math.abs(((f.porObra || {})[o] || 0) - (a.obras[o] || 0)) >= 0.005) obras.push(o); });
+    return Math.abs(f.total - a.total) >= 0.005 || obras.length ? {mes: k, fechado: f.total, atual: r2(a.total), obras} : null; }).filter(Boolean);
+  // Demais pendências (em todo o período)
+  const pedSaldo = uniq_(itens.filter(i => i.saldo > 0).map(i => i.pedido)).length;
+  const pend = [['Materiais que ainda não chegaram (pedidos)', pedSaldo], ['Pedidos sem obra reconhecida', uniq_(itens.filter(i => !i.obra || i.obra === 'SEM VÍNCULO').map(i => i.pedido)).length],
+    ['Entregas sem valor', lanc.filter(l => l.situacao === 'PENDENTE DE CUSTO').length], ['Entregas para conferir', lanc.filter(l => l.situacao === 'AGUARDANDO CONFERÊNCIA').length],
+    ['Entregas com aviso', lanc.filter(l => l.alertas && l.situacao !== 'CANCELADO').length], ['Materiais pedidos sem preço (itens)', itens.filter(i => i.precoRef == null).length],
+    ['Compras de outros fornecedores a conferir', ter.filter(t => t.conferencia === 'AGUARDANDO').length]].filter(x => x[1] > 0);
+  return {assunto: 'Zayda · Resumo semanal — ' + br_(ini).slice(0, 5) + ' a ' + br_(hoje).slice(0, 5), ini, hoje,
+    total: r2(sum_(semana)), obras: Object.keys(porObra).map(id => ({id, nome: nomeObra(id), v: r2(porObra[id])})).sort((a, b) => b.v - a.v),
+    alertas, venc, prox, totVenc: r2(venc.reduce((s, x) => s + x.valor, 0)), totProx: r2(prox.reduce((s, x) => s + x.valor, 0)), mudaram, pend,
+    link: (() => { try { return ScriptApp.getService().getUrl() || ''; } catch (e) { return ''; } })()};
+}
+const sum_ = a => a.reduce((s, l) => s + (l.valor || 0), 0);
+const escH_ = s => String(s == null ? '' : s).replace(/[&<>"']/g, ch => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'})[ch]);
+const brl_ = v => 'R$ ' + (Math.round((Number(v) || 0) * 100) / 100).toFixed(2).replace('.', ',').replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+/** E-mail em HTML simples, fundo claro, legível no celular. */
+function htmlResumo_(r) {
+  const V = '#00632B', T = '#13241A', C = '#4D5E54', L = '#E0E7E2';
+  const sec = (tit, corpo) => '<tr><td style="padding:18px 20px 4px"><div style="font:800 15px Arial,sans-serif;color:' + T + ';margin:0 0 8px">' + tit + '</div>' + corpo + '</td></tr>';
+  const lin = (a, b, cor) => '<tr><td style="padding:7px 0;border-bottom:1px solid ' + L + ';font:14px Arial,sans-serif;color:' + T + '">' + a + '</td><td style="padding:7px 0 7px 10px;border-bottom:1px solid ' + L + ';font:700 14px Arial,sans-serif;color:' + (cor || T) + ';text-align:right;white-space:nowrap">' + b + '</td></tr>';
+  const tab = linhas => '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="border-collapse:collapse">' + linhas.join('') + '</table>';
+  const nada = t => '<div style="font:14px Arial,sans-serif;color:' + C + '">' + t + '</div>';
+  const parc = x => lin(escH_(x.forn) + '<br><span style="font-size:12px;color:' + C + '">' + escH_(x.obra || 'Sem obra') + ' · parcela ' + x.n + ' de ' + x.de + ' · vence ' + br_(x.venc) + '</span>', brl_(x.valor));
+  let h = '<!doctype html><html><body style="margin:0;background:#F4F7F5"><table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#F4F7F5"><tr><td align="center" style="padding:16px 8px">'
+    + '<table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:600px;background:#FFFFFF;border:1px solid ' + L + ';border-radius:14px">'
+    + '<tr><td style="padding:18px 20px;background:' + V + ';border-radius:14px 14px 0 0"><div style="font:800 18px Arial,sans-serif;color:#FFFFFF">ZAYDA CONSTRUTORA</div><div style="font:14px Arial,sans-serif;color:#E3F0E6;margin-top:4px">Resumo semanal · ' + br_(r.ini) + ' a ' + br_(r.hoje) + '</div></td></tr>';
+  h += sec('Custo confirmado nos últimos 7 dias', r.total > 0 ? '<div style="font:800 24px Arial,sans-serif;color:' + V + ';margin-bottom:6px">' + brl_(r.total) + '</div>' + tab(r.obras.map(o => lin(escH_(o.id === 'SEM VÍNCULO' ? 'Sem obra identificada' : o.id + ' · ' + o.nome), brl_(o.v)))) : nada('Sem movimento nesta semana.'));
+  h += sec('Orçamento das obras', r.alertas.length ? tab(r.alertas.map(a => lin((a.nivel === 'ESTOURADO' ? '▲ Estourado' : '! Atenção') + ' · ' + escH_(a.id + ' · ' + a.nome) + '<br><span style="font-size:12px;color:' + C + '">' + brl_(a.gasto) + ' de ' + brl_(a.orc) + (a.passou > 0 ? ' · passou ' + brl_(a.passou) : '') + (a.previsto > a.orc && a.previsto > a.gasto ? ' · previsto com o que falta entregar: ' + brl_(a.previsto) : '') + '</span>', a.pct + '%', a.nivel === 'ESTOURADO' ? '#B42318' : '#946000'))) : nada('Nenhuma obra em atenção ou com orçamento estourado ✓'));
+  h += sec('Parcelas de outros fornecedores', (r.venc.length ? '<div style="font:700 13px Arial,sans-serif;color:#B42318;margin:4px 0">Vencidas · ' + r.venc.length + ' · ' + brl_(r.totVenc) + '</div>' + tab(r.venc.slice(0, 15).map(parc)) : '')
+    + (r.prox.length ? '<div style="font:700 13px Arial,sans-serif;color:#946000;margin:10px 0 4px">Vencem nos próximos 7 dias · ' + r.prox.length + ' · ' + brl_(r.totProx) + '</div>' + tab(r.prox.slice(0, 15).map(parc)) : '')
+    + (!r.venc.length && !r.prox.length ? nada('Nenhum pagamento vencendo ✓') : ''));
+  if (r.mudaram.length) h += sec('Meses fechados que mudaram', tab(r.mudaram.map(m => lin(escH_(m.mes.slice(5, 7) + '/' + m.mes.slice(0, 4)) + '<br><span style="font-size:12px;color:' + C + '">Fechado ' + brl_(m.fechado) + ' · agora ' + brl_(m.atual) + (m.obras.length ? ' · obras: ' + escH_(m.obras.join(', ')) : '') + '</span>', brl_(m.atual - m.fechado), '#946000'))));
+  h += sec('Outras pendências', r.pend.length ? tab(r.pend.map(p => lin(escH_(p[0]), String(p[1])))) : nada('Tudo em dia ✓'));
+  if (r.link) h += '<tr><td align="center" style="padding:20px"><a href="' + escH_(r.link) + '" style="display:inline-block;background:' + V + ';color:#FFFFFF;text-decoration:none;font:800 15px Arial,sans-serif;padding:12px 22px;border-radius:10px">Abrir painel</a></td></tr>';
+  h += '<tr><td style="padding:0 20px 18px;font:12px Arial,sans-serif;color:' + C + '">Enviado automaticamente pelo painel de custos da Zayda. Para sair da lista, peça a um administrador da Zayda.</td></tr></table></td></tr></table></body></html>';
+  return h;
+}
+
+/** [Função 4] Fechamento do mês: fotografia dos números de um mês encerrado (aba FECHAMENTOS da planilha do painel) + PDF no Drive.
+ *  O painel não altera a planilha do formulário: a "trava" é a conferência — a cada carga o navegador compara o mês atual com a fotografia.
+ *  Uma linha por evento (FECHAMENTO ou REABERTURA), nada é apagado: o histórico fica todo na aba. A aba entra no backup semanal
+ *  (o backup copia a planilha do painel inteira). */
+const FECH = Object.freeze({aba: 'FECHAMENTOS', pasta: 'ZAYDA - Fechamentos',
+  cab: ['MES', 'TIPO', 'TOTAL', 'LOJA_BSJ', 'OUTROS_FORNECEDORES', 'N_ENTREGAS', 'N_LANCAMENTOS', 'POR_OBRA', 'POR_ETAPA', 'POR', 'EM', 'PDF_URL', 'MOTIVO']});
+function abaFechamentos_(criar) {
+  const ss = planilhaControle_();
+  let sh = ss.getSheetByName(FECH.aba);
+  if (!sh && criar) {
+    sh = ss.insertSheet(FECH.aba);
+    sh.getRange(1, 1, 1, FECH.cab.length).setValues([FECH.cab]).setFontWeight('bold').setBackground('#EDF6DD').setFontColor('#064B25');
+    sh.setFrozenRows(1);
+  }
+  return sh;
+}
+function lerFechamentos_() {
+  const sh = abaFechamentos_(false);
+  if (!sh || sh.getLastRow() < 2) return [];
+  const js = v => { try { return JSON.parse(texto_(v) || '{}') || {}; } catch (e) { return {}; } };
+  return sh.getRange(2, 1, sh.getLastRow() - 1, FECH.cab.length).getValues().filter(r => /^\d{4}-\d{2}$/.test(texto_(r[0]))).map(r => ({
+    mes: texto_(r[0]), tipo: texto_(r[1]).toUpperCase(), total: num_(r[2]) || 0, bsj: num_(r[3]) || 0, ter: num_(r[4]) || 0,
+    nEnt: num_(r[5]) || 0, nLanc: num_(r[6]) || 0, porObra: js(r[7]), porEtapa: js(r[8]), por: texto_(r[9]), em: texto_(r[10]), pdf: urlDrive_(r[11]), motivo: texto_(r[12])}));
+}
+function pastaFechamentos_() {
+  const props = PropertiesService.getScriptProperties(), id = props.getProperty('FECH_PASTA_ID');
+  if (id) { try { const f = DriveApp.getFolderById(id); if (!f.isTrashed()) return f; } catch (e) {} }
+  const it = DriveApp.getFoldersByName(FECH.pasta), f = it.hasNext() ? it.next() : DriveApp.createFolder(FECH.pasta);
+  props.setProperty('FECH_PASTA_ID', f.getId());
+  return f;
+}
+const estadoFech_ = (lista, mes) => { const l = lista.filter(f => f.mes === mes); return l.length ? l[l.length - 1] : null; };
+/** Fecha um mês já terminado (só Admin Zayda). foto = números calculados no painel com as regras de custo atuais; pdf = relatório do mês (base64). */
+function fecharMes(token, mes, foto, pdf) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const m = texto_(mes), atual = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM');
+  if (!/^\d{4}-\d{2}$/.test(m)) return {ok: false, motivo: 'Mês inválido.'};
+  if (m >= atual) return {ok: false, motivo: 'Só é possível fechar um mês que já terminou.'};
+  if (!foto || typeof foto !== 'object') return {ok: false, motivo: 'Dados do mês inválidos.'};
+  const n = v => { const x = Number(v); return isFinite(x) ? Math.round(x * 100) / 100 : 0; };
+  const mapa = o => { const r = {}; Object.keys(o && typeof o === 'object' ? o : {}).slice(0, 500).forEach(k => { r[String(k).slice(0, 80)] = n(o[k]); }); return r; };
+  if (!pdf || String(pdf).length > 20e6) return {ok: false, motivo: 'O relatório em PDF não chegou. Tente de novo.'};
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
+  try {
+    const est = estadoFech_(lerFechamentos_(), m);
+    if (est && est.tipo === 'FECHAMENTO') return {ok: false, motivo: 'Este mês já está fechado.', fechamentos: lerFechamentos_()};
+    let url = '';
+    try {
+      const blob = Utilities.newBlob(Utilities.base64Decode(String(pdf)), 'application/pdf', 'Fechamento ' + m + ' — Zayda.pdf');
+      url = pastaFechamentos_().createFile(blob).getUrl();
+    } catch (e) { console.error('PDF do fechamento não salvo: ' + e.message); return {ok: false, motivo: 'Não foi possível salvar o PDF no Drive. Tente de novo.'}; }
+    const sh = abaFechamentos_(true), linha = sh.getLastRow() + 1;
+    sh.getRange(linha, 1, 1, 2).setNumberFormat('@'); sh.getRange(linha, 8, 1, 6).setNumberFormat('@');
+    sh.getRange(linha, 1, 1, FECH.cab.length).setValues([[m, 'FECHAMENTO', n(foto.total), n(foto.bsj), n(foto.ter), Math.max(0, Math.round(Number(foto.nEnt) || 0)),
+      Math.max(0, Math.round(Number(foto.nLanc) || 0)), JSON.stringify(mapa(foto.porObra)), JSON.stringify(mapa(foto.porEtapa)), a.u.nome || a.u.usuario,
+      Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm'), url, '']]);
+    SpreadsheetApp.flush();
+    return {ok: true, fechamentos: lerFechamentos_()};
+  } finally { lock.releaseLock(); }
+}
+/** Reabre um mês fechado (só Admin Zayda, com motivo). Fica registrado quem, quando e por quê. */
+function reabrirMes(token, mes, motivo) {
+  const a = adminZayda_(token); if (a.erro) return a.erro;
+  const m = texto_(mes), mot = texto_(motivo);
+  if (mot.length < 5) return {ok: false, motivo: 'Informe o motivo (mínimo 5 caracteres).'};
+  if (mot.length > 300 || /^[=+@-]/.test(mot)) return {ok: false, motivo: 'Motivo inválido (até 300 caracteres, sem começar com =, +, - ou @).'};
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(15000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
+  try {
+    const est = estadoFech_(lerFechamentos_(), m);
+    if (!est || est.tipo !== 'FECHAMENTO') return {ok: false, motivo: 'Este mês não está fechado.', fechamentos: lerFechamentos_()};
+    const sh = abaFechamentos_(true), linha = sh.getLastRow() + 1;
+    sh.getRange(linha, 1, 1, FECH.cab.length).setNumberFormat('@');
+    sh.getRange(linha, 1, 1, FECH.cab.length).setValues([[m, 'REABERTURA', '', '', '', '', '', '', '', a.u.nome || a.u.usuario, Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm'), '', mot]]);
+    SpreadsheetApp.flush();
+    return {ok: true, fechamentos: lerFechamentos_()};
+  } finally { lock.releaseLock(); }
+}
+
+/** [Função 3] Área construída (m²) de cada obra. A planilha de obras não tem esse dado (e lá o painel só lê):
+ *  fica guardada no próprio painel, em ScriptProperties "AREAS_OBRAS" = {OB-xx: {m2, por, em}}. Mesmo perfil que define o orçamento. */
+const CHAVE_AREAS = 'AREAS_OBRAS';
+function areasObras_() { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty(CHAVE_AREAS) || '{}') || {}; } catch (e) { return {}; } }
+function salvarArea(token, obra, m2) {
+  const ac = autenticar_(token);
+  if (ac.erro) return {ok: false, acesso: false, motivo: ac.erro.motivo === 'DESATIVADO' ? 'Seu acesso ao painel está desativado.' : 'Sua sessão neste aparelho terminou. Entre de novo.'};
+  if (!ehAdmin_(ac.u)) return {ok: false, motivo: 'Somente administradores podem informar a área da obra.'};
+  const id = texto_(obra).toUpperCase();
+  if (!/^OB-\d+$/.test(id)) return {ok: false, motivo: 'Obra inválida.'};
+  let v = '';
+  if (texto_(m2) !== '') {
+    v = valor_(m2);
+    if (v === '' || !(v > 0) || v > 1000000) return {ok: false, motivo: 'Informe a área em m², maior que zero (ex.: 120,5), ou apague o valor para remover.'};
+    v = Math.round(v * 100) / 100;
+  }
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
+  try {
+    const a = areasObras_();
+    if (v === '') delete a[id];
+    else a[id] = {m2: v, por: ac.u.nome || ac.u.usuario, em: Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm')};
+    PropertiesService.getScriptProperties().setProperty(CHAVE_AREAS, JSON.stringify(a));
+    return {ok: true, area: a[id] || null};
+  } finally { lock.releaseLock(); }
 }
 
 /** Menu Zayda: cria a aba agora (sem esperar a próxima sincronização) e acrescenta as obras que faltam. */
@@ -617,10 +848,13 @@ function sincronizarFormulario(esperaMs) {
       linhas_(ss, CTRL.obras, CTRL.linhaObras, 4).filter(r => texto_(r[0]));
     const ident = identificarObras_(ss, dados, obrasParaVinculo);
     // Coluna O de _IMPORT_PEDIDOS: obra identificada pelo script (código ou rua + casa).
-    const linhasPed = dados.pedidos.map((p, i) => p.concat([ident.porLinha[i], p.referencia || '']));
-    gravar('pedidos', linhasPed, () => escrever_(ss, CTRL.destPedidos, linhasPed, 16));
+    // [Função 6] Coluna Q de _IMPORT_PEDIDOS: ETAPA da obra informada no pedido.
+    const linhasPed = dados.pedidos.map((p, i) => p.concat([ident.porLinha[i], p.referencia || '', p.etapa || '']));
+    gravar('pedidos', linhasPed, () => escrever_(ss, CTRL.destPedidos, linhasPed, 17));
     const cabP = ss.getSheetByName(CTRL.destPedidos).getRange('P1');
     if (texto_(cabP.getValue()) !== 'PONTO_REFERENCIA') cabP.setValue('PONTO_REFERENCIA');
+    const cabQ = ss.getSheetByName(CTRL.destPedidos).getRange('Q1');
+    if (texto_(cabQ.getValue()) !== 'ETAPA') cabQ.setValue('ETAPA');
     gravar('cancelamentos', dados.cancelamentos, () => escreverCancelamentos_(ss, dados.cancelamentos));
     gravar('entregas', [dados.entregas, dados.pedidos.map(p => [p[0], p[1], p[6]])], () => escreverEntregas_(ss, dados.entregas, dados.pedidos));
     const novasEntregas = lancarEntregas_(ss, dados, ident);
@@ -727,9 +961,11 @@ function instalarSincronizacao() {
   // Se a criação falhar, nada é apagado e os gatilhos antigos continuam funcionando.
   const antigos = ScriptApp.getProjectTriggers();
   const novo = ScriptApp.newTrigger('sincronizacaoAutomatica').timeBased().everyMinutes(minutos).create();
+  // [Função 5] Resumo semanal por e-mail: segunda-feira, por volta das 7h (criado antes de apagar o antigo).
+  const novoResumo = ScriptApp.newTrigger('resumoSemanal').timeBased().onWeekDay(ScriptApp.WeekDay.MONDAY).atHour(RESUMO.hora).create();
   antigos
-    .filter(t => t.getUniqueId() !== novo.getUniqueId())
-    .filter(t => ['sincronizarFormulario', 'sincronizacaoAutomatica', 'aoEditarObras', 'backupSemanal'].indexOf(t.getHandlerFunction()) >= 0)
+    .filter(t => t.getUniqueId() !== novo.getUniqueId() && t.getUniqueId() !== novoResumo.getUniqueId())
+    .filter(t => ['sincronizarFormulario', 'sincronizacaoAutomatica', 'aoEditarObras', 'backupSemanal', 'resumoSemanal'].indexOf(t.getHandlerFunction()) >= 0)
     .forEach(t => ScriptApp.deleteTrigger(t));
   // Na hora em que alguém muda fase, status ou etapa na planilha "Controle e Planejamento de Obras".
   const idObras = texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaObrasId).getValue());
@@ -739,7 +975,7 @@ function instalarSincronizacao() {
   PropertiesService.getScriptProperties().deleteProperty('MARCA_ORIGEM');
   const r = sincronizacaoAutomatica();
   avisar_('', 'Sincronização automática ativada: verifica o formulário a cada ' + minutos + ' minutos e copia assim que houver pedido ou entrega nova. ' +
-    'Mudanças de fase, status e etapas na planilha de obras entram na hora. Backup semanal: segunda, entre 3h e 4h.\n\nPrimeira execução: ' + r);
+    'Mudanças de fase, status e etapas na planilha de obras entram na hora. Backup semanal: segunda, entre 3h e 4h. Resumo por e-mail: segunda, por volta das 7h.\n\nPrimeira execução: ' + r);
 }
 
 /* ===================== REMOÇÃO DOS DADOS DE TESTE ===================== */
@@ -816,8 +1052,13 @@ function doPost(e) {
     : c.acao === 'desconectar' ? desconectarAparelhos(c.token, c.usuario)
     : c.acao === 'entregas' ? getEntregasPedido(c.token, c.pedido)
     : c.acao === 'salvarOrcamento' ? salvarOrcamento(c.token, c.obra, c.valor, c.data, c.obs)
+    : c.acao === 'salvarArea' ? salvarArea(c.token, c.obra, c.m2)
+    : c.acao === 'fecharMes' ? fecharMes(c.token, c.mes, c.foto, c.pdf)
+    : c.acao === 'reabrirMes' ? reabrirMes(c.token, c.mes, c.motivo)
     : c.acao === 'conferirTerceiro' ? conferirTerceiro(c.token, c.id, c.op, c.motivo, c.atualizadoEm)
     : c.acao === 'backup' ? backupAgora(c.token)
+    : c.acao === 'destinosResumo' ? salvarDestinosResumo(c.token, c.destinos)
+    : c.acao === 'resumoTeste' ? enviarResumoTeste(c.token)
     : getDadosPainel(c.token); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
@@ -1252,6 +1493,10 @@ function getDadosPainel(token) {
   const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
   if (ac.erro) return ac.erro;
   sincronizarSeHouverNovidade_();
+  return dadosPainel_(ac.u);
+}
+/** Dados do painel para um usuário (quem = null: sem dados de administrador; usado pelo resumo semanal por e-mail). */
+function dadosPainel_(quem) {
   const ss = planilhaControle_();
   const cat = {};
   linhas_(ss, CTRL.destCatalogo, 2, 3).forEach(r => { if (r[0]) cat[texto_(r[0])] = texto_(r[2]); });
@@ -1286,13 +1531,13 @@ function getDadosPainel(token) {
   }));
   // Dados de cabeçalho de cada pedido (revisão vigente): usados na impressão do pedido.
   const pedidos = {}, primeiraRev = {}; // primeiraRev: e-mail de quem criou o pedido (menor revisão)
-  linhas_(ss, CTRL.destPedidos, 2, 16).filter(r => texto_(r[0])).forEach(r => {
+  linhas_(ss, CTRL.destPedidos, 2, 17).filter(r => texto_(r[0])).forEach(r => {
     const id = texto_(r[0]), rev = Number(r[1]) || 0;
     if (!primeiraRev[id] || rev < primeiraRev[id].rev) primeiraRev[id] = {rev, email: texto_(r[4]).toLowerCase()};
     if (pedidos[id] && pedidos[id].rev > rev) return;
     pedidos[id] = {rev, criado: dataHora_(r[2]), atualizado: dataHora_(r[3]), email: texto_(r[4]), atendente: texto_(r[5]),
       entregador: texto_(r[6]), endereco: texto_(r[7]), casa: texto_(r[8]), obs: texto_(r[9]), status: texto_(r[12]),
-      referencia: texto_(r[15])};
+      referencia: texto_(r[15]), etapa: texto_(r[16])}; // [Função 6] Q: etapa da revisão vigente
   });
   // Entregas de cada pedido, com quem entregou e quem recebeu (_IMPORT_ENTREGAS), da mais antiga para a mais nova.
   Object.keys(pedidos).forEach(id => { pedidos[id].criadoPor = primeiraRev[id] ? primeiraRev[id].email : ''; });
@@ -1329,13 +1574,17 @@ function getDadosPainel(token) {
   return {
     acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores,
     // Dados técnicos (sincronização, backup e link da planilha): só vão para Admin Zayda; para os outros nem saem do servidor.
-    sistema: ehAdminZayda_(ac.u) ? {sincErro: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('SINC_ERRO') || 'null'); } catch (e) { return null; } })(), sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
-    usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: publico_(ac.u),
+    sistema: ehAdminZayda_(quem) ? {sincErro: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('SINC_ERRO') || 'null'); } catch (e) { return null; } })(), sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
+    usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: quem ? publico_(quem) : null,
     geradoEm: Utilities.formatDate(new Date(), CTRL.fuso, "yyyy-MM-dd'T'HH:mm:ss"),
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
     modo: texto_(conf.getRange(CTRL.celulaModo).getValue()) || 'PRODUÇÃO',
     sincronizadoEm: texto_(conf.getRange(CTRL.celulaUltimaSinc).getValue()).split(' · ')[0],
-    planilhaUrl: ehAdminZayda_(ac.u) ? ss.getUrl() : '', versaoPainel: versaoPainel_(), obras, itens, lanc
+    limitesOrc: ALERTA_ORC, // [Função 1]
+    areas: areasObras_(), // [Função 3] m² de cada obra
+    fechamentos: (() => { try { return lerFechamentos_(); } catch (e) { return []; } })(), // [Função 4] meses fechados (cadeado e conferência)
+    resumo: ehAdminZayda_(quem) ? {destinos: destinosResumo_(), ultimo: ultimoResumo_(), hora: RESUMO.hora} : null, // [Função 5] só Admin Zayda
+    planilhaUrl: ehAdminZayda_(quem) ? ss.getUrl() : '', versaoPainel: versaoPainel_(), obras, itens, lanc
   };
 }
 
@@ -1384,14 +1633,17 @@ function lerTerceiros_(origem) {
       vencimento: dataIso_(r[5]), pago: texto_(r[6]).toUpperCase() === 'SIM', dataPagamento: dataIso_(r[7]), forma: textoForm_(r[8]),
       comprovante: urlDrive_(r[9]), registradoPor: texto_(r[10]).toLowerCase(), registradoEm: dataHora_(r[11])});
   });
-  const lista = linhasOrigem_(origem, TERC.abaLanc, TERC.nLanc).filter(r => texto_(r[0]).indexOf('TER-') === 0).map(r => {
+  // [Função 6] ETAPA procurada pelo nome no cabeçalho da aba TERCEIROS (coluna nova no fim); sem a coluna, etapa vazia.
+  const shTer = origem.getSheetByName(TERC.abaLanc), cabTer = shTer && shTer.getLastColumn() ? shTer.getRange(1, 1, 1, Math.min(shTer.getLastColumn(), 60)).getValues()[0].map(v => texto_(v).toUpperCase()) : [];
+  const iEtapaT = cabTer.indexOf('ETAPA');
+  const lista = linhasOrigem_(origem, TERC.abaLanc, Math.max(TERC.nLanc, iEtapaT + 1)).filter(r => texto_(r[0]).indexOf('TER-') === 0).map(r => {
     const id = texto_(r[0]);
     return {id, criadoEm: dataHora_(r[1]), criadoPor: texto_(r[2]).toLowerCase(), obra: texto_(r[3]).toUpperCase(), fornecedorId: texto_(r[4]),
       fornecedor: textoForm_(r[5]), tipo: textoForm_(r[6]) || 'Outros', descricao: textoForm_(r[7]), quantidade: num_(r[8]), unidade: textoForm_(r[9]),
       valor: Math.round((Number(valor_(r[10])) || 0) * 100) / 100, dataRef: dataIso_(r[11]), nota: textoForm_(r[12]), anexo: urlDrive_(r[13]),
       forma: texto_(r[14]).toUpperCase(), conferencia: texto_(r[15]).toUpperCase() || 'AGUARDANDO', conferidoPor: texto_(r[16]).toLowerCase(),
       conferidoEm: dataHora_(r[17]), motivo: textoForm_(r[18]), obs: textoForm_(r[19]), atualizadoEm: dataHora_(r[20]), atualizadoPor: texto_(r[21]).toLowerCase(),
-      parcelas: (parc[id] || []).sort((a, b) => a.numero - b.numero)};
+      parcelas: (parc[id] || []).sort((a, b) => a.numero - b.numero), etapa: iEtapaT >= 0 ? textoForm_(r[iEtapaT]) : ''};
   });
   return {terceiros: lista, fornecedores};
 }
@@ -1436,6 +1688,9 @@ function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
 /* ===================== [Etapa 1] ESTABILIDADE =====================
  * Medição da sincronização automática (cota de 90 min/dia de gatilhos), backup semanal e validade das chaves de aparelho. */
 const SINC_DIAS = 14, SINC_COTA_MIN = 90;
+/** [Função 1] Alerta de orçamento: % do orçamento já gasto (custo confirmado total da obra, desde o início).
+ *  Abaixo de "atencao" = Dentro do orçamento · de "atencao" até menos de "estouro" = Atenção · "estouro" ou mais = Estourado. */
+const ALERTA_ORC = Object.freeze({atencao: 0.8, estouro: 1});
 /** Acumula a execução do dia (fuso São Paulo): execuções, milissegundos, maior duração e quantas foram "sem mudança". Guarda 14 dias. */
 function registrarExecucaoSinc_(ms, semMudanca) {
   try {
