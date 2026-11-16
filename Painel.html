@@ -226,6 +226,18 @@ tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 .lat-ter .tl-erro[hidden],.lat-ter [hidden]{display:none!important}
 @media (max-width:420px){.lat-ter .tl-dl{grid-template-columns:1fr}}
 .kpi .orig{margin-top:6px;font-size:12px;color:var(--ink-3)}.kpi .orig b{color:var(--ink)}
+/* Custo confirmado por fornecedor: uma linha por fornecedor (nome cortado com "…", completo ao passar o mouse) */
+.kpi .fornl{display:grid;gap:1px;margin-top:8px}
+.fornl .fo{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;min-height:22px;font-size:12.5px;color:var(--ink-2)}
+.fornl .fo i{width:9px;height:9px;border-radius:3px}
+.fornl .fo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fornl .fo b{font-variant-numeric:tabular-nums;white-space:nowrap}
+.fornl .fo-mais{width:calc(100% + 8px);margin:0 -4px;padding:2px 4px;border:0;border-radius:6px;background:none;font:inherit;font-size:12.5px;text-align:left;color:var(--brand);cursor:pointer}
+.fornl .fo-mais span{text-decoration:underline;text-underline-offset:2px}
+@media (hover:hover) and (pointer:fine){.fornl .fo-mais:hover{background:var(--surface-2)}}
+@media (pointer:coarse){.fornl .fo-mais{min-height:44px}}
+.fornl .fo-mais:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+.lat-item small.sub{font-family:inherit;font-size:11.5px}
 #printArea .tot.q2{grid-template-columns:repeat(2,1fr)}
 .lc-forn{display:block;font-family:var(--f-ui);font-weight:700;overflow-wrap:anywhere}
 .etq-ter{display:block;width:max-content;max-width:100%;margin-top:3px;font-family:var(--f-ui);font-size:10.5px;font-weight:800;color:var(--blue);background:var(--blue-soft);border-radius:99px;padding:1px 7px}
@@ -857,7 +869,8 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
  .kpis{grid-template-columns:1fr 1fr!important;gap:10px}
  .kpis .card.kpi{padding:12px}
  .kpis .kpi .val{font-size:22px}
- .kpis .kpi .pend,.kpis .kpi .vbar,.kpis .kpi .foot.orig{display:none}
+ .kpis .kpi .pend,.kpis .kpi .vbar,.kpis .kpi .foot.orig:not(.fornl){display:none}
+ .kpis .kpi.kpi-custo{grid-column:1/-1} /* largura toda para caber a lista por fornecedor */
 }
 .sc-sist{display:block;min-width:0;max-width:100%;overflow-wrap:anywhere;margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--ink-2)}
 .sc-sist[hidden]{display:none}.sc-sist .l{display:block;margin-top:3px;overflow-wrap:anywhere}.sc-sist b{display:inline;font-size:12px;margin:0}.sc-sist .warn{color:var(--amber)}.sc-sist .bad{color:var(--red)}
@@ -1625,27 +1638,24 @@ const irPara = (v,f) => `href="#${v}" data-ir="${v}|${esc(f)}"`;
 /* ---------- views ---------- */
 function vPainel(){
   const s = stats();
-  // composição: por obra, ou por categoria quando uma obra está selecionada
-  const grp = {}; s.conf.forEach(l=>{const k=S.obra?l.cat:l.obra; grp[k]=(grp[k]||0)+l.valor});
-  const comp = Object.entries(grp).sort((a,b)=>b[1]-a[1]);
-  const compCor = (k,i) => S.obra ? PAL[i%PAL.length] : obraCor(k);
-  const compNome = k => S.obra ? k : nomeObraCurto(k);
-  // Obras principais com cor própria; as cinzas viram um pedaço só no fim (se for uma só, fica com o nome dela).
-  const parte = ([k,v],i) => ({nome:compNome(k),cod:k,v,cor:compCor(k,i)});
-  const resto = S.obra ? [] : comp.filter(([k])=>!CORES[k]);
-  const partes = comp.filter(e=>!resto.includes(e)).map(parte);
-  if(resto.length===1) partes.push(parte(resto[0],comp.indexOf(resto[0])));
-  else if(resto.length) partes.push({nome:"Outras "+resto.length+" obras",v:sum(resto,e=>e[1]),cor:"var(--outros)",itens:resto.map(parte)});
+  // Composição do custo confirmado por fornecedor: Loja BSJ sempre à parte; os 3 maiores outros pelo nome (cores da paleta);
+  // os demais viram "Outros fornecedores (N)" (se for um só, fica com o nome dele). A barra usa a mesma divisão, ordem e cores.
+  const FN = fornCusto(s.conf), outrosF = FN.filter(f=>!f.bsj), topF = outrosF.length>4?outrosF.slice(0,3):outrosF, restoF = outrosF.filter(f=>!topF.includes(f));
+  const parte = f => ({nome:f.nome,v:f.v,cor:f.bsj?"var(--pal1)":PAL[1+topF.indexOf(f)%(PAL.length-1)]});
+  const partes = FN.filter(f=>f.bsj||topF.includes(f)).map(parte);
+  if(restoF.length) partes.push({nome:"Outros fornecedores ("+restoF.length+")",v:sum(restoF,f=>f.v),cor:"var(--outros)",itens:restoF.map(f=>({nome:f.nome,v:f.v})),pal:["fornecedor","fornecedores"],
+    titulo:"Fornecedores · "+dbr(S.ini)+" a "+dbr(S.fim),todos:FN.map(latForn)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
   const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${p.itens?'class="faixa" ':""}${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
-  const leg = (S.obra?partes.slice(0,6):partes).map(p=>`<span ${p.itens?'class="lgoutros"':""}><i style="background:${p.cor}"></i>${esc(p.nome)} · <span ${tA("leg|"+(p.itens?"__OUTROS":p.nome),p.v/s.custo,"pct")}>${pct(p.v/s.custo)}</span></span>`).join("");
+  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span>${esc(p.nome)}</span><b>${brl(p.v)}</b></button>`
+    :`<div class="fo"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><b>${brl(p.v)}</b></div>`;
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
-    <article class="card kpi">
+    <article class="card kpi kpi-custo">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
       <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
       <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} com custo real · quantidade entregue × custo unitário real${s.nTer?` · <b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores`:""}</div>
-      <div class="foot orig">Loja BSJ <b ${nA("cBsj",s.custoBsj,"brl")}>${brl(s.custoBsj)}</b> · Outros fornecedores <b ${nA("cTer",s.custoTer,"brl")}>${brl(s.custoTer)}</b></div>
+      <div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div>
       ${variacaoCusto(s)}
       <div class="segbar" data-lista="seg" aria-hidden="true">${seg}</div>${s.custo>0?"":'<div class="legend"><span>Nenhum custo confirmado neste período.</span></div>'}
     </article>
@@ -2563,13 +2573,24 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharOrc(); });
 /* ---------- painel lateral: lista completa de "Outras obras" ---------- */
 const mesAno = k => MESES[+k.slice(5,7)-1]+" "+k.slice(0,4);
 const tituloSeg = p => "Outras obras ("+p.itens.length+") · "+dbr(S.ini)+" a "+dbr(S.fim);
-const abrirSeg = p => abrirOutros(tituloSeg(p),p.itens,SEG_TOTAL);
+const abrirSeg = p => abrirOutros(p.titulo||tituloSeg(p),p.todos||p.itens,SEG_TOTAL);
+/* Custo confirmado por fornecedor (linhas já filtradas de stats().conf): Loja BSJ (entregas) + cada outro fornecedor (lançamentos conferidos).
+   Só agrupa o que já é custo; o total não muda. Loja BSJ aparece sempre, salvo com o filtro de origem "Outros fornecedores". */
+function fornCusto(conf){ const T={}, g={}; terTodos().forEach(t=>{T[t.id]=t;});
+  conf.forEach(l=>{ const t=l.ter?T[l.id]:null, fid=t&&t.fornecedorId, k=l.ter?"T:"+(fid||l.fornecedor):"BSJ";
+    const x=g[k]=g[k]||{nome:l.ter?(l.fornecedor||"Fornecedor sem nome"):"Loja BSJ",v:0,n:0,bsj:!l.ter,tipo:l.ter?(((D.fornecedores||{})[fid]||{}).tipo||(t&&t.tipo)||""):"Materiais da loja"};
+    x.v+=l.valor||0; x.n++; });
+  if(!g.BSJ&&S.origem!=="ter") g.BSJ={nome:"Loja BSJ",v:0,n:0,bsj:true,tipo:"Materiais da loja"};
+  return Object.values(g).sort((a,b)=>b.v-a.v||(a.bsj?-1:b.bsj?1:a.nome.localeCompare(b.nome,"pt-BR"))); }
+/* Item do painel lateral "Fornecedores": tipo e quantidade embaixo do nome; tocar leva à tela do fornecedor. */
+const latForn = f => ({nome:f.nome,v:f.v,forn:f.bsj?"__BSJ":f.nome,sub:(f.tipo?f.tipo+" · ":"")+f.n+" "+(f.bsj?(f.n===1?"entrega":"entregas"):(f.n===1?"lançamento":"lançamentos"))});
+function irFornecedor(f){ fecharOutros(); let v="terceiros"; if(f==="__BSJ"){ S.origem="bsj"; v="lancamentos"; } else S.irSit="forn:"+f; if(location.hash==="#"+v) route(); else location.hash=v; }
 let LAT={itens:[],base:0}, latVolta=null, latTimer=null;
 function latLista(){
   const q=$("latBusca").value.trim(), m=q?casa(q):null, max=Math.max(...LAT.itens.map(o=>o.v),0);
   const its=LAT.itens.filter(o=>!m||m((o.cod||"")+" "+o.nome));
   const temPagina=o=>D.obras.some(x=>x.id===o.cod); // "Sem obra identificada", categorias e materiais não têm página
-  $("latLista").innerHTML=its.length?its.map(o=>`<div class="lat-item${temPagina(o)?` lat-ir" role="button" tabindex="0" data-latobra="${esc(o.cod)}`:""}"><span>${esc(o.nome)}${o.cod&&o.cod!==o.nome&&o.cod!=="SEM VÍNCULO"?`<small>${esc(o.cod)}</small>`:""}</span><b>${brl(o.v)}</b><em>${pct(LAT.base?o.v/LAT.base:0)}</em><i><u style="width:${(max?o.v/max*100:0).toFixed(1)}%"></u></i></div>`).join(""):`<div class="empty"><b>Nada encontrado</b>Confira o nome ou o código.</div>`;
+  $("latLista").innerHTML=its.length?its.map(o=>`<div class="lat-item${o.forn?` lat-ir" role="button" tabindex="0" data-latforn="${esc(o.forn)}`:temPagina(o)?` lat-ir" role="button" tabindex="0" data-latobra="${esc(o.cod)}`:""}"><span>${esc(o.nome)}${o.sub?`<small class="sub">${esc(o.sub)}</small>`:o.cod&&o.cod!==o.nome&&o.cod!=="SEM VÍNCULO"?`<small>${esc(o.cod)}</small>`:""}</span><b>${brl(o.v)}</b><em>${pct(LAT.base?o.v/LAT.base:0)}</em><i><u style="width:${(max?o.v/max*100:0).toFixed(1)}%"></u></i></div>`).join(""):`<div class="empty"><b>Nada encontrado</b>Confira o nome ou o código.</div>`;
 }
 function abrirOutros(titulo,itens,base){
   esconderSeg(); esconderToque(); clearTimeout(latTimer);
@@ -2593,8 +2614,8 @@ $("latX").addEventListener("click",fecharOutros);
 $("latFundo").addEventListener("click",fecharOutros);
 $("latBusca").addEventListener("input",latLista);
 const latAbrir=el=>{ const id=el.dataset.latobra; fecharOutros(); abrirObra(id); };
-$("latLista").addEventListener("click",e=>{ const l=e.target.closest("[data-latobra]"); if(l) latAbrir(l); });
-$("latLista").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.matches("[data-latobra]")) latAbrir(e.target); });
+$("latLista").addEventListener("click",e=>{ const l=e.target.closest("[data-latobra]"); if(l) latAbrir(l); const f=e.target.closest("[data-latforn]"); if(f) irFornecedor(f.dataset.latforn); });
+$("latLista").addEventListener("keydown",e=>{ if(e.key==="Enter"&&e.target.matches("[data-latobra]")) latAbrir(e.target); if((e.key==="Enter"||e.key===" ")&&e.target.matches("[data-latforn]")){ e.preventDefault(); irFornecedor(e.target.dataset.latforn); } });
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") fecharOutros(); });
 
 /* ---------- painel lateral: todos os materiais do card "Materiais mais representativos" ---------- */
@@ -2647,16 +2668,16 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ fecharMat(); retu
 let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, segTimer=null;
 function esconderSeg(){ clearTimeout(segTimer); segAtual=-1; const t=$("stip"); if(t) t.hidden=true; }
 /* Resumo do grupo "Outras" nos balões: uma coluna, até 380px, com as 5 maiores; o resto fica no painel lateral. */
-function listaTip(t,its,total){
+function listaTip(t,its,total,pal){
   const larg=its.length?Math.min(380,document.documentElement.clientWidth*0.9)+"px":"";
   t.style.width=larg; t.style.maxWidth=larg;
   if(!its.length) return "";
-  const mais=its.length-5, tipo=S.obra?(mais===1?"categoria":"categorias"):(mais===1?"obra":"obras");
+  const mais=its.length-5, tipo=pal?pal[mais===1?0:1]:S.obra?(mais===1?"categoria":"categorias"):(mais===1?"obra":"obras");
   return `<div class="lista" style="display:block">${its.slice(0,5).map(o=>`<div><span>${esc(o.nome)}</span><span>${brl(o.v)} · ${pct(total?o.v/total:0)}</span></div>`).join("")}${mais>0?`<div class="maisob">+ ${mais} ${tipo} · clique para ver todas</div>`:""}</div>`;
 }
 function mostrarSeg(i){
   const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
-  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.itens?tituloSeg(p):p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(p.v/SEG_TOTAL)}</span></div>`+listaTip(t,p.itens||[],SEG_TOTAL);
+  t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.itens&&!p.titulo?tituloSeg(p):p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(SEG_TOTAL?p.v/SEG_TOTAL:0)}</span></div>`+listaTip(t,p.itens||[],SEG_TOTAL,p.pal);
   t.hidden=false; segAtual=i;
 }
 function posSeg(x,y,toque){
@@ -2680,6 +2701,7 @@ function ligarSegbar(){
     clearTimeout(segTimer); mostrarSeg(+s.dataset.i); posSeg(e.clientX,e.clientY,true);
     segTimer=setTimeout(esconderSeg,3000); });
   const lg=document.querySelector("#view .lgoutros"); if(lg) lg.addEventListener("click",()=>abrirSeg(SEG_PARTES.find(p=>p.itens)));
+  document.querySelectorAll("#view [data-segi]").forEach(b=>b.addEventListener("click",()=>abrirSeg(SEG_PARTES[+b.dataset.segi]))); // "Outros fornecedores (N)" do cartão
 }
 document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#view .segbar,#stip"))) esconderSeg(); });
 
@@ -2763,7 +2785,8 @@ const terObraLink=id=>!id||id==="SEM VÍNCULO"?'<span class="pill bad">Sem obra<
 
 function vTer(){
   if(S.terRota!==S.rota){ S.terRota=S.rota; S.terTipo=""; S.terForn=""; S.terPag=""; S.terN=50; S.terQ=""; S.terMais=false;
-    if(/^pag:/.test(S.sit)){ S.terPag=S.sit.slice(4); S.sit=""; } else if(/^parc:/.test(S.sit)){ S.terQ=S.sit.slice(5); S.sit=""; S.terQFoco=true; } else if(/^conf:/.test(S.sit)) S.sit=S.sit.slice(5); }
+    if(/^forn:/.test(S.sit)){ S.terForn=S.sit.slice(5); S.sit=""; S.terMais=true; } // vindo do painel "Fornecedores"
+    else if(/^pag:/.test(S.sit)){ S.terPag=S.sit.slice(4); S.sit=""; } else if(/^parc:/.test(S.sit)){ S.terQ=S.sit.slice(5); S.sit=""; S.terQFoco=true; } else if(/^conf:/.test(S.sit)) S.sit=S.sit.slice(5); }
   if(!terTodos().length) return `<section class="card"><div class="empty"><b>Nenhuma compra de outro fornecedor ainda</b>As compras aparecem aqui quando lançadas no formulário → Outros fornecedores.</div></section>`;
   const base=terTopo(), vivos=base.filter(t=>t.conferencia!=="CANCELADO"), P=vivos.map(terPag), ag=base.filter(t=>t.conferencia==="AGUARDANDO"), conf=base.filter(t=>t.conferencia==="CONFERIDO");
   /* 1. Resumo: um cartão, 4 números */
