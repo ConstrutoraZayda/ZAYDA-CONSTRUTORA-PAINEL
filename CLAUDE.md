@@ -57,4 +57,5 @@ Mudança que envolve os dois projetos: fazer as alterações nos dois, e enviar/
 - O painel é publicado "Executar como: Eu" + "Qualquer pessoa" e protegido por código de acesso (Script Property `CODIGO_PAINEL`). Dados chegam por `fetch` POST ao `doPost`, com `google.script.run` de reserva.
 - O formulário é publicado "Executar como: usuário que acessa"; a lista de e-mails autorizados está em `CONFIG!EMAILS_PERMITIDOS`.
 - Custo de cada entrega = preço do item no pedido (entra CONFIRMADO automaticamente).
+- Nunca escrever // (ex.: https://) dentro de crases no HTML: o Apps Script corta a linha e quebra o script. Usar constante com aspas simples.
 - Nada de dados de exemplo em produção. Se precisar testar, usar atendente "TESTE".
