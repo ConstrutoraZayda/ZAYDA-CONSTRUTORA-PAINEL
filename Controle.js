@@ -1063,7 +1063,7 @@ function doPost(e) {
     : c.acao === 'backup' ? backupAgora(c.token)
     : c.acao === 'destinosResumo' ? salvarDestinosResumo(c.token, c.destinos)
     : c.acao === 'resumoTeste' ? enviarResumoTeste(c.token)
-    : getDadosPainel(c.token); }
+    : getDadosPainel(c.token, c.semSinc === true); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -1497,10 +1497,10 @@ function desconectarAparelhos(token, usuario) {
 }
 
 /** Chamado pelo Painel.html com a chave do aparelho. Devolve só valores simples (sem objetos Date). */
-function getDadosPainel(token) {
+function getDadosPainel(token, semSinc) {
   const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
   if (ac.erro) return ac.erro;
-  sincronizarSeHouverNovidade_();
+  if (!semSinc) sincronizarSeHouverNovidade_(); // logo depois do login responde já, sem sincronizar: a atualização seguinte sincroniza
   return dadosPainel_(ac.u);
 }
 /** Dados do painel para um usuário (quem = null: sem dados de administrador; usado pelo resumo semanal por e-mail). */

@@ -237,6 +237,19 @@ tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 @media (hover:hover) and (pointer:fine){.fornl .fo-mais:hover{background:var(--surface-2)}}
 @media (pointer:coarse){.fornl .fo-mais{min-height:44px}}
 .fornl .fo-mais:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
+/* Rosca do custo por fornecedor: ao lado da lista; no celular, acima e centralizada */
+.forn-g{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 14px;margin-top:8px} /* sem espaço para a lista ao lado (cartão estreito), a rosca fica acima, centralizada */
+.forn-g .fornl{flex:1 1 190px;min-width:0;margin-top:0}
+.donut{flex:none;width:112px;height:112px;overflow:visible}
+.donut circle{fill:none;stroke-width:16;transform:rotate(-90deg);transform-origin:50px 50px;transition:opacity .15s,stroke-width .15s}
+.donut circle.faixa{cursor:pointer}
+.donut circle.hl{stroke-width:20}
+.donut.tem-hl circle:not(.hl){opacity:.35}
+.donut .dn-l{font-size:9px;font-weight:600;fill:var(--ink-3)}
+.donut .dn-v{font-size:11.5px;font-weight:800;fill:var(--ink)}
+.fornl .fo.hl{color:var(--ink)}.fornl .fo.hl span{font-weight:700}
+@media (max-width:560px){.forn-g{flex-direction:column;align-items:stretch}.donut{align-self:center}}
+.area-aj{display:block;margin:0 0 6px;font-size:12px;color:var(--ink-3)}
 .lat-item small.sub{font-family:inherit;font-size:11.5px}
 #printArea .tot.q2{grid-template-columns:repeat(2,1fr)}
 .lc-forn{display:block;font-family:var(--f-ui);font-weight:700;overflow-wrap:anywhere}
@@ -1308,6 +1321,56 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rod{margin-top:14px;font-size:8.5px;color:#3A4A40;display:flex;justify-content:space-between}
 #printArea .esp .rod{margin:0;padding-top:4mm;line-height:1}
 #printArea table.folha>tbody>tr>td>:last-child,#printArea table.folha>tbody>tr>td>.rel>:last-child{margin-bottom:0}
+/* Relatório mensal e lançamento de outro fornecedor: fonte maior, legível em preto e branco (cor só de apoio) */
+#printArea .rx{font-size:11.5px;line-height:1.45}
+#printArea .rx .ph img{width:180px}
+#printArea .rx .ph h1{font-size:19px;letter-spacing:.02em}
+#printArea .rx .ph .id{font-family:var(--f-ui);font-size:13px;font-weight:800}
+#printArea .rx .ph .muted{font-size:10.5px;margin-top:2px}
+#printArea .rx h2{font-size:13.5px;letter-spacing:.03em;margin:18px 0 3px;padding-left:8px;border-left:4px solid #00632B;color:#0F1A14;text-transform:uppercase;break-after:avoid;page-break-after:avoid}
+#printArea .rx h3{font-size:11.5px;margin:0 0 4px;color:#0F1A14;break-after:avoid;page-break-after:avoid}
+#printArea .rx .rx-exp{margin:0 0 8px;font-size:10px;color:#3A4A40;break-after:avoid;page-break-after:avoid}
+#printArea .rx .rx-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+#printArea .rx .rx-kpis.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
+#printArea .rx .rx-kpi{min-width:0;padding:9px 11px;border:1px solid #9DB5A6;border-radius:8px;break-inside:avoid}
+#printArea .rx .rx-kpi.pri{border:2px solid #00632B;background:#F1F8F3}
+#printArea .rx .rx-kpi span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3A4A40}
+#printArea .rx .rx-kpi b{display:block;margin-top:3px;font-size:19px;line-height:1.2;color:#0F1A14;overflow-wrap:anywhere}
+#printArea .rx .rx-kpi small{display:block;margin-top:3px;font-size:9.5px;color:#3A4A40}
+#printArea .rx .tb{font-size:10.5px}
+#printArea .rx .tb th{font-size:9.5px}
+#printArea .rx .tb td{padding:6px 7px}
+#printArea .rx-br{display:inline-block;width:64px;height:8px;border:1px solid #5E7A68;border-radius:2px;background:#fff;vertical-align:middle;overflow:hidden}
+#printArea .rx-br i{display:block;height:100%;background:#00632B}
+#printArea .rx .rx-pc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+#printArea .rx .rx-sit{font-weight:800}
+#printArea .rx .rx-sit.fora{color:#B42318}#printArea .rx .rx-sit.risco{color:#8A5A00}#printArea .rx .rx-sit.dentro{color:#00632B}
+#printArea .rx .rx-duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
+#printArea .rx .rx-duas>div{min-width:0}
+#printArea .rx .rx-lst>div{display:grid;grid-template-columns:minmax(0,1fr) 64px auto 34px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid #DCE6E0;break-inside:avoid}
+#printArea .rx .rx-lst span{overflow-wrap:anywhere}
+#printArea .rx .rx-lst b{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
+#printArea .rx .rx-lst small{text-align:right;color:#3A4A40}
+#printArea .rx .blk{margin:4px 0 0;break-inside:avoid}
+#printArea .rx .blk dt{font-size:9px}
+#printArea .rx .blk dd{font-size:12px;overflow-wrap:anywhere}
+#printArea .rx .rx-selo{display:inline-block;margin:2px 0;padding:2px 10px;border:2px solid currentColor;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:.06em}
+#printArea .rx .rx-selo.ok{color:#00632B}#printArea .rx .rx-selo.aguard{color:#8A5A00}#printArea .rx .rx-selo.bad{color:#B42318}#printArea .rx .rx-selo.canc{color:#4A4A4A}
+#printArea .rx .rx-tot2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;break-inside:avoid}
+#printArea .rx .rx-tot2 div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 10px;border:1px solid #9DB5A6;border-radius:8px}
+#printArea .rx .rx-tot2 span{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3A4A40}
+#printArea .rx .rx-tot2 b{font-size:14px;color:#0F1A14}
+#printArea .rx .rx-reg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:4px 0 0;break-inside:avoid}
+#printArea .rx .rx-reg>div{min-width:0;padding:8px 10px;border:1px solid #9DB5A6;border-radius:8px}
+#printArea .rx .rx-reg dt{font-size:9px;font-weight:800;letter-spacing:.05em;color:#3A4A40}
+#printArea .rx .rx-reg dd{margin:2px 0 0;font-size:12px;font-weight:800;color:#0F1A14;overflow-wrap:anywhere}
+#printArea .rx .rx-reg small{display:block;margin-top:2px;font-size:9.5px;color:#3A4A40}
+#printArea .rx .rx-ass{margin-top:28px;font-size:11px;font-weight:700;break-inside:avoid}
+@media print{
+  #printArea .rx-quebra{break-before:page;page-break-before:always}
+  @page rx{size:A4;margin:0 0 7mm 0;@bottom-right{content:"Página " counter(page) " de " counter(pages);font:600 8.5px Arial,sans-serif;color:#3A4A40;padding-right:12mm;vertical-align:top}}
+  #printArea table.rx-pag{page:rx}
+}
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
 #intro{position:fixed;inset:0;z-index:9999;color:#fff;display:grid;
   background:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px) 0 0/32px 32px,linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px) 0 0/32px 32px,
@@ -1645,15 +1708,15 @@ function vPainel(){
     titulo:"Fornecedores · "+dbr(S.ini)+" a "+dbr(S.fim),todos:FN.map(latForn)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
   const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${p.itens?'class="faixa" ':""}${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
-  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span>${esc(p.nome)}</span><b>${brl(p.v)}</b></button>`
-    :`<div class="fo"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><b>${brl(p.v)}</b></div>`;
+  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" data-fo="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span>${esc(p.nome)}</span><b>${brl(p.v)}</b></button>`
+    :`<div class="fo" data-fo="${i}"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><b>${brl(p.v)}</b></div>`;
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
     <article class="card kpi kpi-custo">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
       <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
       <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} com custo real · quantidade entregue × custo unitário real${s.nTer?` · <b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores`:""}</div>
-      <div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div>
+      <div class="forn-g">${s.custo>0?donutForn(partes,s.custo):""}<div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div></div>
       ${variacaoCusto(s)}
       <div class="segbar" data-lista="seg" aria-hidden="true">${seg}</div>${s.custo>0?"":'<div class="legend"><span>Nenhum custo confirmado neste período.</span></div>'}
     </article>
@@ -1818,8 +1881,8 @@ function obraHead(id){
 /* Quadro do orçamento na ficha da obra: compara com todo o gasto da obra (mesma regra e mesma janela da tela Orçamentos). */
 /* [Função 3] Área construída: mostrada e editada (Admin) ao lado do orçamento. */
 function areaFicha(o){ const a=areaObra(o.id), info=(D.areas||{})[o.id];
-  if(S.areaEd===o.id) return `<form class="area-f" data-areaf="${esc(o.id)}"><label for="areaV">Área construída (m²)</label><span class="area-l"><input id="areaV" data-areav inputmode="decimal" autocomplete="off" value="${a?String(a).replace(".",","):""}" placeholder="Ex.: 120,5" aria-describedby="areaMsg"><button type="submit" class="btn pri">Salvar</button><button type="button" class="btn" data-areax>Cancelar</button></span><small class="oc-ok" id="areaMsg" role="status"></small></form>`;
-  return `<div class="area-v"><span><b>Área construída:</b> ${a?fmtM2(a):"não informada"}${info&&info.por?`<small> · por ${esc(info.por)} em ${esc(info.em)}</small>`:""}</span><button type="button" class="btn oc-ed" data-area="${esc(o.id)}">${a?"Editar área":"Informar área"}</button></div>`; }
+  if(S.areaEd===o.id) return `<form class="area-f" data-areaf="${esc(o.id)}"><label for="areaV">Área construída do projeto (m²)</label><small class="area-aj" id="areaAj">Área total construída prevista no projeto aprovado (planta).</small><span class="area-l"><input id="areaV" data-areav inputmode="decimal" autocomplete="off" value="${a?String(a).replace(".",","):""}" placeholder="Ex.: 120,5" aria-describedby="areaAj areaMsg"><button type="submit" class="btn pri">Salvar</button><button type="button" class="btn" data-areax>Cancelar</button></span><small class="oc-ok" id="areaMsg" role="status"></small></form>`;
+  return `<div class="area-v"><span><b>Área do projeto:</b> ${a?fmtM2(a):"não informada"}${info&&info.por?`<small> · por ${esc(info.por)} em ${esc(info.em)}</small>`:""}</span><button type="button" class="btn oc-ed" data-area="${esc(o.id)}">${a?"Editar área":"Informar área"}</button></div>`; }
 function orcFicha(o){
   const x=orcObras()[o.id], nota=`<small class="ob-q-n">O orçamento compara com todo o gasto da obra, independente do período escolhido no filtro.</small>`;
   if(x.sit==="SEM") return `<div class="ob-q"><div class="ob-q-top"><b>Orçamento de materiais</b><button type="button" class="btn oc-ed" data-orc="${esc(o.id)}">Definir orçamento</button></div><p class="ob-q-s">Esta obra ainda não tem orçamento</p>${nota}${areaFicha(o)}</div>`;
@@ -2659,19 +2722,28 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-mat
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ fecharMat(); return; }
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#view tr[data-matver]")){ e.preventDefault(); abrirMat(); } });
 
+/* Rosca do custo por fornecedor: mesmas partes, ordem e cores da lista e da barra; total no centro. */
+function donutForn(partes,total){ const r=38, C=2*Math.PI*r, sep=partes.length>1?1.2:0; let ac=0;
+  const fat=partes.map((p,i)=>{ const len=p.v/total*C, o=ac; ac+=len;
+    return `<circle data-i="${i}" r="${r}" cx="50" cy="50"${p.itens?' class="faixa"':""} style="stroke:${p.cor};stroke-dasharray:${Math.max(.01,len-sep).toFixed(2)} ${C.toFixed(2)};stroke-dashoffset:${(-o).toFixed(2)}"/>`; }).join("");
+  return `<svg class="donut" viewBox="0 0 100 100" width="112" height="112" role="img" aria-label="${esc("Custo confirmado por fornecedor: total "+brl(total))}">${fat}<text x="50" y="46" text-anchor="middle" class="dn-l">Total</text><text x="50" y="59" text-anchor="middle" class="dn-v">${esc(brlK(total))}</text></svg>`; }
+/* Destaca a fatia e o fornecedor da lista (i = -1 tira o destaque). */
+function destacarForn(i){ const g=document.querySelector("#view .donut");
+  document.querySelectorAll("#view .donut [data-i],#view .fornl [data-fo]").forEach(x=>x.classList.toggle("hl",+(x.dataset.i!=null?x.dataset.i:x.dataset.fo)===i));
+  if(g) g.classList.toggle("tem-hl",i>=0); }
 /* ---------- balão da barra do custo confirmado ---------- */
 let SEG_PARTES=[], SEG_TOTAL=0, segAtual=-1, tipTimer=null;
 /* Uma caixinha só (#stip: fixa na tela e sem receber cliques) para a barra do cartão de custo e os gráficos do painel.
    Some ao sair da parte ou do gráfico, ao rolar, ao trocar de tela ou filtro (redesenho), quando a janela perde o foco, com Esc e ao tocar fora. */
 function esconderTip(){ clearTimeout(tipTimer); segAtual=-1; toqueSel=""; toqueUlt="";
   const t=$("stip"); if(t){ t.hidden=true; t.classList.remove("toque"); }
-  document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov"));
+  document.querySelectorAll("#chart .seg.hov").forEach(r=>r.classList.remove("hov")); destacarForn(-1);
   const xh=$("xh"); if(xh) xh.setAttribute("visibility","hidden"); }
 window.addEventListener("scroll",()=>{ const t=$("stip"); if(t&&!t.hidden) esconderTip(); },{passive:true,capture:true});
 window.addEventListener("blur",esconderTip);
 document.addEventListener("visibilitychange",esconderTip);
 document.addEventListener("keydown",e=>{ if(e.key==="Escape") esconderTip(); });
-document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#view .segbar,#chart,#lines,#stip"))) esconderTip(); });
+document.addEventListener("pointerdown",e=>{ if(e.pointerType!=="mouse"&&!(e.target.closest&&e.target.closest("#view .segbar,#view .donut,#chart,#lines,#stip"))) esconderTip(); });
 document.addEventListener("click",e=>{ const b=e.target.closest&&e.target.closest("#stip [data-abrirob]"); if(!b) return; e.preventDefault(); e.stopPropagation(); const id=b.dataset.abrirob; esconderTip(); abrirObra(id); }); // "Abrir obra →" no toque
 /* Resumo do grupo "Outras" nos balões: uma coluna, até 380px, com as 5 maiores; o resto fica no painel lateral. */
 function listaTip(t,its,total,pal){
@@ -2684,7 +2756,7 @@ function listaTip(t,its,total,pal){
 function mostrarSeg(i){
   const p=SEG_PARTES[i], t=$("stip"); if(!p) return;
   t.innerHTML=`<b><i class="dot" style="background:${p.cor}"></i>${esc(p.itens&&!p.titulo?tituloSeg(p):p.nome)}</b><div><span>${brl(p.v)}</span><span>${pct(SEG_TOTAL?p.v/SEG_TOTAL:0)}</span></div>`+listaTip(t,p.itens||[],SEG_TOTAL,p.pal);
-  t.classList.remove("toque"); t.hidden=false; segAtual=i;
+  t.classList.remove("toque"); t.hidden=false; segAtual=i; destacarForn(i);
 }
 function posSeg(x,y,toque){
   const t=$("stip"), w=t.offsetWidth, h=t.offsetHeight, vw=document.documentElement.clientWidth, vh=window.innerHeight;
@@ -2693,7 +2765,9 @@ function posSeg(x,y,toque){
   t.style.left=l+"px"; t.style.top=c+"px";
 }
 function ligarSegbar(){
-  esconderTip(); const bar=document.querySelector("#view .segbar"); if(!bar) return;
+  esconderTip();
+  // Barra e rosca usam as mesmas partes (data-i) e a mesma caixinha.
+  document.querySelectorAll("#view .segbar,#view .donut").forEach(bar=>{
   let tipo="";
   bar.addEventListener("pointerdown",e=>{tipo=e.pointerType});
   bar.addEventListener("pointermove",e=>{ if(e.pointerType!=="mouse") return;
@@ -2707,6 +2781,9 @@ function ligarSegbar(){
     const i=+s.dataset.i; if(i===segAtual&&!$("stip").hidden){ esconderTip(); return; } // tocar de novo esconde
     clearTimeout(tipTimer); mostrarSeg(i); posSeg(e.clientX,e.clientY,true);
     tipTimer=setTimeout(esconderTip,3000); });
+  });
+  // Lista <-> rosca: passar o mouse num fornecedor da lista destaca a fatia (e a fatia destaca o fornecedor, em mostrarSeg).
+  document.querySelectorAll("#view .fornl [data-fo]").forEach(r=>{ r.addEventListener("mouseenter",()=>{ if(segAtual<0) destacarForn(+r.dataset.fo); }); r.addEventListener("mouseleave",()=>{ if(segAtual<0) destacarForn(-1); }); });
   const lg=document.querySelector("#view .lgoutros"); if(lg) lg.addEventListener("click",()=>abrirSeg(SEG_PARTES.find(p=>p.itens)));
   document.querySelectorAll("#view [data-segi]").forEach(b=>b.addEventListener("click",()=>abrirSeg(SEG_PARTES[+b.dataset.segi]))); // "Outros fornecedores (N)" do cartão
 }
@@ -3496,7 +3573,9 @@ function chamarApi(corpo,funcao,args){
     .then(r=>{clearTimeout(t); if(!r.ok) throw new Error("HTTP "+r.status); return r.json();})
     .catch(e=>{clearTimeout(t); console.warn("Canal direto falhou, usando reserva:",e); return viaScript();});
 }
-const buscarDados = token => chamarApi({token},"getDadosPainel",[token]);
+const buscarDados = (token,semSinc) => semSinc?chamarApi({token,semSinc:true},"getDadosPainel",[token,true]):chamarApi({token},"getDadosPainel",[token]);
+/* Promessa com prazo: se o Google não responder em ms, falha (quem chamou decide se tenta de novo). */
+const comLimite = (pr,ms) => new Promise((ok,erro)=>{ const t=setTimeout(()=>erro(new Error("O Google não respondeu a tempo.")),ms); pr.then(r=>{clearTimeout(t);ok(r)},e=>{clearTimeout(t);erro(e)}); });
 const buscarEntregas = pedido => chamarApi({token:TOKEN,acao:"entregas",pedido},"getEntregasPedido",[TOKEN,pedido]);
 
 /* ---------- impressão de um pedido ---------- */
@@ -3536,10 +3615,12 @@ const carregarLibsPdf=()=>libsPdf=libsPdf||Promise.all(LIBS_PDF.map(src=>new Pro
 function cortesPdf(el){
   const pag=794*297/210, m=794*11/210, base=el.getBoundingClientRect().top;
   const pos=b=>{const r=b.getBoundingClientRect();return {t:r.top-base,b:r.bottom-base}};
-  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.av,h2")].map(pos), presos=[...el.querySelectorAll("h2,.tb thead")].map(pos);
+  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.av,h2,h3,.rx-exp,.rx-kpi,.rx-lst>div,.rx-tot2,.rx-reg,.rx-ass")].map(pos), presos=[...el.querySelectorAll("h2,h3,.rx-exp,.tb thead")].map(pos);
+  const forcados=[...el.querySelectorAll(".rx-quebra")].map(x=>pos(x).t); // detalhe do relatório mensal começa em página nova
   const fim=blocos.length?Math.max(...blocos.map(x=>x.b))+m:el.offsetHeight, cortes=[]; let ini=0;
   while(ini<fim){
-    const lim=ini+pag-(ini?2*m:m);
+    const lim=ini+pag-(ini?2*m:m), fq=forcados.find(q=>q>ini+1&&q<=lim);
+    if(fq!=null){cortes.push([ini,fq]);ini=fq;continue}
     if(lim>=fim){cortes.push([ini,fim]);break}
     let c=lim, mudou=true;
     while(mudou){mudou=false;
@@ -3567,7 +3648,8 @@ async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao
     await Promise.all([...el.querySelectorAll("img")].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})));
     if(document.fonts) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>r()));
-    const cortes=cortesPdf(el), rod=el.querySelector(".esp .rod"), rodTxt=rod?rod.textContent.trim():"";
+    const cortes=cortesPdf(el), rod=el.querySelector(".esp .rod"), rodS=rod?[...rod.children]:[], comPag=!!(rod&&rod.dataset.pag);
+    const rodE=rodS.length>1?rodS[0].textContent.trim():"", rodD=rodS.length>1?rodS[1].textContent.trim():rod?rod.textContent.trim():"";
     const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), mm=210/794;
     for(let i=0;i<cortes.length;i++){
       const [a,b]=cortes[i], alt=b-a;
@@ -3580,7 +3662,8 @@ async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao
       let img=tela.toDataURL("image/png"), tipo="PNG";
       if(op&&op.leve){ img=tela.toDataURL("image/jpeg",.9); tipo="JPEG"; } else if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
       pdf.addImage(img,tipo,0,i?11:0,210,alt*mm,undefined,"FAST");
-      if(rodTxt){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); pdf.text(rodTxt,198,291,{align:"right"}); }
+      const esq=rodE+(comPag?(rodE?" · ":"")+"Página "+(i+1)+" de "+cortes.length:"");
+      if(esq||rodD){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); if(esq) pdf.text(esq,12,291); if(rodD) pdf.text(rodD,198,291,{align:"right"}); }
       tela.width=tela.height=0;
     }
     const dados=pdf.output("arraybuffer");
@@ -3651,20 +3734,50 @@ function relCategorias(conf,total,rotulo){
 function relEtapas(conf,total,rotulo){ const g=custoPorEtapa(conf), ks=ordemEtapas(Object.keys(g)).filter(k=>g[k]);
   return ks.length?relTabela(["Etapa",["Custo confirmado","n"],[rotulo,"n"]],ks.map(k=>[esc(nomeEtapa(k)),brl(g[k]),relPct(g[k],total)]),["TOTAL",brl(total),relPct(total,total)]):relVazio("Nenhum custo confirmado.");
 }
+/* Relatório mensal (impresso e PDF do fechamento): página 1 = visão executiva; da página 2 em diante, o detalhe.
+   Mesmos números de antes; só a apresentação mudou. Seções vazias não aparecem. Sempre claro, A4, legível em preto e branco. */
+const rxNome = e => { const m=String(e||"").trim().toLowerCase(); if(!m) return ""; const u=D&&D.usuarios&&D.usuarios[m]; return u&&u.nome?u.nome:m.split("@")[0]; }; // nome do cadastro; sem nome, só a parte antes do @
+const rxEmissor = () => D&&D.eu?(D.eu.nome||D.eu.usuario||""):"";
+const rxBarra = (v,t) => `<span class="rx-br"><i style="width:${t?Math.max(0,Math.min(100,v/t*100)).toFixed(1):0}%"></i></span>`;
+const rxSec = (titulo,exp,corpo) => `<section class="rx-sec"><h2>${titulo}</h2>${exp?`<p class="rx-exp">${exp}</p>`:""}${corpo}</section>`;
+const rxKpi = (t,v,sub,cl) => `<div class="rx-kpi${cl?" "+cl:""}"><span>${t}</span><b>${v}</b>${sub?`<small>${sub}</small>`:""}</div>`;
+const rxCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}</div></div>`;
+/* Folha A4 com rodapé em todas as páginas: nome do documento, página (PDF e navegadores que aceitam) e quem emitiu. */
+function rxFolha(corpo,doc){
+  return `<table class="folha rx-pag"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod" data-pag="1"><span>Zayda Construtora · ${doc}</span><span>Emitido por ${esc(rxEmissor()||"—")} em ${relAgora()}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel rx">${corpo}</div></td></tr></tbody></table>`; }
+/* Lista com barra (categoria, etapa): até 10 linhas; o resto vira "Demais (N)". */
+function rxLista(itens,total){ const top=itens.length>10?itens.slice(0,9):itens, resto=itens.filter(x=>!top.includes(x));
+  const l=top.concat(resto.length?[{k:"Demais ("+resto.length+")",v:sum(resto,x=>x.v)}]:[]);
+  return `<div class="rx-lst">${l.map(x=>`<div><span>${esc(x.k)}</span>${rxBarra(x.v,total)}<b>${brl(x.v)}</b><small>${relPct(x.v,total)}</small></div>`).join("")}</div>`; }
+const RX_SIT={DENTRO:"Dentro",RISCO:"Atenção",FORA:"Estourado"};
 function folhaRelMes(k){
   const [ini,fim]=relDoMes(k), d=relDados(ini,fim), orc=orcObras();
-  const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,n:a.length,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
+  const faltaRef=sum(d.I,i=>i.precoRef==null?0:Math.max(i.saldo,0)*i.precoRef);
+  const terAgV=sum(terTodos().filter(t=>t.conferencia==="AGUARDANDO"&&t.dataRef&&t.dataRef>=ini&&t.dataRef<=fim),t=>t.valor);
+  const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
+  const cats=Object.entries(relGrupo(d.conf,l=>l.cat||"Outros")).map(([c,a])=>({k:c,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
+  const eg=custoPorEtapa(d.conf), etapas=ordemEtapas(Object.keys(eg)).filter(x=>eg[x]).map(x=>({k:nomeEtapa(x),v:eg[x]}));
   const mats=Object.values(d.conf.reduce((g,l)=>{ const m=g[l.sku]=g[l.sku]||{mat:l.material,un:l.un,q:0,v:0,ter:!!l.ter}; m.q+=l.qtd; m.v+=l.valor; return g; },{})).sort((a,b)=>b.v-a.v).slice(0,10);
   const curta=(a,f)=>{ const u=uniq(a.map(f)); return u.slice(0,5).map(esc).join(", ")+(u.length>5?" e mais "+(u.length-5):""); };
   const saldo=d.I.filter(i=>i.saldo>0), semObra=d.I.filter(i=>i.obra==="SEM VÍNCULO"), semCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO");
-  return relFolha(relCab("Relatório de gastos com materiais",[relMesAno(k)])+
-    `<h2>RESUMO</h2><div class="tot q4"><div><span>CUSTO CONFIRMADO</span><b>${brl(d.custo)}</b></div><div><span>VALOR DOS PEDIDOS</span><b>${brl(d.ref)}</b></div><div><span>ENTREGAS COM CUSTO</span><b>${d.conf.filter(l=>!l.ter).length}</b></div><div><span>PEDIDOS</span><b>${d.pedidos}</b></div></div>`+relOrigem(d)+
-    `<h2>GASTO POR OBRA</h2>`+(obras.length?relTabela(["Obra",["Entregas","n"],["Custo confirmado","n"],["% do mês","n"],["Orçamento (planejado)","n"],"Situação do orçamento"],
-      obras.map(o=>{ const x=orc[o.id], tem=x&&x.sit!=="SEM"; return [o.id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(o.id)}</small>${esc(obraNome(o.id))}`,o.n,brl(o.v),relPct(o.v,d.custo),tem?brl(x.orc):"—",tem?ORC_SIT[x.sit].t:"—"]; }),
-      ["TOTAL",d.conf.length,brl(d.custo),relPct(d.custo,d.custo),"",""]):relVazio("Nenhum custo confirmado neste mês."))+
-    `<h2>GASTO POR CATEGORIA</h2>`+relCategorias(d.conf,d.custo,"% do mês")+`<h2>CUSTO POR ETAPA</h2>`+relEtapas(d.conf,d.custo,"% do mês")+
-    `<h2>10 MATERIAIS DE MAIOR GASTO</h2>`+(mats.length?relTabela(["Material",["Quantidade","n"],"Unidade",["Custo confirmado","n"]],mats.map(m=>[esc(m.mat),m.ter?"—":qtd(m.q),m.ter?"—":esc(m.un),brl(m.v)])):relVazio("Nenhum custo confirmado neste mês."))+
-    relTerceiros(ini,fim)+`<h2>PENDÊNCIAS DO MÊS</h2>`+relTabela(["Pendência",["Quantidade","n"],"Lista"],[["Materiais que ainda não chegaram",saldo.length,curta(saldo,i=>i.material)],["Pedidos sem obra reconhecida",uniq(semObra.map(i=>i.pedido)).length,curta(semObra,i=>i.pedido)],["Entregas sem valor",semCusto.length,curta(semCusto,l=>l.material)]]));
+  const pend=[["Materiais que ainda não chegaram",saldo.length,curta(saldo,i=>i.material)],["Pedidos sem obra reconhecida",uniq(semObra.map(i=>i.pedido)).length,curta(semObra,i=>i.pedido)],["Entregas sem valor",semCusto.length,curta(semCusto,l=>l.material)]].filter(p=>p[1]>0);
+  const ter=terTodos().filter(t=>t.conferencia==="CONFERIDO"&&t.dataRef&&t.dataRef>=ini&&t.dataRef<=fim).sort((a,b)=>a.dataRef.localeCompare(b.dataRef)||a.id.localeCompare(b.id));
+  const pgTer=t=>{const p=terPag(t);return p.sit==="PAGO"?"Pago":"Pago "+brl(p.pago)+" · A pagar "+brl(p.aPagar)+(p.temVenc?" (vencido)":"");};
+  const p1=rxCab("Relatório de gastos com materiais",[relMesAno(k),"Período: "+dbr(ini)+" a "+dbr(fim)+" · Obras: todas","Emitido em "+relAgora()])+
+    rxSec("Resumo do mês","Custo confirmado = material entregue × preço do pedido + outros fornecedores conferidos. Valor comprado = soma dos pedidos feitos no mês, pelo preço de cada item.",
+      `<div class="rx-kpis">${rxKpi("Custo confirmado do mês",brl(d.custo),d.nBsj+(d.nBsj===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),relPct(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),relPct(d.custoTer,d.custo)+" do custo · conferidos")}${rxKpi("Valor comprado",brl(d.ref),"Falta entregar: "+brl(faltaRef)+(terAgV?" · A conferir (outros): "+brl(terAgV):""))}</div>`)+
+    (obras.length?rxSec("Gasto por obra","Quanto cada obra custou no mês. Orçamento e situação comparam todo o gasto da obra, desde o início, com o orçamento planejado.",
+      relTabela(["Obra",["Custo no mês","n"],"% do mês",["Orçamento","n"],"Situação"],obras.map(o=>{ const x=orc[o.id], tem=x&&x.sit!=="SEM";
+        return [o.id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(o.id)}</small>${esc(obraNome(o.id))}`,brl(o.v),`<span class="rx-pc">${rxBarra(o.v,d.custo)}${relPct(o.v,d.custo)}</span>`,tem?brl(x.orc):"—",tem?`<span class="rx-sit ${x.sit.toLowerCase()}">${RX_SIT[x.sit]||ORC_SIT[x.sit].t}</span>`:"—"]; }),
+        ["TOTAL",brl(d.custo),relPct(d.custo,d.custo),"",""])):"")+
+    (cats.length||etapas.length?rxSec("Onde foi o dinheiro","Divisão do custo confirmado do mês por tipo de material (categoria) e por etapa da obra.",
+      `<div class="rx-duas">${cats.length?`<div><h3>Por categoria</h3>${rxLista(cats,d.custo)}</div>`:""}${etapas.length?`<div><h3>Por etapa</h3>${rxLista(etapas,d.custo)}</div>`:""}</div>`):"");
+  const det=(mats.length?rxSec("10 materiais de maior gasto","Os materiais que mais pesaram no custo confirmado do mês.",
+      relTabela(["Material",["Quantidade","n"],["Custo confirmado","n"],["% do mês","n"]],mats.map(m=>[esc(m.mat),m.ter?"—":qtd(m.q)+" "+esc(m.un),brl(m.v),relPct(m.v,d.custo)]))):"")+
+    (ter.length?rxSec("Outros fornecedores do mês","Compras e serviços fora da loja, conferidos, com data de referência no mês. Já estão somados no custo confirmado.",
+      relTabela(["Data","Obra","Fornecedor","Descrição",["Valor","n"],"Pagamento"],ter.map(t=>[dbr(t.dataRef),esc(t.obra),esc(t.fornecedor),esc(t.descricao),brl(t.valor),pgTer(t)]),["TOTAL","","","",brl(sum(ter,t=>t.valor)),""])):"")+
+    (pend.length?rxSec("Pendências do mês","O que ainda precisa de atenção nos pedidos deste mês.",relTabela(["Pendência",["Quantidade","n"],"Exemplos"],pend)):"");
+  return rxFolha(p1+(det?`<div class="rx-quebra"></div>`+det:""),"Relatório de gastos");
 }
 function folhaRelObra(id,ini,fim,periodo){
   const o=D.obras.find(x=>x.id===id), x=orcObras()[id], d=relDados(ini,fim,id), c=o.pct==null?"—":Math.round(o.pct*100)+"%";
@@ -3680,24 +3793,27 @@ function folhaRelObra(id,ini,fim,periodo){
     `<h2>ENTREGAS NO PERÍODO</h2>`+(ent.length?relTabela(["Data","Pedido","Material",["Qtd","n"],"Un",["Valor unit.","n"],["Total","n"],"Recebido por"],ent.map(l=>{ const c=l.situacao==="CUSTO CONFIRMADO"; return [dbr(l.data),esc(l.pedido||"—"),esc(l.material),qtd(l.qtd),esc(l.un),c&&l.custo!=null?brl(l.custo):"—",c?brl(l.valor):"Sem custo confirmado",esc(partesEntrega(l.obs).nome||"—")]; }),["TOTAL (custo confirmado)","","","","","",brl(sum(d.conf.filter(l=>!l.ter),l=>l.valor)),""]):relVazio("Nenhuma entrega neste período."))+
     relTerceiros(ini,fim,id)+`<h2>MATERIAIS QUE AINDA FALTAM CHEGAR</h2>`+(faltam.length?relTabela(["Pedido","Material",["Quantidade pedida","n"],["Entregue","n"],["Falta","n"]],faltam.map(i=>[esc(i.pedido),esc(i.material),qtd(i.qtdSol)+" "+esc(i.un),qtd(i.entregue)+" "+esc(i.un),qtd(i.saldo)+" "+esc(i.un)])):relVazio("Nenhum material pendente nesta obra.")));
 }
-/* Folha de um lançamento de Outros fornecedores (mesmo padrão dos relatórios impressos; sempre clara). */
+/* Folha de um lançamento de Outros fornecedores: mesmo padrão do relatório mensal (sempre clara); 1 página sempre que possível. */
 function folhaTer(t){ const f=(D.fornecedores||{})[t.fornecedorId]||{}, hoje=D.hoje, ps=t.parcelas||[], pg=terPag(t);
-  const CONF={AGUARDANDO:["#946000","AGUARDANDO CONFERÊNCIA"],CONFERIDO:["#00632B","CONFERIDO"],REPROVADO:["#C62828","REPROVADO"],CANCELADO:["#5A5A5A","CANCELADO"]}[t.conferencia]||["#3A4A40",t.conferencia];
+  const CONF={AGUARDANDO:["aguard","AGUARDANDO CONFERÊNCIA"],CONFERIDO:["ok","CONFERIDO"],REPROVADO:["bad","REPROVADO"],CANCELADO:["canc","CANCELADO"]}[t.conferencia]||["canc",t.conferencia];
   const dd=(k,v,cl)=>`<div${cl?` class="${cl}"`:""}><dt>${k}</dt><dd>${v||"—"}</dd></div>`;
   const dias=(a,b)=>{const d=s=>Date.UTC(+s.slice(0,4),+s.slice(5,7)-1,+s.slice(8,10));return Math.round((d(b)-d(a))/864e5);};
   const sit=x=>x.pago?"Paga em "+dbr(x.dataPagamento)+(x.forma?" · "+esc(x.forma):""):x.vencimento&&x.vencimento<hoje?"Vencida há "+dias(x.vencimento,hoje)+(dias(x.vencimento,hoje)===1?" dia":" dias"):"Não paga";
-  const custo="Sim, no custo de "+relMesAno(String(t.dataRef||"").slice(0,7))+" (mês da data de referência)";
-  const quem=D.eu?(D.eu.nome||D.eu.usuario||""):"";
-  const corpo=relCab("LANÇAMENTO DE OUTRO FORNECEDOR",[esc(t.id),`<span class="marca" style="border-color:${CONF[0]};color:${CONF[0]}">${esc(CONF[1])}</span>`])+
-    `<h2>OBRA</h2><dl class="blk">${dd("OBRA",t.obra&&t.obra!=="SEM VÍNCULO"?`<small>${esc(t.obra)}</small>${esc(obraNome(t.obra))}`:"Sem obra","w2")}${dd("ETAPA DA OBRA",esc(t.etapaC||t.etapa||""))}</dl>`+
-    `<h2>FORNECEDOR</h2><dl class="blk">${dd("FORNECEDOR",esc(t.fornecedor),"w2")}${dd("TIPO",esc(f.tipo||t.tipo))}${f.doc?dd("CPF/CNPJ",esc(f.doc)):""}${f.telefone?dd("TELEFONE",esc(f.telefone)):""}</dl>`+
-    `<h2>COMPRA / SERVIÇO</h2><dl class="blk">${dd("TIPO",esc(t.tipo))}${dd("Nº DA NOTA/ORÇAMENTO",esc(t.nota||""))}${dd("DATA DE REFERÊNCIA",dbr(t.dataRef))}${dd("DESCRIÇÃO",esc(t.descricao),"w3")}${t.quantidade!=null?dd("QUANTIDADE",qtd(t.quantidade)+" "+esc(t.unidade||"")):""}</dl>`+
-    `<h2>VALORES</h2><div class="tot"><div><span>VALOR TOTAL</span><b>${brl(t.valor)}</b></div><div><span>FORMA DE PAGAMENTO</span><b>${t.forma==="PARCELADO"?"Parcelado em "+ps.length:"Único"}</b></div>${t.conferencia==="CONFERIDO"?`<div><span>ENTROU NO CUSTO DA OBRA</span><b>${custo}</b></div>`:""}</div>`+
-    `<h2>PARCELAS</h2>`+(ps.length?relTabela([["Nº"],"Descrição",["Valor","n"],"Vencimento","Situação"],ps.map(x=>[x.numero,esc(x.descricao||"Parcela "+x.numero),brl(x.valor),dbr(x.vencimento),sit(x)])):relVazio("Sem parcelas."))+
-    `<div class="tot q2"><div><span>PAGO</span><b>${brl(pg.pago)}</b></div><div><span>A PAGAR</span><b>${brl(pg.aPagar)}</b></div></div>`+
-    (t.obs||t.motivo||t.anexo?`<h2>OBSERVAÇÕES</h2><dl class="blk">${t.obs?dd("OBSERVAÇÃO",esc(t.obs),"w3"):""}${t.conferencia==="REPROVADO"&&t.motivo?dd("MOTIVO DA REPROVAÇÃO",esc(t.motivo),"w3"):t.conferencia==="CANCELADO"&&t.motivo?dd("MOTIVO DO CANCELAMENTO",esc(t.motivo),"w3"):""}${t.anexo?dd("ANEXO","Nota anexada no sistema","w3"):""}</dl>`:"")+
-    `<h2>REGISTRO</h2><dl class="blk">${dd("LANÇADO POR",esc(terNome(t.criadoPor))+" em "+dataHoraBr(t.criadoEm))}${t.conferidoPor?dd({CONFERIDO:"CONFERIDO POR",REPROVADO:"REPROVADO POR",CANCELADO:"CANCELADO POR"}[t.conferencia]||"CONFERÊNCIA",esc(terNome(t.conferidoPor))+(t.conferidoEm?" em "+dataHoraBr(t.conferidoEm):"")):dd("CONFERÊNCIA","Ainda não conferido")}</dl>`;
-  return relFolha(corpo).replace('<div class="emit">Emitido por: ______________________</div>',`<div class="emit">Emitido por ${esc(quem||"—")} em ${relAgora()}</div>`); }
+  const entra=t.conferencia==="CONFERIDO"?"Sim":"Não", entraSub=t.conferencia==="CONFERIDO"?"No custo de "+relMesAno(String(t.dataRef||"").slice(0,7))+" (mês da data de referência)":t.conferencia==="AGUARDANDO"?"Entra quando for conferido":"";
+  const reg=(rot,nome,quando)=>`<div><dt>${rot}</dt><dd>${esc(nome||"—")}</dd><small>${quando||"&nbsp;"}</small></div>`;
+  const rotConf={REPROVADO:"REPROVADO POR",CANCELADO:"CANCELADO POR"}[t.conferencia]||"CONFERIDO POR";
+  const obs=(t.obs?dd("OBSERVAÇÃO",esc(t.obs),"w3"):"")+(t.conferencia==="REPROVADO"&&t.motivo?dd("MOTIVO DA REPROVAÇÃO",esc(t.motivo),"w3"):t.conferencia==="CANCELADO"&&t.motivo?dd("MOTIVO DO CANCELAMENTO",esc(t.motivo),"w3"):"")+(t.anexo?dd("ANEXO","Nota anexada no sistema","w3"):"");
+  const corpo=rxCab("Lançamento de outro fornecedor",[esc(t.id),`<span class="rx-selo ${CONF[0]}">${esc(CONF[1])}</span>`,"Data de referência: "+dbr(t.dataRef)])+
+    rxSec("Obra e etapa","",`<dl class="blk">${dd("OBRA",t.obra&&t.obra!=="SEM VÍNCULO"?`<small>${esc(t.obra)}</small>${esc(obraNome(t.obra))}`:"Sem obra","w2")}${dd("ETAPA DA OBRA",esc(t.etapaC||t.etapa||""))}</dl>`)+
+    rxSec("Fornecedor","",`<dl class="blk">${dd("FORNECEDOR",esc(t.fornecedor),"w2")}${dd("TIPO",esc(f.tipo||t.tipo))}${f.doc?dd("CPF/CNPJ",esc(f.doc)):""}${f.telefone?dd("TELEFONE",esc(f.telefone)):""}</dl>`)+
+    rxSec("Compra / serviço","",`<dl class="blk">${dd("TIPO",esc(t.tipo))}${dd("Nº DA NOTA/ORÇAMENTO",esc(t.nota||""))}${t.quantidade!=null?dd("QUANTIDADE",qtd(t.quantidade)+" "+esc(t.unidade||"")):dd("DATA DE REFERÊNCIA",dbr(t.dataRef))}${dd("DESCRIÇÃO",esc(t.descricao),"w3")}</dl>`)+
+    rxSec("Valores","",`<div class="rx-kpis k3">${rxKpi("Valor total",brl(t.valor),"","pri")}${rxKpi("Forma de pagamento",t.forma==="PARCELADO"?"Parcelado em "+ps.length:"Único")}${rxKpi("Entra no custo da obra",entra,entraSub)}</div>`)+
+    rxSec("Parcelas","",(ps.length?relTabela([["Nº"],"Descrição",["Valor","n"],"Vencimento","Situação"],ps.map(x=>[x.numero,esc(x.descricao||"Parcela "+x.numero),brl(x.valor),dbr(x.vencimento),sit(x)])):relVazio("Sem parcelas."))+
+      `<div class="rx-tot2"><div><span>Pago</span><b>${brl(pg.pago)}</b></div><div><span>A pagar</span><b>${brl(pg.aPagar)}</b></div></div>`)+
+    (obs?rxSec("Observação","",`<dl class="blk">${obs}</dl>`):"")+
+    rxSec("Registro","",`<dl class="rx-reg">${reg("LANÇADO POR",rxNome(t.criadoPor),dataHoraBr(t.criadoEm))}${t.conferidoPor?reg(rotConf,rxNome(t.conferidoPor),t.conferidoEm?dataHoraBr(t.conferidoEm):""):reg("CONFERIDO POR","Ainda não conferido","")}${reg("EMITIDO POR",rxEmissor(),relAgora())}</dl>`)+
+    (t.conferencia==="AGUARDANDO"||t.conferencia==="REPROVADO"?`<div class="rx-ass">Conferido por: ________________________________ &nbsp;&nbsp; Data: ____/____/________</div>`:"");
+  return rxFolha(corpo,"Lançamento de outro fornecedor"); }
 function imprimirTer(id){ const t=terTodos().find(x=>x.id===id); if(!t) return; imprimirFolha(folhaTer(t),"Zayda - Lançamento "+t.id+".pdf"); }
 /* Quem entregou o material de um lançamento: "entregue por" da entrega (mesmo ID); sem esse dado, o entregador do pedido. */
 const entreguePorLanc = l => { const P=(D.pedidos||{})[l.pedido]||{}, e=(P.entregas||[]).find(x=>x.id===l.id); return (e&&e.entreguePor)||P.entregador||""; };
@@ -4178,20 +4294,20 @@ function entrar(c){
   if(!c){telaAcesso("");return;}
   const minha=++tentativa;
   $("btnEntrar").disabled=true; $("btnEntrar").textContent="Verificando…";
-  // Se o Google não responder em 20 s, libera a tela com uma orientação em vez de ficar girando.
-  const limite=setTimeout(()=>{ if(minha!==tentativa) return; tentativa++;
-    if($("acesso").hidden) $("acesso").hidden=false;
-    telaAcesso("O Google não respondeu a tempo. Feche esta aba, abra o link do painel de novo e tente outra vez."); },20000);
-  buscarDados(c).then(d=>{
-      if(minha!==tentativa) return; clearTimeout(limite);
-      if(!d){telaAcesso("A planilha não devolveu os dados. Tente de novo em instantes.");return;}
-      if(d.acesso===false){ if(d.motivo!=="ERRO") esquecerCodigo(); telaAcesso(motivoTxt(d.motivo)||"Acesso não liberado.");return;}
+  // Os dados vêm sem esperar a sincronização do formulário. Demorou mais de 25 s ou deu erro: tenta de novo 1 vez antes de avisar.
+  const falhou=e=>{ if(minha!==tentativa) return; console.warn("Entrada:",e); tentativa++; $("acesso").hidden=false; telaAcesso("Não foi possível entrar agora. Tente de novo."); };
+  const tentar=resta=>comLimite(buscarDados(c,true),25000).then(d=>{ if(d&&d.acesso===false&&d.motivo==="ERRO") throw new Error(d.detalhe||"ERRO"); return d; })
+    .catch(e=>{ if(resta>0&&minha===tentativa){ $("btnEntrar").textContent="Tentando de novo…"; return tentar(resta-1); } throw e; });
+  tentar(1).then(d=>{
+      if(minha!==tentativa) return;
+      if(!d) return falhou("sem dados");
+      if(d.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(d.motivo)||"Acesso não liberado.");return;}
       try{
         TOKEN=c; guardarToken(c); avisarApp({zayda:"token",token:c}); $("acesso").querySelectorAll("input").forEach(i=>i.value=""); $("acesso").hidden=true; $("sair").hidden=false; boot(d);
+        setTimeout(()=>atualizarAgora(false),3000); // logo depois de abrir, sincroniza com o formulário e atualiza o que mudou
       }catch(e){ console.error(e); $("acesso").hidden=false;
         telaAcesso("Erro ao montar o painel: "+(e&&e.message?e.message:e)+". Envie um print desta mensagem ao administrador."); }
-    }).catch(e=>{ if(minha!==tentativa) return; clearTimeout(limite);
-      $("acesso").hidden=false; telaAcesso("Erro do Google: "+(e&&e.message?e.message:e)); });
+    }).catch(falhou);
 }
 /* Senha: 8 a 32 caracteres, pelo menos uma letra e um número, sem espaço no início ou no fim (o servidor confere de novo). */
 const senhaOk=s=>s===s.trim()&&s.length>=8&&s.length<=32&&/[A-Za-z\u00C0-\u00FF]/.test(s)&&/\d/.test(s)&&/^[\x20-\x7E\u00C0-\u00FF]+$/.test(s);
@@ -4204,7 +4320,10 @@ function olhosFechados(){ document.querySelectorAll("#acesso .ac-pw").forEach(w=
 function acErro(t){ $("acessoMsg").textContent=t; $("btnEntrar").disabled=false; $("btnEntrar").textContent=AC_TXT[MODO_AC][1]; }
 function acChamar(corpo,funcao,args,ok){
   $("btnEntrar").disabled=true; $("btnEntrar").textContent="Verificando…"; $("acessoMsg").textContent="";
-  chamarApi(corpo,funcao,args).then(r=>ok(r||{})).catch(e=>acErro("Erro do Google: "+(e&&e.message?e.message:e)));
+  // Entrar e conferir o código só leem: se demorar mais de 20 s ou falhar, tenta de novo 1 vez antes de avisar.
+  const repete=corpo.acao==="entrar"||corpo.acao==="verificarPrimeiro";
+  const vai=resta=>comLimite(chamarApi(corpo,funcao,args),repete?20000:60000).catch(e=>{ if(repete&&resta>0){ $("btnEntrar").textContent="Tentando de novo…"; return vai(resta-1); } throw e; });
+  vai(1).then(r=>ok(r||{})).catch(e=>acErro(repete?"Não foi possível entrar agora. Tente de novo.":"Erro do Google: "+(e&&e.message?e.message:e)));
 }
 $("formAcesso").addEventListener("submit",e=>{e.preventDefault();
   const v=id=>$(id).value.trim(), sv=id=>$(id).value; // senha sem trim: espaço no início/fim é recusado
