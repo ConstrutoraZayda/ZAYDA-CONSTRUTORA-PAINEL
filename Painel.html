@@ -227,28 +227,30 @@ tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 @media (max-width:420px){.lat-ter .tl-dl{grid-template-columns:1fr}}
 .kpi .orig{margin-top:6px;font-size:12px;color:var(--ink-3)}.kpi .orig b{color:var(--ink)}
 /* Custo confirmado por fornecedor: uma linha por fornecedor (nome cortado com "…", completo ao passar o mouse) */
-.kpi .fornl{display:grid;gap:1px;margin-top:8px}
-.fornl .fo{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:8px;align-items:center;min-height:22px;font-size:12.5px;color:var(--ink-2)}
+.kpi .fornl{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;margin-top:8px}
+.fornl .fo{grid-column:1/-1;display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;grid-template-columns:subgrid;gap:10px;align-items:center;min-height:26px;padding:3px 0;border-bottom:1px solid var(--line);font-size:12.5px;color:var(--ink-2)} /* subgrid: colunas iguais em todas as linhas */
+.fornl .fo:last-child{border-bottom:0}
+.fornl .fo small{font-size:11.5px;color:var(--ink-3);text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
 .fornl .fo i{width:9px;height:9px;border-radius:3px}
 .fornl .fo span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.fornl .fo b{font-variant-numeric:tabular-nums;white-space:nowrap}
-.fornl .fo-mais{width:calc(100% + 8px);margin:0 -4px;padding:2px 4px;border:0;border-radius:6px;background:none;font:inherit;font-size:12.5px;text-align:left;color:var(--brand);cursor:pointer}
+.fornl .fo b{font-variant-numeric:tabular-nums;white-space:nowrap;text-align:right}
+.fornl .fo-mais{width:calc(100% + 8px);margin:0 -4px;padding:3px 4px;border:0;border-bottom:1px solid var(--line);border-radius:6px;background:none;font:inherit;font-size:12.5px;text-align:left;color:var(--brand);cursor:pointer}
 .fornl .fo-mais span{text-decoration:underline;text-underline-offset:2px}
 @media (hover:hover) and (pointer:fine){.fornl .fo-mais:hover{background:var(--surface-2)}}
 @media (pointer:coarse){.fornl .fo-mais{min-height:44px}}
 .fornl .fo-mais:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
 /* Rosca do custo por fornecedor: ao lado da lista; no celular, acima e centralizada */
 .forn-g{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 14px;margin-top:8px} /* sem espaço para a lista ao lado (cartão estreito), a rosca fica acima, centralizada */
-.forn-g .fornl{flex:1 1 190px;min-width:0;margin-top:0}
-.donut{flex:none;width:112px;height:112px;overflow:visible}
-.donut circle{fill:none;stroke-width:16;transform:rotate(-90deg);transform-origin:50px 50px;transition:opacity .15s,stroke-width .15s}
+.forn-g .fornl{flex:1 1 200px;min-width:0;margin-top:0}
+.donut{flex:none;width:108px;height:108px;overflow:visible}
+.donut circle{fill:none;stroke-width:10;transform:rotate(-90deg);transform-origin:50px 50px;transition:opacity .15s,stroke-width .15s}
 .donut circle.faixa{cursor:pointer}
-.donut circle.hl{stroke-width:20}
+.donut circle.hl{stroke-width:13}
 .donut.tem-hl circle:not(.hl){opacity:.35}
 .donut .dn-l{font-size:9px;font-weight:600;fill:var(--ink-3)}
-.donut .dn-v{font-size:11.5px;font-weight:800;fill:var(--ink)}
+.donut .dn-v{font-weight:800;fill:var(--ink)} /* tamanho calculado em donutForn para caber no furo */
 .fornl .fo.hl{color:var(--ink)}.fornl .fo.hl span{font-weight:700}
-@media (max-width:560px){.forn-g{flex-direction:column;align-items:stretch}.donut{align-self:center}}
+@media (max-width:560px){.forn-g{flex-direction:column;align-items:stretch}.forn-g .fornl{flex:none}.donut{align-self:center}}
 .area-aj{display:block;margin:0 0 6px;font-size:12px;color:var(--ink-3)}
 .lat-item small.sub{font-family:inherit;font-size:11.5px}
 #printArea .tot.q2{grid-template-columns:repeat(2,1fr)}
@@ -1709,18 +1711,17 @@ function vPainel(){
   if(restoF.length) partes.push({nome:"Outros fornecedores ("+restoF.length+")",v:sum(restoF,f=>f.v),cor:"var(--outros)",itens:restoF.map(f=>({nome:f.nome,v:f.v})),pal:["fornecedor","fornecedores"],
     titulo:"Fornecedores · "+dbr(S.ini)+" a "+dbr(S.fim),todos:FN.map(latForn)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
-  const seg = s.custo>0 ? partes.map((p,i)=>`<span data-i="${i}" ${p.itens?'class="faixa" ':""}${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join("") : `<span style="flex:1;background:var(--hatch-bg)"></span>`;
-  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" data-fo="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span>${esc(p.nome)}</span><b>${brl(p.v)}</b></button>`
-    :`<div class="fo" data-fo="${i}"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><b>${brl(p.v)}</b></div>`;
+  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" data-fo="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span>${esc(p.nome)}</span><small>${pct(s.custo?p.v/s.custo:0)}</small><b>${brl(p.v)}</b></button>`
+    :`<div class="fo" data-fo="${i}"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><small>${pct(s.custo?p.v/s.custo:0)}</small><b>${brl(p.v)}</b></div>`;
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
     <article class="card kpi kpi-custo">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
       <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
-      <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} com custo real · quantidade entregue × custo unitário real${s.nTer?` · <b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores`:""}</div>
+      <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} da loja · <b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores</div>
       <div class="forn-g">${s.custo>0?donutForn(partes,s.custo):""}<div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div></div>
       ${variacaoCusto(s)}
-      <div class="segbar" data-lista="seg" aria-hidden="true">${seg}</div>${s.custo>0?"":'<div class="legend"><span>Nenhum custo confirmado neste período.</span></div>'}
+      ${s.custo>0?"":'<div class="legend"><span>Nenhum custo confirmado neste período.</span></div>'}
     </article>
     <article class="card kpi" data-ped="valor">
       <div class="lbl">${ico("doc")}Valor dos pedidos</div>
@@ -2725,10 +2726,11 @@ document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ fecharMat(); retu
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#view tr[data-matver]")){ e.preventDefault(); abrirMat(); } });
 
 /* Rosca do custo por fornecedor: mesmas partes, ordem e cores da lista e da barra; total no centro. */
-function donutForn(partes,total){ const r=38, C=2*Math.PI*r, sep=partes.length>1?1.2:0; let ac=0;
+function donutForn(partes,total){ const r=44, C=2*Math.PI*r, sep=partes.length>1?2.2:0; let ac=0; // anel de 10 (em 100): furo de ~78
+  const txt=total>=1e6?"R$ "+(total/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mi":brlK(total); // centro: "R$ 10,8 mil" ou "R$ 1,2 mi"
   const fat=partes.map((p,i)=>{ const len=p.v/total*C, o=ac; ac+=len;
     return `<circle data-i="${i}" r="${r}" cx="50" cy="50"${p.itens?' class="faixa"':""} style="stroke:${p.cor};stroke-dasharray:${Math.max(.01,len-sep).toFixed(2)} ${C.toFixed(2)};stroke-dashoffset:${(-o).toFixed(2)}"/>`; }).join("");
-  return `<svg class="donut" viewBox="0 0 100 100" width="112" height="112" role="img" aria-label="${esc("Custo confirmado por fornecedor: total "+brl(total))}">${fat}<text x="50" y="46" text-anchor="middle" class="dn-l">Total</text><text x="50" y="59" text-anchor="middle" class="dn-v">${esc(brlK(total))}</text></svg>`; }
+  return `<svg class="donut" viewBox="0 0 100 100" width="112" height="112" role="img" aria-label="${esc("Custo confirmado por fornecedor: total "+brl(total))}">${fat}<text x="50" y="44" text-anchor="middle" class="dn-l">Total</text><text x="50" y="59" text-anchor="middle" class="dn-v" font-size="${Math.min(13,60/(Math.max(1,txt.length)*0.6)).toFixed(1)}">${esc(txt)}</text></svg>`; } // fonte reduz para o texto caber em ~60 de largura
 /* Destaca a fatia e o fornecedor da lista (i = -1 tira o destaque). */
 function destacarForn(i){ const g=document.querySelector("#view .donut");
   document.querySelectorAll("#view .donut [data-i],#view .fornl [data-fo]").forEach(x=>x.classList.toggle("hl",+(x.dataset.i!=null?x.dataset.i:x.dataset.fo)===i));
