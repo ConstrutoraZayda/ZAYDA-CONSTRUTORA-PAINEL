@@ -1368,7 +1368,9 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rx .rx-ass{margin-top:28px;font-size:11px;font-weight:700;break-inside:avoid}
 @media print{
   #printArea .rx-quebra{break-before:page;page-break-before:always}
-  @page rx{size:A4;margin:0 0 7mm 0;@bottom-right{content:"Página " counter(page) " de " counter(pages);font:600 8.5px Arial,sans-serif;color:#3A4A40;padding-right:12mm;vertical-align:top}}
+  /* Número da página a mais de 8 mm da borda de baixo (as impressoras não imprimem nos primeiros ~5 mm); o rodapé da tabela encolhe para compensar. */
+  #printArea table.rx-pag>tfoot .esp{height:7mm}
+  @page rx{size:A4;margin:0 0 12mm 0;@bottom-right{content:"Página " counter(page) " de " counter(pages);font:600 8.5px Arial,sans-serif;color:#3A4A40;padding-right:12mm;vertical-align:top}}
   #printArea table.rx-pag{page:rx}
 }
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
@@ -3663,7 +3665,7 @@ async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao
       if(op&&op.leve){ img=tela.toDataURL("image/jpeg",.9); tipo="JPEG"; } else if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
       pdf.addImage(img,tipo,0,i?11:0,210,alt*mm,undefined,"FAST");
       const esq=rodE+(comPag?(rodE?" · ":"")+"Página "+(i+1)+" de "+cortes.length:"");
-      if(esq||rodD){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); if(esq) pdf.text(esq,12,291); if(rodD) pdf.text(rodD,198,291,{align:"right"}); }
+      if(esq||rodD){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); if(esq) pdf.text(esq,12,289); if(rodD) pdf.text(rodD,198,289,{align:"right"}); } // a 8 mm da borda: dentro da área que a impressora imprime
       tela.width=tela.height=0;
     }
     const dados=pdf.output("arraybuffer");
