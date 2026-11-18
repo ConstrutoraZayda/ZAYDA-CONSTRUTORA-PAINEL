@@ -116,6 +116,7 @@ a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transpa
 .kpi .foot b{color:var(--ink-2)}
 .tag{display:inline-block;font-size:10.5px;font-weight:800;letter-spacing:.06em;border-radius:6px;padding:2px 7px;background:var(--surface-2);color:var(--ink-3);border:1px solid var(--line)}
 .segbar{display:flex;gap:4px;height:12px;margin-top:16px}
+.kpi-custo .segbar{margin:14px 0 4px}
 .segbar span{border-radius:99px;min-width:6px;position:relative}
 .segbar span::after{content:"";position:absolute;inset:-8px 0} /* área maior para o toque, sem mudar o desenho */
 /* Balão da barra do custo confirmado: mesmo estilo do balão do gráfico, fixo na tela */
@@ -239,18 +240,34 @@ tr.mat-outros:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
 @media (hover:hover) and (pointer:fine){.fornl .fo-mais:hover{background:var(--surface-2)}}
 @media (pointer:coarse){.fornl .fo-mais{min-height:44px}}
 .fornl .fo-mais:focus-visible{outline:2px solid var(--brand);outline-offset:1px}
-/* Rosca do custo por fornecedor: ao lado da lista; no celular, acima e centralizada */
-.forn-g{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:10px 14px;margin-top:8px} /* sem espaço para a lista ao lado (cartão estreito), a rosca fica acima, centralizada */
-.forn-g .fornl{flex:1 1 200px;min-width:0;margin-top:0}
-.donut{flex:none;width:108px;height:108px;overflow:visible}
-.donut circle{fill:none;stroke-width:10;transform:rotate(-90deg);transform-origin:50px 50px;transition:opacity .15s,stroke-width .15s}
-.donut circle.faixa{cursor:pointer}
-.donut circle.hl{stroke-width:13}
-.donut.tem-hl circle:not(.hl){opacity:.35}
-.donut .dn-l{font-size:9px;font-weight:600;fill:var(--ink-3)}
-.donut .dn-v{font-weight:800;fill:var(--ink)} /* tamanho calculado em donutForn para caber no furo */
+/* Custo por fornecedor: tabela-gráfico (computador) e blocos (celular) */
+.cf-h,.cf-l{display:grid;grid-template-columns:minmax(0,2.3fr) minmax(80px,1.7fr) 8.5em 4.5em 5.5em;gap:6px 18px;align-items:center}
+.cf-h{padding:0 10px 8px;border-bottom:1px solid var(--line);font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.cf-h span:nth-child(n+3){text-align:right}
+.cf-l{width:100%;min-height:56px;padding:10px;border:0;border-bottom:1px solid var(--line);border-radius:0;background:none;font:inherit;color:var(--ink);text-align:left;cursor:pointer;touch-action:manipulation}
+@media (hover:hover) and (pointer:fine){.cf-l:hover{background:var(--surface-2)}}
+.cf-l:focus-visible{outline:2px solid var(--brand);outline-offset:-2px}
+.cf-n{display:grid;gap:3px;min-width:0}
+.cf-n b{font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cf-n small{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px;font-size:12px;color:var(--ink-3)}
+.cf-n em{padding:1px 8px;border-radius:99px;background:var(--brand-soft);color:var(--brand);font-size:11.5px;font-style:normal;font-weight:600;white-space:nowrap}
+.cf-b{display:block;height:12px;border-radius:99px;background:var(--hatch-bg);overflow:hidden}
+.cf-b i{display:block;height:100%;border-radius:99px}
+.cf-l strong{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.cf-p{text-align:right;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.cf-c{text-align:right;font-variant-numeric:tabular-nums}
+.cf-cu{display:none}
+.cf-f{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:14px 10px 0;color:var(--ink-3)}
+.cf-f b{color:var(--ink)}
+@media (max-width:640px){
+  .cf-h{display:none}
+  .cf-l{grid-template-columns:auto auto minmax(0,1fr);grid-template-areas:"n n n" "b b b" "v p c";gap:6px 8px;padding:12px 4px}
+  .cf-n{grid-area:n}.cf-b{grid-area:b}.cf-l strong{grid-area:v;text-align:left}.cf-p{grid-area:p;text-align:left}.cf-c{grid-area:c;text-align:left;color:var(--ink-3)}
+  .cf-p::before,.cf-c::before{content:"· ";color:var(--ink-3)}
+  .cf-cu{display:inline}
+  .cf-f .btn{width:100%;min-height:44px}
+}
 .fornl .fo.hl{color:var(--ink)}.fornl .fo.hl span{font-weight:700}
-@media (max-width:560px){.forn-g{flex-direction:column;align-items:stretch}.forn-g .fornl{flex:none}.donut{align-self:center}}
 .area-aj{display:block;margin:0 0 6px;font-size:12px;color:var(--ink-3)}
 .lat-item small.sub{font-family:inherit;font-size:11.5px}
 #printArea .tot.q2{grid-template-columns:repeat(2,1fr)}
@@ -1346,6 +1363,7 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rx-br i{display:block;height:100%;background:#00632B}
 #printArea .rx .rx-pc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 #printArea .rx .rx-sit{font-weight:800}
+#printArea .rx .rx-sub{display:block;font-size:9.5px;color:#3A4A40}
 #printArea .rx .rx-sit.fora{color:#B42318}#printArea .rx .rx-sit.risco{color:#8A5A00}#printArea .rx .rx-sit.dentro{color:#00632B}
 #printArea .rx .rx-duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 #printArea .rx .rx-duas>div{min-width:0}
@@ -1573,6 +1591,7 @@ const brl = n => new Intl.NumberFormat("pt-BR",{style:"currency",currency:"BRL"}
 const brlK = n => n>=1000 ? "R$ "+new Intl.NumberFormat("pt-BR",{maximumFractionDigits:1}).format(n/1000)+" mil" : "R$ "+Math.round(n);
 const qtd = n => new Intl.NumberFormat("pt-BR",{maximumFractionDigits:3}).format(n||0);
 const pct = n => new Intl.NumberFormat("pt-BR",{style:"percent",maximumFractionDigits:1}).format(n||0);
+const pct1 = n => new Intl.NumberFormat("pt-BR",{style:"percent",minimumFractionDigits:1,maximumFractionDigits:1}).format(n||0); // sempre 1 casa
 const dbr = s => s ? s.slice(8,10)+"/"+s.slice(5,7)+"/"+s.slice(0,4) : "—";
 const esc = t => String(t==null?"":t).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const $ = id => document.getElementById(id);
@@ -1711,15 +1730,17 @@ function vPainel(){
   if(restoF.length) partes.push({nome:"Outros fornecedores ("+restoF.length+")",v:sum(restoF,f=>f.v),cor:"var(--outros)",itens:restoF.map(f=>({nome:f.nome,v:f.v})),pal:["fornecedor","fornecedores"],
     titulo:"Fornecedores · "+dbr(S.ini)+" a "+dbr(S.fim),todos:FN.map(latForn)});
   SEG_PARTES = partes; SEG_TOTAL = s.custo;
-  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" data-fo="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span>${esc(p.nome)}</span><small>${pct(s.custo?p.v/s.custo:0)}</small><b>${brl(p.v)}</b></button>`
-    :`<div class="fo" data-fo="${i}"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><small>${pct(s.custo?p.v/s.custo:0)}</small><b>${brl(p.v)}</b></div>`;
+  const seg = partes.map((p,i)=>`<span data-i="${i}" ${p.itens?'class="faixa" ':""}${bA("seg|"+(p.itens?"__OUTROS":p.nome),p.v)} style="flex:${p.v};background:${p.cor}"></span>`).join(""); // barra: mesma divisão, ordem e cores da lista
+  const linhaF = (p,i) => p.itens?`<button type="button" class="fo fo-mais" data-segi="${i}" data-fo="${i}" aria-label="${esc(p.nome+": ver todos os fornecedores")}"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><small>${pct1(s.custo?p.v/s.custo:0)}</small><b>${brl(p.v)}</b></button>`
+    :`<div class="fo" data-fo="${i}"><i style="background:${p.cor}"></i><span title="${esc(p.nome)}">${esc(p.nome)}</span><small>${pct1(s.custo?p.v/s.custo:0)}</small><b>${brl(p.v)}</b></div>`;
   return `${S.obra?obraHead(S.obra):""}
   <section class="grid kpis">
     <article class="card kpi kpi-custo">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
       <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
       <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} da loja · <b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores</div>
-      <div class="forn-g">${s.custo>0?donutForn(partes,s.custo):""}<div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div></div>
+      ${s.custo>0?`<div class="segbar" data-lista="seg" aria-hidden="true">${seg}</div>`:""}
+      <div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div>
       ${variacaoCusto(s)}
       ${s.custo>0?"":'<div class="legend"><span>Nenhum custo confirmado neste período.</span></div>'}
     </article>
@@ -1767,6 +1788,7 @@ function vPainel(){
     </article>`}
   </section>
 
+  ${cardFornecedores(s,FN,partes)}
   ${tabelaMensal(s)}
   ${cardEtapas()}
   ${S.obra?terObraCard():""}
@@ -2640,9 +2662,23 @@ const abrirSeg = p => abrirOutros(p.titulo||tituloSeg(p),p.todos||p.itens,SEG_TO
 function fornCusto(conf){ const T={}, g={}; terTodos().forEach(t=>{T[t.id]=t;});
   conf.forEach(l=>{ const t=l.ter?T[l.id]:null, fid=t&&t.fornecedorId, k=l.ter?"T:"+(fid||l.fornecedor):"BSJ";
     const x=g[k]=g[k]||{nome:l.ter?(l.fornecedor||"Fornecedor sem nome"):"Loja BSJ",v:0,n:0,bsj:!l.ter,tipo:l.ter?(((D.fornecedores||{})[fid]||{}).tipo||(t&&t.tipo)||""):"Materiais da loja"};
-    x.v+=l.valor||0; x.n++; });
+    x.v+=l.valor||0; x.n++; x.ob=x.ob||{}; if(l.obra&&l.obra!=="SEM VÍNCULO") x.ob[l.obra]=1; }); // ob: obras atendidas (só para mostrar)
   if(!g.BSJ&&S.origem!=="ter") g.BSJ={nome:"Loja BSJ",v:0,n:0,bsj:true,tipo:"Materiais da loja"};
   return Object.values(g).sort((a,b)=>b.v-a.v||(a.bsj?-1:b.bsj?1:a.nome.localeCompare(b.nome,"pt-BR"))); }
+/* Seção "Custo por fornecedor": do maior para o menor (os 8 primeiros), barra proporcional ao maior, na mesma cor do cartão do topo.
+   Compras = entregas (Loja BSJ) ou lançamentos conferidos (outros). Tocar: Loja BSJ vai a Materiais e custos; os outros, a Outros fornecedores. */
+function cardFornecedores(s,FN,partes){
+  const L=FN.filter(f=>f.v>0), max=Math.max(...L.map(f=>f.v),0);
+  const cor=f=>{ const p=partes.find(x=>!x.itens&&x.nome===f.nome); return p?p.cor:"var(--outros)"; };
+  const obras=f=>{ const k=Object.keys(f.ob||{}).sort((a,b)=>a.localeCompare(b,"pt-BR",{numeric:true})); return k.length>2?k.length+" obras":k.join(" · "); };
+  const linha=f=>`<button type="button" class="cf-l" data-cfforn="${esc(f.bsj?"__BSJ":f.nome)}"><span class="cf-n"><b title="${esc(f.nome)}">${esc(f.nome)}</b><small>${esc(f.tipo||"")}${obras(f)?`<em>${esc(obras(f))}</em>`:""}</small></span>`
+    +`<span class="cf-b" aria-hidden="true"><i style="width:${max?(f.v/max*100).toFixed(1):0}%;background:${cor(f)}"></i></span><strong>${brl(f.v)}</strong><span class="cf-p">${pct1(s.custo?f.v/s.custo:0)}</span><span class="cf-c">${f.n}<span class="cf-cu"> ${f.n===1?"compra":"compras"}</span></span></button>`;
+  return `<section class="card cf" style="margin-top:16px"><div class="cardhead"><div><h2>Custo por fornecedor</h2><div class="sub">Custo confirmado no período e filtros atuais. Toque num fornecedor para ver os lançamentos.</div></div></div>
+    ${L.length?`<div class="cf-t"><div class="cf-h" aria-hidden="true"><span>Fornecedor</span><span></span><span>Custo</span><span>%</span><span>Compras</span></div>${L.slice(0,8).map(linha).join("")}</div>
+    <div class="cf-f"><span>${L.length} ${L.length===1?"fornecedor":"fornecedores"} · total <b>${brl(s.custo)}</b></span><button type="button" class="btn" data-cftodos>Ver todos os fornecedores →</button></div>`
+    :`<div class="empty">Nenhum custo confirmado neste período.</div>`}</section>`; }
+document.addEventListener("click",e=>{ const f=e.target.closest&&e.target.closest("#view [data-cfforn]"); if(f){ irFornecedor(f.dataset.cfforn); return; }
+  if(e.target.closest&&e.target.closest("#view [data-cftodos]")){ const s=stats(); abrirOutros("Fornecedores · "+dbr(S.ini)+" a "+dbr(S.fim),fornCusto(s.conf).filter(f=>f.v>0).map(latForn),s.custo); } });
 /* Item do painel lateral "Fornecedores": tipo e quantidade embaixo do nome; tocar leva à tela do fornecedor. */
 const latForn = f => ({nome:f.nome,v:f.v,forn:f.bsj?"__BSJ":f.nome,sub:(f.tipo?f.tipo+" · ":"")+f.n+" "+(f.bsj?(f.n===1?"entrega":"entregas"):(f.n===1?"lançamento":"lançamentos"))});
 function irFornecedor(f){ fecharOutros(); let v="terceiros"; if(f==="__BSJ"){ S.origem="bsj"; v="lancamentos"; } else S.irSit="forn:"+f; if(location.hash==="#"+v) route(); else location.hash=v; }
@@ -2725,12 +2761,6 @@ document.addEventListener("click",e=>{ const b=e.target.closest("#view [data-mat
 document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ fecharMat(); return; }
   if((e.key==="Enter"||e.key===" ")&&e.target.matches&&e.target.matches("#view tr[data-matver]")){ e.preventDefault(); abrirMat(); } });
 
-/* Rosca do custo por fornecedor: mesmas partes, ordem e cores da lista e da barra; total no centro. */
-function donutForn(partes,total){ const r=44, C=2*Math.PI*r, sep=partes.length>1?2.2:0; let ac=0; // anel de 10 (em 100): furo de ~78
-  const txt=total>=1e6?"R$ "+(total/1e6).toLocaleString("pt-BR",{maximumFractionDigits:1})+" mi":brlK(total); // centro: "R$ 10,8 mil" ou "R$ 1,2 mi"
-  const fat=partes.map((p,i)=>{ const len=p.v/total*C, o=ac; ac+=len;
-    return `<circle data-i="${i}" r="${r}" cx="50" cy="50"${p.itens?' class="faixa"':""} style="stroke:${p.cor};stroke-dasharray:${Math.max(.01,len-sep).toFixed(2)} ${C.toFixed(2)};stroke-dashoffset:${(-o).toFixed(2)}"/>`; }).join("");
-  return `<svg class="donut" viewBox="0 0 100 100" width="112" height="112" role="img" aria-label="${esc("Custo confirmado por fornecedor: total "+brl(total))}">${fat}<text x="50" y="44" text-anchor="middle" class="dn-l">Total</text><text x="50" y="59" text-anchor="middle" class="dn-v" font-size="${Math.min(13,60/(Math.max(1,txt.length)*0.6)).toFixed(1)}">${esc(txt)}</text></svg>`; } // fonte reduz para o texto caber em ~60 de largura
 /* Destaca a fatia e o fornecedor da lista (i = -1 tira o destaque). */
 function destacarForn(i){ const g=document.querySelector("#view .donut");
   document.querySelectorAll("#view .donut [data-i],#view .fornl [data-fo]").forEach(x=>x.classList.toggle("hl",+(x.dataset.i!=null?x.dataset.i:x.dataset.fo)===i));
@@ -3761,6 +3791,7 @@ function folhaRelMes(k){
   const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
   const cats=Object.entries(relGrupo(d.conf,l=>l.cat||"Outros")).map(([c,a])=>({k:c,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
   const eg=custoPorEtapa(d.conf), etapas=ordemEtapas(Object.keys(eg)).filter(x=>eg[x]).map(x=>({k:nomeEtapa(x),v:eg[x]}));
+  const forns=fornCusto(d.conf).filter(f=>f.v>0);
   const mats=Object.values(d.conf.reduce((g,l)=>{ const m=g[l.sku]=g[l.sku]||{mat:l.material,un:l.un,q:0,v:0,ter:!!l.ter}; m.q+=l.qtd; m.v+=l.valor; return g; },{})).sort((a,b)=>b.v-a.v).slice(0,10);
   const curta=(a,f)=>{ const u=uniq(a.map(f)); return u.slice(0,5).map(esc).join(", ")+(u.length>5?" e mais "+(u.length-5):""); };
   const saldo=d.I.filter(i=>i.saldo>0), semObra=d.I.filter(i=>i.obra==="SEM VÍNCULO"), semCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO");
@@ -3774,6 +3805,9 @@ function folhaRelMes(k){
       relTabela(["Obra",["Custo no mês","n"],"% do mês",["Orçamento","n"],"Situação"],obras.map(o=>{ const x=orc[o.id], tem=x&&x.sit!=="SEM";
         return [o.id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(o.id)}</small>${esc(obraNome(o.id))}`,brl(o.v),`<span class="rx-pc">${rxBarra(o.v,d.custo)}${relPct(o.v,d.custo)}</span>`,tem?brl(x.orc):"—",tem?`<span class="rx-sit ${x.sit.toLowerCase()}">${RX_SIT[x.sit]||ORC_SIT[x.sit].t}</span>`:"—"]; }),
         ["TOTAL",brl(d.custo),relPct(d.custo,d.custo),"",""])):"")+
+    (forns.length?rxSec("Custo por fornecedor","Quanto cada fornecedor representa no custo confirmado do mês. Compras = entregas da loja ou lançamentos conferidos de outros fornecedores.",
+      relTabela(["Fornecedor",["Custo","n"],"% do mês",["Compras","n"]],forns.map(f=>[`<b>${esc(f.nome)}</b>${f.tipo?`<span class="rx-sub">${esc(f.tipo)}</span>`:""}`,brl(f.v),`<span class="rx-pc">${rxBarra(f.v,d.custo)}${relPct(f.v,d.custo)}</span>`,f.n]),
+        ["TOTAL",brl(d.custo),relPct(d.custo,d.custo),sum(forns,f=>f.n)])):"")+
     (cats.length||etapas.length?rxSec("Onde foi o dinheiro","Divisão do custo confirmado do mês por tipo de material (categoria) e por etapa da obra.",
       `<div class="rx-duas">${cats.length?`<div><h3>Por categoria</h3>${rxLista(cats,d.custo)}</div>`:""}${etapas.length?`<div><h3>Por etapa</h3>${rxLista(etapas,d.custo)}</div>`:""}</div>`):"");
   const det=(mats.length?rxSec("10 materiais de maior gasto","Os materiais que mais pesaram no custo confirmado do mês.",
