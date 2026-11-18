@@ -1270,9 +1270,12 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .blk dd{margin:1px 0 0;font-weight:700;font-size:11px;color:#0F1A14}
 #printArea .blk dd small{font-family:var(--f-mono);color:#00632B;font-weight:600;margin-right:5px}
 #printArea h2{font-size:11px;letter-spacing:.06em;margin:14px 0 6px;color:#00632B}
+/* Margens de TODAS as folhas (A4), num lugar só. Se mudar aqui, ajuste também o @page rx e o PDF (cortesPdf/gerarPdf: MARG_PDF). */
+#printArea{--imp-lado:15mm;--imp-topo:12mm;--imp-base:15mm}
 #printArea table.folha{width:100%;border-collapse:collapse}
-#printArea table.folha>thead>tr>td,#printArea table.folha>tfoot>tr>td,#printArea table.folha>tbody>tr>td{padding:0 12mm;border:0;background:none}
-#printArea .esp{height:11mm}
+#printArea table.folha>thead>tr>td,#printArea table.folha>tfoot>tr>td,#printArea table.folha>tbody>tr>td{padding:0 var(--imp-lado);border:0;background:none}
+#printArea table.folha>thead .esp{height:var(--imp-topo)}
+#printArea table.folha>tfoot .esp{height:var(--imp-base)}
 #printArea table.tb{width:100%;border-collapse:collapse;font-size:10px;color:#0F1A14}
 #printArea .tb th{background:#00632B!important;color:#FFFFFF;font-weight:800;font-size:8.5px;letter-spacing:.05em;padding:5px 6px;border:1px solid #00632B;border-radius:0;white-space:nowrap}
 #printArea .tb td{padding:5px 6px;border:1px solid #B9CCBF;vertical-align:top}
@@ -1338,7 +1341,7 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 @media screen and (max-width:600px){#printArea .ru .tot.ru-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   #printArea .ru .ru-pl{grid-template-columns:repeat(2,minmax(0,1fr))}#printArea .ru .ru-pl>div:nth-child(3){border-left:0}#printArea .ru .ru-pl>div:nth-child(n+3){border-top:1px solid #B9CCBF}}
 #printArea .rod{margin-top:14px;font-size:8.5px;color:#3A4A40;display:flex;justify-content:space-between}
-#printArea .esp .rod{margin:0;padding-top:4mm;line-height:1}
+#printArea .esp .rod{margin:0;padding-top:2mm;line-height:1}
 #printArea table.folha>tbody>tr>td>:last-child,#printArea table.folha>tbody>tr>td>.rel>:last-child{margin-bottom:0}
 /* Relatório mensal e lançamento de outro fornecedor: fonte maior, legível em preto e branco (cor só de apoio) */
 #printArea .rx{font-size:11.5px;line-height:1.45}
@@ -1359,18 +1362,10 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rx .tb{font-size:10.5px}
 #printArea .rx .tb th{font-size:9.5px}
 #printArea .rx .tb td{padding:6px 7px}
-#printArea .rx-br{display:inline-block;width:64px;height:8px;border:1px solid #5E7A68;border-radius:2px;background:#fff;vertical-align:middle;overflow:hidden}
-#printArea .rx-br i{display:block;height:100%;background:#00632B}
-#printArea .rx .rx-pc{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
 #printArea .rx .rx-sit{font-weight:800}
-#printArea .rx .rx-sub{display:block;font-size:9.5px;color:#3A4A40}
 #printArea .rx .rx-sit.fora{color:#B42318}#printArea .rx .rx-sit.risco{color:#8A5A00}#printArea .rx .rx-sit.dentro{color:#00632B}
 #printArea .rx .rx-duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 #printArea .rx .rx-duas>div{min-width:0}
-#printArea .rx .rx-lst>div{display:grid;grid-template-columns:minmax(0,1fr) 64px auto 34px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px solid #DCE6E0;break-inside:avoid}
-#printArea .rx .rx-lst span{overflow-wrap:anywhere}
-#printArea .rx .rx-lst b{white-space:nowrap;text-align:right;font-variant-numeric:tabular-nums}
-#printArea .rx .rx-lst small{text-align:right;color:#3A4A40}
 #printArea .rx .blk{margin:4px 0 0;break-inside:avoid}
 #printArea .rx .blk dt{font-size:9px}
 #printArea .rx .blk dd{font-size:12px;overflow-wrap:anywhere}
@@ -1386,11 +1381,73 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rx .rx-reg dd{margin:2px 0 0;font-size:12px;font-weight:800;color:#0F1A14;overflow-wrap:anywhere}
 #printArea .rx .rx-reg small{display:block;margin-top:2px;font-size:9.5px;color:#3A4A40}
 #printArea .rx .rx-ass{margin-top:28px;font-size:11px;font-weight:700;break-inside:avoid}
+/* Relatório mensal (fechamento): verde suave, pouca tinta. Barra escura = loja BSJ, clara = outros fornecedores (diferentes também em preto e branco). */
+#printArea .rxm{--rv:#1D6B38;--rc:#9BD0A9;--rl:#E6ECE8;font-size:10.5px;line-height:1.38}
+#printArea .rxm .rx-cab{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:16px;padding-bottom:10px;border-bottom:1px solid #D5DED8;break-inside:avoid}
+#printArea .rxm .rx-faixa{grid-column:1/-1;height:1.4mm;margin-bottom:4mm;border-radius:1mm;background:var(--rv)}
+#printArea .rxm .rx-cab img{width:150px;height:auto}
+#printArea .rxm .rx-cab .t{text-align:right}
+#printArea .rxm .rx-kick{font-size:8.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#3F6B4E}
+#printArea .rxm .rx-cab h1{margin:2px 0 1px;font-size:22px;line-height:1.15;font-weight:800;letter-spacing:0;color:#0F1A14}
+#printArea .rxm .rx-per{font-size:10px;color:#5B6B61}
+#printArea .rxm .rx-frase{margin:10px 0 0;padding:8px 12px;border-left:3px solid var(--rv);border-radius:0 8px 8px 0;background:#F1F8F3;font-size:11px;break-inside:avoid}
+#printArea .rxm .rx-kpis{margin-top:10px}
+#printArea .rxm .rx-kpi{padding:8px 10px;border-color:#C9D8CF}
+#printArea .rxm .rx-kpi.pri{border:1px solid #9DC5AA;background:#EEF6F0}
+#printArea .rxm .rx-kpi.pri b{color:var(--rv)}
+#printArea .rxm .rx-kpi span{font-size:8.5px;letter-spacing:.1em}
+#printArea .rxm .rx-kpi b{font-size:17px}
+#printArea .rxm h2{display:flex;align-items:center;gap:10px;margin:14px 0 2px;padding:0;border:0;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rv);break-after:avoid;page-break-after:avoid}
+#printArea .rxm h2::after{content:"";flex:1;border-top:1px solid #D5DED8}
+#printArea .rxm .rx-exp{margin:0 0 5px;font-size:9.5px;color:#5B6B61}
+#printArea .rxm .rx-int{break-inside:avoid;page-break-inside:avoid}
+#printArea .rxm .rx-at{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:5px}
+#printArea .rxm .rx-at>div{position:relative;min-width:0;padding:7px 10px 7px 25px;border:1px solid #D5DED8;border-radius:8px;break-inside:avoid;overflow-wrap:anywhere}
+#printArea .rxm .rx-at i{position:absolute;left:10px;top:11px;width:8px;height:8px;border-radius:50%;background:#98A2A6}
+#printArea .rxm .rx-at .verm i{background:#C0392B}#printArea .rxm .rx-at .lar i{background:#E59A1F}#printArea .rxm .rx-at .ok i{background:var(--rv)}
+#printArea .rxm .rx-at>div.ok{grid-column:1/-1;border-color:#B9D9C3;background:#F1F8F3}
+#printArea .rxm .rx-at b{display:block;font-size:11px;color:#0F1A14}
+#printArea .rxm .rx-at span{display:block;font-size:10px;color:#2B3A31}
+#printArea .rxm table.rxt{width:100%;border-collapse:collapse;font-size:10.5px;color:#0F1A14}
+#printArea .rxm .rxt thead{display:table-header-group}
+#printArea .rxm .rxt th{padding:4px 7px;border-bottom:1.5px solid #0F1A14;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:#3F4F45;white-space:nowrap;background:none;border-radius:0}
+#printArea .rxm .rxt td{padding:4px 7px;border-bottom:1px solid #E1E8E3;vertical-align:middle}
+#printArea .rxm .rxt tr{break-inside:avoid;page-break-inside:avoid}
+#printArea .rxm .rxt .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#printArea .rxm .rxt .pc{color:#5B6B61}
+#printArea .rxm .rxt .cod{width:1%;color:var(--rv);font-weight:800;white-space:nowrap}
+#printArea .rxm .rxt td small{display:block;font-family:inherit;font-size:9.5px;color:#5B6B61}
+#printArea .rxm .rxt tr.t td{border-bottom:0;background:#F1F8F3;font-weight:800}
+#printArea .rxm .rxt th.rx-cb{width:30%}
+#printArea .rxm .rx-b2{display:flex;height:8px;border-radius:99px;background:var(--rl);overflow:hidden}
+#printArea .rxm .rx-b2 i,#printArea .rxm .rx-b1 i{display:block;height:100%}
+#printArea .rxm i.e{background:var(--rv)}#printArea .rxm i.c{background:var(--rc)}
+#printArea .rxm .rx-b1{display:block;height:7px;border-radius:99px;background:var(--rl);overflow:hidden}
+#printArea .rxm .rx-b1 i{border-radius:99px}
+#printArea .rxm .rx-et{display:flex;gap:2px;height:13px;margin-top:5px;border-radius:99px;overflow:hidden}
+#printArea .rxm .rx-et span{display:block;min-width:2px;height:100%}
+#printArea .rxm .rx-leg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 22px;margin-top:6px}
+#printArea .rxm .rx-leg>div{display:grid;grid-template-columns:10px minmax(0,1fr) auto 36px;gap:7px;align-items:center;padding:3px 0;border-bottom:1px solid #E1E8E3;break-inside:avoid}
+#printArea .rxm .rx-leg i{width:10px;height:10px;border-radius:2px}
+#printArea .rxm .rx-leg span{overflow-wrap:anywhere}
+#printArea .rxm .rx-leg b{white-space:nowrap;font-variant-numeric:tabular-nums}
+#printArea .rxm .rx-leg small,#printArea .rxm .rx-bl small.n{text-align:right;font-size:9.5px;color:#5B6B61}
+#printArea .rxm .rx-duas{gap:26px}
+#printArea .rxm .rx-bl>div{display:grid;grid-template-columns:minmax(0,1fr) 22% auto 36px;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid #E1E8E3;break-inside:avoid}
+#printArea .rxm .rx-bl span{min-width:0;overflow-wrap:anywhere}
+#printArea .rxm .rx-bl span b{display:block;font-weight:800}
+#printArea .rxm .rx-bl.cat span b{font-weight:500}
+#printArea .rxm .rx-bl span small{display:block;font-size:9px;color:#5B6B61}
+#printArea .rxm .rx-bl b.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+#printArea .rxm .rx-pg{display:inline-block;padding:1px 8px;border-radius:99px;font-size:9px;font-weight:800;white-space:nowrap}
+#printArea .rxm .rx-pg.ok{background:#E3F2E7;color:#1D6B38}#printArea .rxm .rx-pg.venc{background:#FCE9E7;color:#A12A1E}#printArea .rxm .rx-pg.ab{background:#EAF0F5;color:#2F4E68}
+#printArea .rxm .rx-ass3{display:grid;grid-template-columns:1fr .75fr 1fr;gap:28px;margin-top:30px;break-inside:avoid;page-break-inside:avoid}
+#printArea .rxm .rx-ass3>div{padding-top:5px;border-top:1px solid #0F1A14;font-size:10px;color:#3F4F45}
 @media print{
   #printArea .rx-quebra{break-before:page;page-break-before:always}
-  /* Número da página a mais de 8 mm da borda de baixo (as impressoras não imprimem nos primeiros ~5 mm); o rodapé da tabela encolhe para compensar. */
-  #printArea table.rx-pag>tfoot .esp{height:7mm}
-  @page rx{size:A4;margin:0 0 12mm 0;@bottom-right{content:"Página " counter(page) " de " counter(pages);font:600 8.5px Arial,sans-serif;color:#3A4A40;padding-right:12mm;vertical-align:top}}
+  /* Número da página nos 10 mm de baixo (longe dos ~5 mm que a impressora não imprime); o rodapé da tabela fica com o resto de --imp-base, então o texto continua a 15 mm da borda. 10mm e 15mm: os mesmos valores de cima (o @page não lê variáveis). */
+  #printArea table.rx-pag>tfoot .esp{height:calc(var(--imp-base) - 10mm)}
+  @page rx{size:A4;margin:0 0 10mm 0;@bottom-right{content:"Página " counter(page) " de " counter(pages);font:600 8.5px Arial,sans-serif;color:#3A4A40;padding-right:15mm;vertical-align:top}}
   #printArea table.rx-pag{page:rx}
 }
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
@@ -3646,14 +3703,15 @@ const LIBS_PDF=["https:\/\/cdnjs.cloudflare.com\/ajax\/libs\/html2canvas\/1.4.1\
 let libsPdf=null, gerandoPdf=false;
 const carregarLibsPdf=()=>libsPdf=libsPdf||Promise.all(LIBS_PDF.map(src=>new Promise((ok,erro)=>{const s=document.createElement("script");s.src=src;s.onload=ok;s.onerror=erro;document.head.appendChild(s)}))).catch(e=>{libsPdf=null;throw e});
 /* Onde cortar as páginas: nunca no meio de uma linha ou bloco, nem com título ou cabeçalho de tabela sozinho no fim da página. */
+const MARG_PDF={lado:15,topo:12,base:15}; // mm: as mesmas de --imp-lado/--imp-topo/--imp-base
 function cortesPdf(el){
-  const pag=794*297/210, m=794*11/210, base=el.getBoundingClientRect().top;
+  const pag=794*297/210, mt=794*MARG_PDF.topo/210, mb=794*MARG_PDF.base/210, base=el.getBoundingClientRect().top;
   const pos=b=>{const r=b.getBoundingClientRect();return {t:r.top-base,b:r.bottom-base}};
-  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.av,h2,h3,.rx-exp,.rx-kpi,.rx-lst>div,.rx-tot2,.rx-reg,.rx-ass")].map(pos), presos=[...el.querySelectorAll("h2,h3,.rx-exp,.tb thead")].map(pos);
+  const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.av,h2,h3,.rx-exp,.rx-kpi,.rx-tot2,.rx-reg,.rx-ass,.rx-cab,.rx-frase,.rxt tr,.rx-at>div,.rx-et,.rx-leg>div,.rx-bl>div,.rx-ass3,.rx-int")].map(pos), presos=[...el.querySelectorAll("h2,h3,.rx-exp,.tb thead,.rxt thead")].map(pos);
   const forcados=[...el.querySelectorAll(".rx-quebra")].map(x=>pos(x).t); // detalhe do relatório mensal começa em página nova
-  const fim=blocos.length?Math.max(...blocos.map(x=>x.b))+m:el.offsetHeight, cortes=[]; let ini=0;
+  const fim=blocos.length?Math.max(...blocos.map(x=>x.b))+mb:el.offsetHeight, cortes=[]; let ini=0;
   while(ini<fim){
-    const lim=ini+pag-(ini?2*m:m), fq=forcados.find(q=>q>ini+1&&q<=lim);
+    const lim=ini+pag-(ini?mt+mb:mb), fq=forcados.find(q=>q>ini+1&&q<=lim);
     if(fq!=null){cortes.push([ini,fq]);ini=fq;continue}
     if(lim>=fim){cortes.push([ini,fim]);break}
     let c=lim, mudou=true;
@@ -3695,9 +3753,9 @@ async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao
       if(i) pdf.addPage();
       let img=tela.toDataURL("image/png"), tipo="PNG";
       if(op&&op.leve){ img=tela.toDataURL("image/jpeg",.9); tipo="JPEG"; } else if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
-      pdf.addImage(img,tipo,0,i?11:0,210,alt*mm,undefined,"FAST");
+      pdf.addImage(img,tipo,0,i?MARG_PDF.topo:0,210,alt*mm,undefined,"FAST");
       const esq=rodE+(comPag?(rodE?" · ":"")+"Página "+(i+1)+" de "+cortes.length:"");
-      if(esq||rodD){ pdf.setFont("helvetica","normal"); pdf.setFontSize(7); pdf.setTextColor(58,74,64); if(esq) pdf.text(esq,12,289); if(rodD) pdf.text(rodD,198,289,{align:"right"}); } // a 8 mm da borda: dentro da área que a impressora imprime
+      if(esq||rodD){ pdf.setFont("helvetica","normal"); let fz=7; pdf.setFontSize(fz); while(fz>5&&pdf.getTextWidth(esq+"    "+rodD)>210-2*MARG_PDF.lado){ fz-=.25; pdf.setFontSize(fz); } pdf.setTextColor(58,74,64); if(esq) pdf.text(esq,MARG_PDF.lado,288); if(rodD) pdf.text(rodD,210-MARG_PDF.lado,288,{align:"right"}); } // a 9 mm da borda: dentro da área que a impressora imprime
       tela.width=tela.height=0;
     }
     const dados=pdf.output("arraybuffer");
@@ -3772,50 +3830,82 @@ function relEtapas(conf,total,rotulo){ const g=custoPorEtapa(conf), ks=ordemEtap
    Mesmos números de antes; só a apresentação mudou. Seções vazias não aparecem. Sempre claro, A4, legível em preto e branco. */
 const rxNome = e => { const m=String(e||"").trim().toLowerCase(); if(!m) return ""; const u=D&&D.usuarios&&D.usuarios[m]; return u&&u.nome?u.nome:m.split("@")[0]; }; // nome do cadastro; sem nome, só a parte antes do @
 const rxEmissor = () => D&&D.eu?(D.eu.nome||D.eu.usuario||""):"";
-const rxBarra = (v,t) => `<span class="rx-br"><i style="width:${t?Math.max(0,Math.min(100,v/t*100)).toFixed(1):0}%"></i></span>`;
 const rxSec = (titulo,exp,corpo) => `<section class="rx-sec"><h2>${titulo}</h2>${exp?`<p class="rx-exp">${exp}</p>`:""}${corpo}</section>`;
 const rxKpi = (t,v,sub,cl) => `<div class="rx-kpi${cl?" "+cl:""}"><span>${t}</span><b>${v}</b>${sub?`<small>${sub}</small>`:""}</div>`;
 const rxCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}</div></div>`;
-/* Folha A4 com rodapé em todas as páginas: nome do documento, página (PDF e navegadores que aceitam) e quem emitiu. */
-function rxFolha(corpo,doc){
-  return `<table class="folha rx-pag"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod" data-pag="1"><span>Zayda Construtora · ${doc}</span><span>Emitido por ${esc(rxEmissor()||"—")} em ${relAgora()}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel rx">${corpo}</div></td></tr></tbody></table>`; }
-/* Lista com barra (categoria, etapa): até 10 linhas; o resto vira "Demais (N)". */
-function rxLista(itens,total){ const top=itens.length>10?itens.slice(0,9):itens, resto=itens.filter(x=>!top.includes(x));
-  const l=top.concat(resto.length?[{k:"Demais ("+resto.length+")",v:sum(resto,x=>x.v)}]:[]);
-  return `<div class="rx-lst">${l.map(x=>`<div><span>${esc(x.k)}</span>${rxBarra(x.v,total)}<b>${brl(x.v)}</b><small>${relPct(x.v,total)}</small></div>`).join("")}</div>`; }
+/* Folha A4 com rodapé em todas as páginas: nome do documento, página (PDF e navegadores que aceitam) e quem emitiu.
+   dir: texto da direita do rodapé (relatório mensal: quem emitiu fica à esquerda). */
+function rxFolha(corpo,doc,dir){ const emit="Emitido por "+esc(rxEmissor()||"—")+" em "+relAgora();
+  return `<table class="folha rx-pag"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod" data-pag="1">${dir?`<span>${emit.replace(/ (\d\d:\d\d)$/," às $1")}</span><span>${dir}</span>`:`<span>Zayda Construtora · ${doc}</span><span>${emit}</span>`}</div></div></td></tr></tfoot><tbody><tr><td><div class="rel rx">${corpo}</div></td></tr></tbody></table>`; }
 const RX_SIT={DENTRO:"Dentro",RISCO:"Atenção",FORA:"Estourado"};
+const RX_REGRA="Custo confirmado = material entregue × preço do pedido + outros fornecedores conferidos";
+const rxDm = s => s ? s.slice(8,10)+"/"+s.slice(5,7) : "—"; // dd/mm
+const rxMix = t => { const a=[0x14,0x4D,0x2A], b=[0xCF,0xEA,0xD7]; return "#"+a.map((x,i)=>Math.round(x+(b[i]-x)*t).toString(16).padStart(2,"0")).join(""); }; // verde escuro (0) → claro (1)
+const rxB1 = (v,max,claro) => `<span class="rx-b1"><i class="${claro?"c":"e"}" style="width:${max?Math.max(0,Math.min(100,v/max*100)).toFixed(1):0}%"></i></span>`;
+const rxS = (titulo,exp,corpo,inteira) => `<section class="rx-sec${inteira?" rx-int":""}"><h2>${titulo}</h2>${exp?`<p class="rx-exp">${exp}</p>`:""}${corpo}</section>`; // inteira: não quebra no meio
+const rxCabM = (k,parte,ini,fim) => `<div class="rx-cab"><div class="rx-faixa"></div><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><div class="rx-kick">Fechamento do mês · ${parte}</div><h1>${MESES_LONGO[+k.slice(5,7)-1]} de ${k.slice(0,4)}</h1><div class="rx-per">${rxDm(ini)} a ${dbr(fim)} · todas as obras</div></div></div>`;
+/* Lista com barra (quem recebeu, o que foi comprado): até 10 linhas, o resto vira "Demais (N)". Barra proporcional ao maior; clara = outro fornecedor. */
+function rxLst2(itens,total,cl){ const top=itens.length>10?itens.slice(0,9):itens, resto=itens.slice(top.length);
+  const l=top.concat(resto.length?[{k:"Demais ("+resto.length+")",v:sum(resto,x=>x.v),claro:resto.every(x=>x.claro)}]:[]), max=Math.max(0,...l.map(x=>x.v));
+  return `<div class="rx-bl ${cl}">${l.map(x=>`<div><span><b>${esc(x.k)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:""}</span>${rxB1(x.v,max,x.claro)}<b class="n">${brl(x.v)}</b><small class="n">${relPct(x.v,total)}</small></div>`).join("")}</div>`; }
+/* Relatório mensal (impresso e PDF do fechamento): página 1 = resumo; página 2 = detalhes, sempre em folha nova.
+   Números de sempre (relDados, custoPorEtapa, ordemEtapas, fornCusto, terTodos, terPag, orcObras); só a apresentação mudou. Seções vazias não aparecem. */
 function folhaRelMes(k){
-  const [ini,fim]=relDoMes(k), d=relDados(ini,fim), orc=orcObras();
+  const [ini,fim]=relDoMes(k), d=relDados(ini,fim), orc=orcObras(), hoje=D.hoje, noMes=t=>t.dataRef&&t.dataRef>=ini&&t.dataRef<=fim;
   const faltaRef=sum(d.I,i=>i.precoRef==null?0:Math.max(i.saldo,0)*i.precoRef);
-  const terAgV=sum(terTodos().filter(t=>t.conferencia==="AGUARDANDO"&&t.dataRef&&t.dataRef>=ini&&t.dataRef<=fim),t=>t.valor);
-  const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
-  const cats=Object.entries(relGrupo(d.conf,l=>l.cat||"Outros")).map(([c,a])=>({k:c,v:sum(a,l=>l.valor)})).sort((a,b)=>b.v-a.v);
-  const eg=custoPorEtapa(d.conf), etapas=ordemEtapas(Object.keys(eg)).filter(x=>eg[x]).map(x=>({k:nomeEtapa(x),v:eg[x]}));
-  const forns=fornCusto(d.conf).filter(f=>f.v>0);
+  const terAgV=sum(terTodos().filter(t=>t.conferencia==="AGUARDANDO"&&noMes(t)),t=>t.valor);
+  const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,v:sum(a,l=>l.valor),bsj:sum(a.filter(l=>!l.ter),l=>l.valor)})).sort((a,b)=>b.v-a.v);
+  const reais=obras.filter(o=>o.id!=="SEM VÍNCULO"), temOrc=id=>!!(orc[id]&&orc[id].sit!=="SEM"), comOrc=reais.some(o=>temOrc(o.id));
+  const ob=id=>id&&id!=="SEM VÍNCULO"?id:"sem obra";
+  // ---- Em uma frase ----
+  const mes=MESES_LONGO[+k.slice(5,7)-1].toLowerCase(), topo=reais[0];
+  const frase=d.custo>0?`Em ${mes} as obras custaram <b>${brl(d.custo)}</b>: ${relPct(d.custoBsj,d.custo)} em materiais da loja BSJ e ${relPct(d.custoTer,d.custo)} em outros fornecedores.${topo?` A obra que mais gastou foi a <b>${esc(topo.id)}</b> (${relPct(topo.v,d.custo)}).`:""}`:`Em ${mes} não houve custo confirmado.`;
+  const kpis=`<div class="rx-kpis">${rxKpi("Custo confirmado",brl(d.custo),d.nBsj+(d.nBsj===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros fornecedores":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),relPct(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),relPct(d.custoTer,d.custo)+(terAgV?" · "+brl(terAgV)+" a conferir":d.nTer?" · todos conferidos":""))}${rxKpi("Pedidos feitos no mês",brl(d.ref),brl(faltaRef)+" ainda a entregar")}</div>`;
+  // ---- Precisa de atenção (só o que tem conteúdo) ----
+  const at=[];
+  const venc=terTodos().filter(t=>t.conferencia!=="CANCELADO"&&noMes(t)&&terPag(t).temVenc).map(t=>({t,ps:(t.parcelas||[]).filter(p=>!p.pago&&p.vencimento&&p.vencimento<hoje)}));
+  const nV=sum(venc,x=>x.ps.length), vV=sum(venc,x=>sum(x.ps,p=>p.valor));
+  if(nV){ const x=venc[0], lin1=esc(x.t.fornecedor)+" · "+esc(ob(x.t.obra));
+    at.push(["verm",nV===1?"1 parcela vencida":nV+" parcelas vencidas",nV===1?[lin1,brl(vV)+" · venceu "+rxDm(x.ps[0].vencimento)]:[lin1+(venc.length>1?" e mais "+(venc.length-1):""),"Total vencido: "+brl(vV)]]); }
+  const saldo=d.I.filter(i=>i.saldo>0);
+  if(saldo.length) at.push(["lar",saldo.length===1?"1 material não chegou":saldo.length+" materiais não chegaram",saldo.slice(0,2).map(i=>esc(i.material)+" ("+esc(ob(i.obra))+")").concat(saldo.length>2?["e mais "+(saldo.length-2)]:[])]);
+  const nSemOrc=reais.filter(o=>!temOrc(o.id)).length, nSemObra=uniq(d.I.filter(i=>i.obra==="SEM VÍNCULO").map(i=>i.pedido)).length, nSemCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO").length;
+  const cz=[nSemOrc?["Sem orçamento",(nSemOrc===1?"1 obra sem orçamento cadastrado":nSemOrc+" obras sem orçamento cadastrado")+": ainda não dá para comparar"]:null,
+    nSemObra?["Pedido sem obra",nSemObra===1?"1 pedido sem obra reconhecida":nSemObra+" pedidos sem obra reconhecida"]:null,
+    nSemCusto?["Entrega sem valor",nSemCusto===1?"1 entrega sem valor":nSemCusto+" entregas sem valor"]:null].filter(Boolean);
+  if(cz.length) at.push(["cin",cz.length===1?cz[0][0]:"Para conferir",cz.map(c=>c[1])]);
+  const atHtml=`<div class="rx-at">${(at.length?at:[["ok","Nada pendente neste mês",[]]]).map(([c,t,l])=>`<div class="${c}"><i></i><b>${t}</b>${l.map(x=>`<span>${x}</span>`).join("")}</div>`).join("")}</div>`;
+  // ---- Quanto cada obra custou: barra escura = loja BSJ, clara = outros; a maior obra ocupa a barra inteira ----
+  const maxO=obras.length?obras[0].v:0, pw=v=>maxO?Math.max(0,Math.min(100,v/maxO*100)).toFixed(1):0;
+  const cli=id=>{ const o=D.obras.find(x=>x.id===id); return o&&(o.cliente||o.empreendimento)||""; };
+  const tabObras=`<table class="rxt"><thead><tr><th>Obra</th><th></th><th class="rx-cb">Loja BSJ × outros</th><th class="n">Custo no mês</th><th class="n">% do mês</th>${comOrc?`<th class="n">Orçamento</th><th>Situação</th>`:""}</tr></thead><tbody>${obras.map(o=>{ const sv=o.id==="SEM VÍNCULO", x=orc[o.id], tem=!sv&&temOrc(o.id);
+    return `<tr><td class="cod">${sv?"—":esc(o.id)}</td><td><b>${esc(obraNome(o.id))}</b>${!sv&&cli(o.id)?`<small>${esc(cli(o.id))}</small>`:""}</td><td><span class="rx-b2"><i class="e" style="width:${pw(o.bsj)}%"></i><i class="c" style="width:${pw(o.v-o.bsj)}%"></i></span></td><td class="n"><b>${brl(o.v)}</b></td><td class="n pc">${relPct(o.v,d.custo)}</td>${comOrc?`<td class="n">${tem?brl(x.orc):"—"}</td><td>${tem?`<span class="rx-sit ${x.sit.toLowerCase()}">${RX_SIT[x.sit]||ORC_SIT[x.sit].t}</span>`:"—"}</td>`:""}</tr>`; }).join("")}<tr class="t"><td colspan="3">Total${reais.length?" · "+reais.length+(reais.length===1?" obra":" obras"):""}</td><td class="n">${brl(d.custo)}</td><td class="n">${relPct(d.custo,d.custo)}</td>${comOrc?"<td></td><td></td>":""}</tr></tbody></table>`;
+  // ---- Em que etapa foi gasto: faixa única, verde do escuro ao claro na ordem das etapas; sem etapa em cinza ----
+  const eg=custoPorEtapa(d.conf), eks=ordemEtapas(Object.keys(eg)).filter(x=>eg[x]), nCor=eks.filter(x=>x!==ET_SEM).length; let ci=0;
+  const etapas=eks.map(x=>({k:nomeEtapa(x),v:eg[x],cor:x===ET_SEM?"#B7BEC2":rxMix(nCor>1?(ci++)/(nCor-1)*.9:.1)}));
+  const etHtml=`<div class="rx-et">${etapas.map(e=>`<span style="flex:${e.v};background:${e.cor}"></span>`).join("")}</div><div class="rx-leg">${etapas.map(e=>`<div><i style="background:${e.cor}"></i><span>${esc(e.k)}</span><b>${brl(e.v)}</b><small>${relPct(e.v,d.custo)}</small></div>`).join("")}</div>`;
+  const p1=rxCabM(k,"Resumo",ini,fim)+`<div class="rx-frase"><b>Em uma frase:</b> ${frase}</div>`+kpis+rxS("Precisa de atenção","",atHtml,1)+
+    (obras.length?rxS("Quanto cada obra custou","Barra escura = materiais da loja BSJ · barra clara = outros fornecedores. Ordem: da obra que mais gastou para a que menos gastou.",tabObras,obras.length<=12):"")+
+    (etapas.length?rxS("Em que etapa foi gasto","Cada cor é uma etapa da obra; o tamanho mostra quanto ela pesou no mês.",etHtml,1):"");
+  // ---- Página 2: detalhes ----
+  const forns=fornCusto(d.conf).filter(f=>f.v>0).map(f=>({k:f.nome,v:f.v,claro:!f.bsj,sub:[f.tipo,f.n+" "+(f.bsj?(f.n===1?"entrega":"entregas"):(f.n===1?"compra":"compras"))].filter(Boolean).join(" · ")}));
+  const cats=Object.values(d.conf.reduce((g,l)=>{ const c=l.cat||"Outros", x=g[c+"|"+(l.ter?1:0)]=g[c+"|"+(l.ter?1:0)]||{k:l.ter?c.replace(TER_ETQ,""):c,v:0,claro:!!l.ter,sub:l.ter?"outro fornecedor":""}; x.v+=l.valor||0; return g; },{})).sort((a,b)=>b.v-a.v);
   const mats=Object.values(d.conf.reduce((g,l)=>{ const m=g[l.sku]=g[l.sku]||{mat:l.material,un:l.un,q:0,v:0,ter:!!l.ter}; m.q+=l.qtd; m.v+=l.valor; return g; },{})).sort((a,b)=>b.v-a.v).slice(0,10);
-  const curta=(a,f)=>{ const u=uniq(a.map(f)); return u.slice(0,5).map(esc).join(", ")+(u.length>5?" e mais "+(u.length-5):""); };
-  const saldo=d.I.filter(i=>i.saldo>0), semObra=d.I.filter(i=>i.obra==="SEM VÍNCULO"), semCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO");
-  const pend=[["Materiais que ainda não chegaram",saldo.length,curta(saldo,i=>i.material)],["Pedidos sem obra reconhecida",uniq(semObra.map(i=>i.pedido)).length,curta(semObra,i=>i.pedido)],["Entregas sem valor",semCusto.length,curta(semCusto,l=>l.material)]].filter(p=>p[1]>0);
-  const ter=terTodos().filter(t=>t.conferencia==="CONFERIDO"&&t.dataRef&&t.dataRef>=ini&&t.dataRef<=fim).sort((a,b)=>a.dataRef.localeCompare(b.dataRef)||a.id.localeCompare(b.id));
-  const pgTer=t=>{const p=terPag(t);return p.sit==="PAGO"?"Pago":"Pago "+brl(p.pago)+" · A pagar "+brl(p.aPagar)+(p.temVenc?" (vencido)":"");};
-  const p1=rxCab("Relatório de gastos com materiais",[relMesAno(k),"Período: "+dbr(ini)+" a "+dbr(fim)+" · Obras: todas","Emitido em "+relAgora()])+
-    rxSec("Resumo do mês","Custo confirmado = material entregue × preço do pedido + outros fornecedores conferidos. Valor comprado = soma dos pedidos feitos no mês, pelo preço de cada item.",
-      `<div class="rx-kpis">${rxKpi("Custo confirmado do mês",brl(d.custo),d.nBsj+(d.nBsj===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),relPct(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),relPct(d.custoTer,d.custo)+" do custo · conferidos")}${rxKpi("Valor comprado",brl(d.ref),"Falta entregar: "+brl(faltaRef)+(terAgV?" · A conferir (outros): "+brl(terAgV):""))}</div>`)+
-    (obras.length?rxSec("Gasto por obra","Quanto cada obra custou no mês. Orçamento e situação comparam todo o gasto da obra, desde o início, com o orçamento planejado.",
-      relTabela(["Obra",["Custo no mês","n"],"% do mês",["Orçamento","n"],"Situação"],obras.map(o=>{ const x=orc[o.id], tem=x&&x.sit!=="SEM";
-        return [o.id==="SEM VÍNCULO"?"Sem obra identificada":`<small>${esc(o.id)}</small>${esc(obraNome(o.id))}`,brl(o.v),`<span class="rx-pc">${rxBarra(o.v,d.custo)}${relPct(o.v,d.custo)}</span>`,tem?brl(x.orc):"—",tem?`<span class="rx-sit ${x.sit.toLowerCase()}">${RX_SIT[x.sit]||ORC_SIT[x.sit].t}</span>`:"—"]; }),
-        ["TOTAL",brl(d.custo),relPct(d.custo,d.custo),"",""])):"")+
-    (forns.length?rxSec("Custo por fornecedor","Quanto cada fornecedor representa no custo confirmado do mês. Compras = entregas da loja ou lançamentos conferidos de outros fornecedores.",
-      relTabela(["Fornecedor",["Custo","n"],"% do mês",["Compras","n"]],forns.map(f=>[`<b>${esc(f.nome)}</b>${f.tipo?`<span class="rx-sub">${esc(f.tipo)}</span>`:""}`,brl(f.v),`<span class="rx-pc">${rxBarra(f.v,d.custo)}${relPct(f.v,d.custo)}</span>`,f.n]),
-        ["TOTAL",brl(d.custo),relPct(d.custo,d.custo),sum(forns,f=>f.n)])):"")+
-    (cats.length||etapas.length?rxSec("Onde foi o dinheiro","Divisão do custo confirmado do mês por tipo de material (categoria) e por etapa da obra.",
-      `<div class="rx-duas">${cats.length?`<div><h3>Por categoria</h3>${rxLista(cats,d.custo)}</div>`:""}${etapas.length?`<div><h3>Por etapa</h3>${rxLista(etapas,d.custo)}</div>`:""}</div>`):"");
-  const det=(mats.length?rxSec("10 materiais de maior gasto","Os materiais que mais pesaram no custo confirmado do mês.",
-      relTabela(["Material",["Quantidade","n"],["Custo confirmado","n"],["% do mês","n"]],mats.map(m=>[esc(m.mat),m.ter?"—":qtd(m.q)+" "+esc(m.un),brl(m.v),relPct(m.v,d.custo)]))):"")+
-    (ter.length?rxSec("Outros fornecedores do mês","Compras e serviços fora da loja, conferidos, com data de referência no mês. Já estão somados no custo confirmado.",
-      relTabela(["Data","Obra","Fornecedor","Descrição",["Valor","n"],"Pagamento"],ter.map(t=>[dbr(t.dataRef),esc(t.obra),esc(t.fornecedor),esc(t.descricao),brl(t.valor),pgTer(t)]),["TOTAL","","","",brl(sum(ter,t=>t.valor)),""])):"")+
-    (pend.length?rxSec("Pendências do mês","O que ainda precisa de atenção nos pedidos deste mês.",relTabela(["Pendência",["Quantidade","n"],"Exemplos"],pend)):"");
-  return rxFolha(p1+(det?`<div class="rx-quebra"></div>`+det:""),"Relatório de gastos");
+  const ter=terTodos().filter(t=>t.conferencia==="CONFERIDO"&&noMes(t)).sort((a,b)=>a.dataRef.localeCompare(b.dataRef)||a.id.localeCompare(b.id));
+  // Pagamento: só a parcela já vencida conta como vencida (as que ainda vão vencer não entram nesse valor)
+  const selo=t=>{ const ps=t.parcelas||[], p=terPag(t), pagas=ps.filter(x=>x.pago).length, ab=ps.filter(x=>!x.pago).sort((a,b)=>String(a.vencimento||"9").localeCompare(String(b.vencimento||"9")));
+    if(!ps.length) return `<span class="rx-pg ab">A pagar</span>`;
+    if(p.sit==="PAGO") return `<span class="rx-pg ok">Pago</span>`;
+    const q=pagas+" de "+ps.length+(ps.length===1?" paga":" pagas"), vc=ab.filter(x=>x.vencimento&&x.vencimento<hoje);
+    if(vc.length) return `<span class="rx-pg venc">${q} · ${brl(p.vencido)} ${vc.length===1?"vencida em":"vencidas desde"} ${rxDm(vc[0].vencimento)}</span>`;
+    return `<span class="rx-pg ab">${q}${ab[0]&&ab[0].vencimento?" · próxima "+rxDm(ab[0].vencimento):""}</span>`; };
+  const tabMats=`<table class="rxt"><thead><tr><th>#</th><th>Material</th><th class="n">Qtd.</th><th class="n">Custo</th><th class="n">% do mês</th></tr></thead><tbody>${mats.map((m,i)=>`<tr><td class="pc">${i+1}</td><td>${esc(m.ter?String(m.mat).replace(TER_ETQ," (outro fornecedor)"):m.mat)}</td><td class="n">${m.ter?"—":qtd(m.q)+" "+esc(m.un)}</td><td class="n"><b>${brl(m.v)}</b></td><td class="n pc">${relPct(m.v,d.custo)}</td></tr>`).join("")}</tbody></table>`;
+  const tabTer=`<table class="rxt"><thead><tr><th>Data</th><th>Obra</th><th>Fornecedor / o que foi</th><th class="n">Valor</th><th>Pagamento</th></tr></thead><tbody>${ter.map(t=>`<tr><td>${rxDm(t.dataRef)}</td><td class="cod">${t.obra&&t.obra!=="SEM VÍNCULO"?esc(t.obra):"—"}</td><td>${esc(t.fornecedor)}${t.descricao?`<small>${esc(t.descricao)}</small>`:""}</td><td class="n"><b>${brl(t.valor)}</b></td><td>${selo(t)}</td></tr>`).join("")}<tr class="t"><td colspan="3">Total · ${ter.length} ${ter.length===1?"compra":"compras"}</td><td class="n">${brl(sum(ter,t=>t.valor))}</td><td></td></tr></tbody></table>`;
+  const det=(forns.length||cats.length?`<div class="rx-duas">${forns.length?`<div>${rxS("Quem recebeu","Custo do mês por fornecedor.",rxLst2(forns,d.custo,"forn"),1)}</div>`:""}${cats.length?`<div>${rxS("O que foi comprado","Custo do mês por tipo de material.",rxLst2(cats,d.custo,"cat"),1)}</div>`:""}</div>`:"")+
+    (mats.length?rxS(mats.length+(mats.length===1?" material que mais pesou":" materiais que mais pesaram"),"",tabMats,1):"")+
+    (ter.length?rxS("Compras de outros fornecedores","Serviços e compras fora da loja, já conferidos e somados no custo do mês.",tabTer,ter.length<=12):"");
+  const ass=`<div class="rx-ass3"><div>Conferido por</div><div>Data</div><div>Visto da diretoria</div></div>`;
+  return rxFolha(`<div class="rxm">${p1}${det?`<div class="rx-quebra"></div>`+rxCabM(k,"Detalhes",ini,fim)+det:""}${ass}</div>`,"Relatório de gastos",RX_REGRA);
 }
 function folhaRelObra(id,ini,fim,periodo){
   const o=D.obras.find(x=>x.id===id), x=orcObras()[id], d=relDados(ini,fim,id), c=o.pct==null?"—":Math.round(o.pct*100)+"%";
