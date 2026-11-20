@@ -1405,9 +1405,10 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rxm .rx-kpi.pri b{color:var(--rv)}
 #printArea .rxm .rx-kpi span{font-size:9.5px;letter-spacing:.1em}
 #printArea .rxm .rx-kpi b{font-size:19px}
-#printArea .rxm h2{display:flex;align-items:center;gap:10px;margin:11px 0 2px;padding:0;border:0;font-size:11.25px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rv);break-after:avoid;page-break-after:avoid}
+#printArea .rxm h2{display:flex;align-items:center;gap:10px;margin:7mm 0 2px;padding:0;border:0;font-size:11.25px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rv);break-after:avoid;page-break-after:avoid}
 #printArea .rxm h2::after{content:"";flex:1;border-top:1px solid #D5DED8}
-#printArea .rxm .rx-exp{margin:0 0 3px;font-size:10.75px;color:#5B6B61}
+#printArea .rxm .rx-exp{margin:0 0 3px;font-size:10.75px;color:#5B6B61;break-after:avoid;page-break-after:avoid}
+#printArea .rxm .rxt thead{break-after:avoid;page-break-after:avoid} /* título, ajuda e começo da tabela juntos */
 #printArea .rxm .rx-int{break-inside:avoid;page-break-inside:avoid}
 #printArea .rxm .rx-at{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
 #printArea .rxm .rx-at>div{position:relative;min-width:0;padding:5px 10px 5px 25px;border:1px solid #D5DED8;border-radius:8px;break-inside:avoid;overflow-wrap:anywhere}
@@ -1425,10 +1426,9 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rxm .rxt .pc{color:#5B6B61}
 #printArea .rxm .rxt .cod{width:1%;color:var(--rv);font-weight:800;white-space:nowrap}
 #printArea .rxm .nw{white-space:nowrap}#printArea .rxm .rx-at span.nw{display:inline}
-#printArea .rxm .rxt.pend th{white-space:normal}#printArea .rxm .rxt.pend td{vertical-align:top;overflow-wrap:anywhere}#printArea .rxm .rxt.pend td.cod,#printArea .rxm .rxt.pend td.n{overflow-wrap:normal}
-#printArea .rxm .rxt.pend{font-size:10.75px}#printArea .rxm .rxt.pend td,#printArea .rxm .rxt.pend th{padding-left:5px;padding-right:5px}#printArea .rxm .rxt.pend th{letter-spacing:.04em}#printArea .rxm .rxt.pend td small{font-size:10px}
+#printArea .rxm .rxt.pend b.ped{display:block;font-size:10px;white-space:nowrap} /* código completo do pedido numa linha só */
 /* Folha 2 que não coube: só os espaços diminuem (a letra não muda) */
-#printArea .rxm .rx-det.aperta2{line-height:1.2}#printArea .rxm .rx-det.aperta2 h2{margin-top:5px}#printArea .rxm .rx-det.aperta2 .rx-cab{padding-bottom:4px}#printArea .rxm .rx-det.aperta2 .rx-faixa{margin-bottom:2mm}#printArea .rxm .rx-det.aperta2 .rx-exp{margin-bottom:1px}#printArea .rxm .rx-det.aperta2 .rxt td{padding-top:1px;padding-bottom:1px}#printArea .rxm .rx-det.aperta2 .rxt th{padding-top:2px;padding-bottom:2px}#printArea .rxm .rx-det.aperta2 .rx-bl>div{padding:1px 0}#printArea .rxm .rx-det.aperta2 .rx-ass3{margin-top:12px}
+#printArea .rxm .rx-det.aperta2{line-height:1.2}#printArea .rxm .rx-det.aperta2 h2{margin-top:3mm}#printArea .rxm .rx-det.aperta2 .rx-cab{padding-bottom:4px}#printArea .rxm .rx-det.aperta2 .rx-faixa{margin-bottom:2mm}#printArea .rxm .rx-det.aperta2 .rx-exp{margin-bottom:1px}#printArea .rxm .rx-det.aperta2 .rxt td{padding-top:1px;padding-bottom:1px}#printArea .rxm .rx-det.aperta2 .rxt th{padding-top:2px;padding-bottom:2px}#printArea .rxm .rx-det.aperta2 .rx-bl>div{padding:1px 0}
 #printArea .rxm .rxt td small{display:block;font-family:inherit;font-size:10.75px;color:#5B6B61}
 #printArea .rxm .rxt tr.t td{border-bottom:0;background:#F1F8F3;font-weight:800}
 #printArea .rxm .rxt th.rx-cb{width:30%}
@@ -1455,7 +1455,7 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rxm .rx-bl b.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 #printArea .rxm .rx-pg{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:800;white-space:nowrap}
 #printArea .rxm .rx-pg.ok{background:#E3F2E7;color:#1D6B38}#printArea .rxm .rx-pg.venc{background:#FCE9E7;color:#A12A1E}#printArea .rxm .rx-pg.ab{background:#EAF0F5;color:#2F4E68}
-#printArea .rxm .rx-ass3{display:grid;grid-template-columns:1fr .75fr 1fr;gap:28px;margin-top:24px;break-inside:avoid;page-break-inside:avoid}
+#printArea .rxm .rx-ass3{display:grid;grid-template-columns:repeat(3,1fr);gap:28px;margin-top:18mm;break-inside:avoid;page-break-inside:avoid;break-before:avoid;page-break-before:avoid} /* 18 mm livres acima da linha; nunca sozinho na folha */
 /* Folha 1 alta demais (muitas obras/avisos longos): só os espaços diminuem, as letras não */
 #printArea .rxm.aperta{line-height:1.2}#printArea .rxm.aperta h2{margin-top:7px}#printArea .rxm.aperta .rx-exp{margin-bottom:1px}#printArea .rxm.aperta .rx-cab{padding-bottom:4px}#printArea .rxm.aperta .rx-faixa{margin-bottom:2mm}
 #printArea .rxm.aperta .rx-frase{margin-top:5px;padding:4px 10px}#printArea .rxm.aperta .rx-kpis{margin-top:5px}#printArea .rxm.aperta .rx-kpi{padding:4px 8px}#printArea .rxm.aperta .rx-at>div{padding-top:3px;padding-bottom:3px}#printArea .rxm.aperta .rxt td{padding-top:1px;padding-bottom:1px}
@@ -3727,17 +3727,20 @@ function cortesPdf(el){
   const pag=794*297/210, mt=794*MARG_PDF.topo/210, mb=794*MARG_PDF.base/210, base=el.getBoundingClientRect().top;
   const pos=b=>{const r=b.getBoundingClientRect();return {t:r.top-base,b:r.bottom-base}};
   const blocos=[...el.querySelectorAll(".tb tr,.ph,.blk,.tot,.linha,.emit,.av,h2,h3,.rx-exp,.rx-kpi,.rx-tot2,.rx-reg,.rx-ass,.rx-cab,.rx-frase,.rxt tr,.rx-at>div,.rx-et,.rx-leg>div,.rx-bl>div,.rx-ass3,.rx-int")].map(pos), presos=[...el.querySelectorAll("h2,h3,.rx-exp,.tb thead,.rxt thead")].map(pos);
-  const forcados=[...el.querySelectorAll(".rx-quebra")].map(x=>pos(x).t); // detalhe do relatório mensal começa em página nova
+  const forcados=[...el.querySelectorAll(".rx-quebra")].map(x=>pos(x).t), aP=(x=>x&&pos(x))(el.querySelector(".rx-ass3")); // detalhe do relatório mensal começa em página nova
   const fim=blocos.length?Math.max(...blocos.map(x=>x.b))+mb:el.offsetHeight, cortes=[]; let ini=0;
   while(ini<fim){
     const lim=ini+pag-(ini?mt+mb:mb), fq=forcados.find(q=>q>ini+1&&q<=lim);
     if(fq!=null){cortes.push([ini,fq]);ini=fq;continue}
     if(lim>=fim){cortes.push([ini,fim]);break}
-    let c=lim, mudou=true;
-    while(mudou){mudou=false;
+    let c=lim;
+    const recua=()=>{ let mudou=true; while(mudou){mudou=false;
       blocos.forEach(x=>{if(x.t>ini&&x.t<c&&x.b>c){c=x.t;mudou=true}});
       presos.forEach(x=>{if(x.t>ini&&x.t<c&&x.b<=c&&c-x.b<14){c=x.t;mudou=true}});
-    }
+    } };
+    recua();
+    // assinatura do fechamento nunca sozinha no começo de uma página: a última linha de cima vai junto
+    if(aP&&aP.t>=c&&!blocos.some(x=>x.t>=c&&x.b<=aP.t)){ const ant=blocos.filter(x=>x.t>ini&&x.t<c&&x.b<=aP.t+1).map(x=>x.t); if(ant.length){ c=Math.max(...ant); recua(); } }
     if(c<=ini) c=lim;
     cortes.push([ini,c]); ini=c;
   }
@@ -3957,15 +3960,16 @@ function folhaRelMes(k){
   // Materiais que ainda não chegaram (na data de corte): até 15 linhas. A tabela não se divide: se não couber na folha 2, vai inteira para a folha 3 (com o cabeçalho), sem linhas soltas.
   const ultEnt=id=>{ const g=entregasPedido(id).filter(x=>x.data<=corte); return g[g.length-1]; };
   const linPend=i=>{ const p=(D.pedidos||{})[i.pedido]||{}, g=ultEnt(i.pedido), np=x=>rxNomeProprio(x)||"—";
-    return `<tr><td><b class="nw">…${esc(String(i.pedido).slice(-8))}</b><small>${rxDm(i.data)}</small></td><td class="cod">${esc(ob(i.obra))}</td><td>${esc(i.material)}</td><td class="n">${qtd(i.qtdSol)} / ${qtd(i.ent)} / <b>${qtd(i.falta)}</b> ${esc(String(i.un||"").toUpperCase())}</td><td>${esc(rxNome(p.criadoPor||p.email)||"—")}<small class="rx-1l">Atendente: ${esc(np(i.atendente||p.atendente))}</small></td><td>${esc(np(p.entregador||i.entregador))}</td><td>${g?rxDm(g.data)+" · recebido por "+esc(np(g.recebidoPor)):"nenhuma entrega"}</td></tr>`; };
+    const quem="Fez o pedido: "+(rxNome(p.criadoPor||p.email)||"—")+" · Atendente: "+np(i.atendente||p.atendente)+" · Entregador: "+np(p.entregador||i.entregador);
+    return `<tr><td><b class="ped">${esc(i.pedido)}</b><small>${rxDm(i.data)}</small></td><td class="cod">${esc(ob(i.obra))}</td><td><span class="rx-1l">${esc(i.material)}</span><small class="rx-1l">${esc(quem)}</small></td><td class="n">${qtd(i.qtdSol)} ${esc(String(i.un||"").toUpperCase())}</td><td class="n">${qtd(i.ent)}</td><td class="n"><b>${qtd(i.falta)}</b></td><td>${g?rxDm(g.data)+`<small class="rx-1l">${esc(np(g.recebidoPor))}</small>`:"nenhuma"}</td></tr>`; };
   const pTop=pend.slice(0,15), maisP=pend.length-pTop.length;
-  const tabPend=`<table class="rxt fx pend"><thead><tr><th style="width:11%">Pedido</th><th style="width:8%">Obra</th><th style="width:17%">Material</th><th class="n" style="width:13%">Pedido / Chegou / Falta</th><th style="width:20%">Fez o pedido</th><th style="width:12%">Entregador</th><th style="width:19%">Última entrega até ${rxDm(corte)}</th></tr></thead><tbody>${pTop.map(linPend).join("")}${maisP?`<tr><td colspan="7" class="pc">e mais ${maisP} ${maisP===1?"material":"materiais"}</td></tr>`:""}</tbody></table>`;
+  const tabPend=`<table class="rxt fx pend"><thead><tr><th style="width:22%">Pedido</th><th style="width:8%">Obra</th><th>Material</th><th class="n" style="width:10%">Pediu</th><th class="n" style="width:9%">Chegou</th><th class="n" style="width:8%">Falta</th><th style="width:14%">Última entrega</th></tr></thead><tbody>${pTop.map(linPend).join("")}${maisP?`<tr><td colspan="7" class="pc">e mais ${maisP} ${maisP===1?"material":"materiais"}</td></tr>`:""}</tbody></table>`;
   const det=(forns.length||cats.length?`<div class="rx-duas">${forns.length?`<div>${rxS("Para quem foi o dinheiro","Custo do mês por fornecedor.",rxLst2(forns,d.custo,"forn"),1)}</div>`:""}${cats.length?`<div>${rxS("O que foi comprado","Custo do mês por tipo de material.",rxLst2(cats,d.custo,"cat"),1)}</div>`:""}</div>`:"")+
     (mats.length?rxS(mats.length+(mats.length===1?" material da loja que mais pesou":" materiais da loja que mais pesaram"),"",tabMats,1):"")+
     (ter.length?rxS("Compras de outros fornecedores","Serviços e compras fora da loja, já conferidos e somados no custo do mês.",tabTer,ter.length<=12):"")+
-    (pend.length?rxS("Materiais que ainda não chegaram","",tabPend,1):"");
+    (pend.length?rxS("Materiais que ainda não chegaram","Posição em "+corteBr+". Pedidos cancelados ou encerrados não entram.",tabPend,1):"");
   const ass=`<div class="rx-ass3"><div>Conferido por</div><div>Data</div><div>Visto da diretoria</div></div>`;
-  const montar=(cl,qb,cl2)=>rxFolha(`<div class="rxm${cl}">${p1}${det?(qb?`<div class="rx-quebra"></div>`:"")+`<div class="rx-det${cl2||""}">${rxCabM(k,"Detalhes",ini,fim)}${det}${ass}</div>`:ass}</div>`);
+  const montar=(cl,qb,cl2)=>rxFolha(`<div class="rxm${cl}">${p1}${det?(qb?`<div class="rx-quebra"></div>`:"")+`<div class="rx-det${cl2||""}">${rxCabM(k,"Detalhes",ini,fim)}${/<\/section>$/.test(det)?det.slice(0,-10)+ass+"</section>":det+ass}</div>`:ass}</div>`);
   let cl="", qb=1, html=montar(cl,qb); if(rxAltFolha1(html)>RX_LIM1){ cl=" aperta"; html=montar(cl,qb); if(rxAltFolha1(html)>RX_LIM1){ qb=0; html=montar(cl,qb); } }
   if(qb&&det&&rxAltFolha1(html,1)>RX_LIM1) html=montar(cl,qb," aperta2"); // folha 2 não coube: só os espaços diminuem (a letra não muda)
   return html;
