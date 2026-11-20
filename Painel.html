@@ -1393,7 +1393,7 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rxm table.rxt.fx{table-layout:fixed}
 #printArea .rxm .rx-cab{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:16px;padding-bottom:7px;border-bottom:1px solid #D5DED8;break-inside:avoid}
 #printArea .rxm .rx-faixa{grid-column:1/-1;height:1.4mm;margin-bottom:3mm;border-radius:1mm;background:var(--rv)}
-#printArea .rxm .rx-cab img{width:150px;height:auto}
+#printArea .rxm .rx-cab img{width:55mm;height:auto}
 #printArea .rxm .rx-cab .t{text-align:right}
 #printArea .rxm .rx-kick{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#3F6B4E}
 #printArea .rxm .rx-cab h1{margin:2px 0 1px;font-size:24.75px;line-height:1.15;font-weight:800;letter-spacing:0;color:#0F1A14}
@@ -1424,6 +1424,11 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rxm .rxt .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 #printArea .rxm .rxt .pc{color:#5B6B61}
 #printArea .rxm .rxt .cod{width:1%;color:var(--rv);font-weight:800;white-space:nowrap}
+#printArea .rxm .nw{white-space:nowrap}#printArea .rxm .rx-at span.nw{display:inline}
+#printArea .rxm .rxt.pend th{white-space:normal}#printArea .rxm .rxt.pend td{vertical-align:top;overflow-wrap:anywhere}#printArea .rxm .rxt.pend td.cod,#printArea .rxm .rxt.pend td.n{overflow-wrap:normal}
+#printArea .rxm .rxt.pend{font-size:10.75px}#printArea .rxm .rxt.pend td,#printArea .rxm .rxt.pend th{padding-left:5px;padding-right:5px}#printArea .rxm .rxt.pend th{letter-spacing:.04em}#printArea .rxm .rxt.pend td small{font-size:10px}
+/* Folha 2 que não coube: só os espaços diminuem (a letra não muda) */
+#printArea .rxm .rx-det.aperta2{line-height:1.2}#printArea .rxm .rx-det.aperta2 h2{margin-top:5px}#printArea .rxm .rx-det.aperta2 .rx-cab{padding-bottom:4px}#printArea .rxm .rx-det.aperta2 .rx-faixa{margin-bottom:2mm}#printArea .rxm .rx-det.aperta2 .rx-exp{margin-bottom:1px}#printArea .rxm .rx-det.aperta2 .rxt td{padding-top:1px;padding-bottom:1px}#printArea .rxm .rx-det.aperta2 .rxt th{padding-top:2px;padding-bottom:2px}#printArea .rxm .rx-det.aperta2 .rx-bl>div{padding:1px 0}#printArea .rxm .rx-det.aperta2 .rx-ass3{margin-top:12px}
 #printArea .rxm .rxt td small{display:block;font-family:inherit;font-size:10.75px;color:#5B6B61}
 #printArea .rxm .rxt tr.t td{border-bottom:0;background:#F1F8F3;font-weight:800}
 #printArea .rxm .rxt th.rx-cb{width:30%}
@@ -3865,13 +3870,15 @@ function rxObraCurta(id){ const e=obraNome(id); if(!e||e===id) return id;
   const rua=p[0].replace(/^(Rua|R\.)\s+/i,"").replace(/^Avenida\s+/i,"Av. ").replace(/^Santa\s+/i,"Sta. ").replace(/^Santo\s+/i,"Sto. ");
   if(cs||lt) return /^lote\b/i.test(p[0])?(cs||lt)[0]:rua+" · "+(cs||lt)[0];
   return p.slice(0,2).join(", "); }
-/* Altura da folha 1 do fechamento (até a quebra antes de "Detalhes"), medida numa folha A4 fora da tela. */
+/* Altura da folha 1 do fechamento (até a quebra antes de "Detalhes"), medida numa folha A4 fora da tela.
+   f2: altura da folha 2 (da quebra até o fim, mais a margem de cima que se repete na folha nova). */
 const RX_LIM1=Math.floor(794*(297-15)/210)-2; // px: altura A4 menos a margem de baixo (a de cima já está na folha)
-function rxAltFolha1(html){ const el=$("printArea"); if(!el||gerandoPdf) return 0;
+function rxAltFolha1(html,f2){ const el=$("printArea"); if(!el||gerandoPdf) return 0;
   const st=el.style.cssText, antes=el.innerHTML; el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;font:500 11.75px/1.4 var(--f-ui)"; el.innerHTML=html;
-  const q=el.querySelector(".rx-quebra"), a=q?q.getBoundingClientRect().top-el.getBoundingClientRect().top:0;
+  const q=el.querySelector(".rx-quebra"), m=el.querySelector(".rxm"), esp=el.querySelector(".esp");
+  const a=!q?0:f2?m.getBoundingClientRect().bottom-q.getBoundingClientRect().top+(esp?esp.getBoundingClientRect().height:0):q.getBoundingClientRect().top-el.getBoundingClientRect().top;
   el.innerHTML=antes; el.style.cssText=st; return a; }
-/* Lista com barra (quem recebeu, o que foi comprado): até 10 linhas, o resto vira "Demais (N)". Barra proporcional ao maior; clara = outro fornecedor. */
+/* Lista com barra (para quem foi o dinheiro, o que foi comprado): até 10 linhas, o resto vira "Demais (N)". Barra proporcional ao maior; clara = outro fornecedor. */
 function rxLst2(itens,total,cl){ const top=itens.length>10?itens.slice(0,9):itens, resto=itens.slice(top.length);
   const l=top.concat(resto.length?[{k:"Demais ("+resto.length+")",v:sum(resto,x=>x.v),claro:resto.every(x=>x.claro)}]:[]), max=Math.max(0,...l.map(x=>x.v));
   return `<div class="rx-bl ${cl}">${l.map(x=>`<div><span><b>${esc(x.k)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:""}</span>${rxB1(x.v,max,x.claro)}<b class="n">${brl(x.v)}</b><small class="n">${rxPc(x.v,total)}</small></div>`).join("")}</div>`; }
@@ -3879,23 +3886,35 @@ function rxLst2(itens,total,cl){ const top=itens.length>10?itens.slice(0,9):iten
    Números de sempre (relDados, custoPorEtapa, ordemEtapas, fornCusto, terTodos, terPag, orcObras); só a apresentação mudou. Seções vazias não aparecem. */
 function folhaRelMes(k){
   const [ini,fim]=relDoMes(k), d=relDados(ini,fim), orc=orcObras(), hoje=D.hoje, noMes=t=>t.dataRef&&t.dataRef>=ini&&t.dataRef<=fim;
-  const faltaRef=sum(d.I,i=>i.precoRef==null?0:Math.max(i.saldo,0)*i.precoRef);
+  // Posição no fim do mês: data de corte = último dia do mês (mês em andamento: hoje). Só o relatório usa; as telas mostram a situação de hoje.
+  const corte=fim<hoje?fim:hoje, corteBr=dbr(corte);
+  const pagaAte=p=>!!p.pago&&(!p.dataPagamento||String(p.dataPagamento).slice(0,10)<=corte);
+  const vencAte=p=>!pagaAte(p)&&!!p.vencimento&&(p.vencimento<corte||(p.vencimento===corte&&corte<hoje)); // no dia de hoje ainda não venceu
+  // Materiais que não tinham chegado na data de corte: pedidos do mês não cancelados/encerrados até a data; entregas depois dela não contam.
+  const fechadoAte=id=>{ const c=((D.pedidos||{})[id]||{}).cancelamento; return !!(c&&String(c.data||"").slice(0,10)<=corte); };
+  const entDepois=(id,sku)=>sum(entregasPedido(id).filter(g=>g.data>corte).flatMap(g=>g.itens.filter(e=>e.sku===sku)),e=>e.qtd||0);
+  const pend=(D.itensTodos||D.itens).filter(i=>i.data&&i.data>=ini&&i.data<=fim&&!fechadoAte(i.pedido)).map(i=>{ const ent=Math.max(0,(i.entregue||0)-entDepois(i.pedido,i.sku));
+    return Object.assign({},i,{ent,falta:Math.max(0,(i.qtdSol||0)-ent)}); }).filter(i=>i.falta>0).sort((a,b)=>a.data.localeCompare(b.data)||a.pedido.localeCompare(b.pedido));
+  const faltaRef=sum(pend,i=>i.precoRef==null?0:i.falta*i.precoRef);
+  // Entregas da loja: cada pedido + data + quem recebeu conta como 1 entrega (os itens dela são as linhas de custo).
+  const entPor={}; Object.values(D.pedidos||{}).forEach(p=>(p.entregas||[]).forEach(e=>{ entPor[e.id]=e; }));
+  const nEntLoja=uniq(d.conf.filter(l=>!l.ter).map(l=>l.pedido+"|"+l.data+"|"+String((entPor[l.id]||{}).recebidoPor||"").trim().toUpperCase())).length;
+  const nw=x=>`<span class="nw">${esc(x)}</span>`; // código de obra/pedido sem quebra de linha
   const terAgV=sum(terTodos().filter(t=>t.conferencia==="AGUARDANDO"&&noMes(t)),t=>t.valor);
   const obras=Object.entries(relGrupo(d.conf,l=>l.obra)).map(([id,a])=>({id,v:sum(a,l=>l.valor),bsj:sum(a.filter(l=>!l.ter),l=>l.valor)})).sort((a,b)=>b.v-a.v);
   const reais=obras.filter(o=>o.id!=="SEM VÍNCULO"), temOrc=id=>!!(orc[id]&&orc[id].sit!=="SEM"), comOrc=reais.some(o=>temOrc(o.id));
   const ob=id=>id&&id!=="SEM VÍNCULO"?id:"sem obra";
   // ---- Em uma frase ----
   const mes=MESES_LONGO[+k.slice(5,7)-1].toLowerCase(), topo=reais[0];
-  const frase=d.custo>0?`Em ${mes} as obras custaram <b>${brl(d.custo)}</b>: ${rxPc(d.custoBsj,d.custo)} em materiais da loja BSJ e ${rxPc(d.custoTer,d.custo)} em outros fornecedores.${topo?` A obra que mais gastou foi a <b>${esc(topo.id)}</b> (${rxPc(topo.v,d.custo)}).`:""}`:`Em ${mes} não houve custo confirmado.`;
-  const kpis=`<div class="rx-kpis">${rxKpi("Custo confirmado",brl(d.custo),d.nBsj+(d.nBsj===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros fornecedores":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),rxPc(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),rxPc(d.custoTer,d.custo)+(terAgV?" · "+brl(terAgV)+" a conferir":d.nTer?" · todos conferidos":""))}${rxKpi("Pedidos feitos no mês",brl(d.ref),brl(faltaRef)+" ainda a entregar")}</div><p class="rx-ajuda">${RX_REGRA}</p>`;
+  const frase=d.custo>0?`Em ${mes} as obras custaram <b>${brl(d.custo)}</b>: ${rxPc(d.custoBsj,d.custo)} em materiais da loja BSJ e ${rxPc(d.custoTer,d.custo)} em outros fornecedores.${topo?` A obra que mais gastou foi a <b class="nw">${esc(topo.id)}</b> (${rxPc(topo.v,d.custo)}).`:""}`:`Em ${mes} não houve custo confirmado.`;
+  const kpis=`<div class="rx-kpis">${rxKpi("Custo confirmado",brl(d.custo),d.nBsj+(d.nBsj===1?" item entregue":" itens entregues")+" em "+nEntLoja+(nEntLoja===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros fornecedores":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),rxPc(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),rxPc(d.custoTer,d.custo)+(terAgV?" · "+brl(terAgV)+" a conferir":d.nTer?" · todos conferidos":""))}${rxKpi("Pedidos feitos no mês",brl(d.ref),brl(faltaRef)+" ainda a entregar")}</div><p class="rx-ajuda">${RX_REGRA}</p>`;
   // ---- Precisa de atenção (só o que tem conteúdo) ----
   const at=[];
-  const venc=terTodos().filter(t=>t.conferencia!=="CANCELADO"&&noMes(t)&&terPag(t).temVenc).map(t=>({t,ps:(t.parcelas||[]).filter(p=>!p.pago&&p.vencimento&&p.vencimento<hoje)}));
+  const venc=terTodos().filter(t=>t.conferencia!=="CANCELADO"&&noMes(t)).map(t=>({t,ps:(t.parcelas||[]).filter(vencAte)})).filter(x=>x.ps.length);
   const nV=sum(venc,x=>x.ps.length), vV=sum(venc,x=>sum(x.ps,p=>p.valor));
-  if(nV){ const x=venc[0], lin1=esc(x.t.fornecedor)+" · "+esc(ob(x.t.obra));
+  if(nV){ const x=venc[0], lin1=esc(x.t.fornecedor)+" · "+nw(ob(x.t.obra));
     at.push(["verm",nV===1?"1 parcela vencida":nV+" parcelas vencidas",nV===1?[lin1,brl(vV)+" · venceu "+rxDm(x.ps[0].vencimento)]:[lin1+(venc.length>1?" e mais "+(venc.length-1):""),"Total vencido: "+brl(vV)]]); }
-  const saldo=d.I.filter(i=>i.saldo>0);
-  if(saldo.length) at.push(["lar",saldo.length===1?"1 material não chegou":saldo.length+" materiais não chegaram",saldo.slice(0,2).map(i=>esc(i.material)+" ("+esc(ob(i.obra))+")").concat(saldo.length>2?["e mais "+(saldo.length-2)]:[]),"rx-1l"]);
+  if(pend.length) at.push(["lar",(pend.length===1?"1 material não chegou":pend.length+" materiais não chegaram")+" · ver lista na folha 2",pend.slice(0,2).map(i=>esc(i.material)+" ("+nw(ob(i.obra))+")"),"rx-1l"]);
   const nSemOrc=reais.filter(o=>!temOrc(o.id)).length, nSemObra=uniq(d.I.filter(i=>i.obra==="SEM VÍNCULO").map(i=>i.pedido)).length, nSemCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO").length;
   const cz=[nSemOrc?["Sem orçamento",(nSemOrc===1?"1 obra sem orçamento cadastrado":nSemOrc+" obras sem orçamento cadastrado")+": ainda não dá para comparar"]:null,
     nSemObra?["Pedido sem obra",nSemObra===1?"1 pedido sem obra reconhecida":nSemObra+" pedidos sem obra reconhecida"]:null,
@@ -3915,29 +3934,40 @@ function folhaRelMes(k){
   const eg=custoPorEtapa(d.conf), eks=ordemEtapas(Object.keys(eg)).filter(x=>eg[x]), nCor=eks.filter(x=>x!==ET_SEM).length; let ci=0;
   const etapas=eks.map(x=>({k:nomeEtapa(x),v:eg[x],cor:x===ET_SEM?"#B7BEC2":rxMix(nCor>1?(ci++)/(nCor-1)*.9:.1)}));
   const etHtml=`<div class="rx-et">${etapas.map(e=>`<span style="flex:${e.v};background:${e.cor}"></span>`).join("")}</div><div class="rx-leg">${etapas.map(e=>`<div><i style="background:${e.cor}"></i><span>${esc(e.k)}</span><b>${brl(e.v)}</b><small>${rxPc(e.v,d.custo)}</small></div>`).join("")}</div>`;
-  const p1=rxCabM(k,"Resumo",ini,fim)+`<div class="rx-frase"><b>Em uma frase:</b> ${frase}</div>`+kpis+rxS("Precisa de atenção","",atHtml,1)+
+  const p1=rxCabM(k,"Resumo",ini,fim)+`<div class="rx-frase"><b>Em uma frase:</b> ${frase}</div>`+kpis+rxS("Precisa de atenção · posição em "+corteBr,"",atHtml,1)+
     (obras.length?rxS("Quanto cada obra custou","Barra escura = materiais da loja BSJ · barra clara = outros fornecedores. Ordem: da obra que mais gastou para a que menos gastou.",tabObras,1):"")+
     (etapas.length?rxS("Em que etapa foi gasto","Cada cor é uma etapa da obra; o tamanho mostra quanto ela pesou no mês.",etHtml,1):"");
   // ---- Página 2: detalhes ----
   const forns=fornCusto(d.conf).filter(f=>f.v>0).map(f=>({k:f.nome,v:f.v,claro:!f.bsj,sub:[f.tipo,f.n+" "+(f.bsj?(f.n===1?"entrega":"entregas"):(f.n===1?"compra":"compras"))].filter(Boolean).join(" · ")}));
   const cats=Object.values(d.conf.reduce((g,l)=>{ const c=l.cat||"Outros", x=g[c+"|"+(l.ter?1:0)]=g[c+"|"+(l.ter?1:0)]||{k:l.ter?c.replace(TER_ETQ,""):c,v:0,claro:!!l.ter,sub:l.ter?"outro fornecedor":""}; x.v+=l.valor||0; return g; },{})).sort((a,b)=>b.v-a.v);
-  const mats=Object.values(d.conf.reduce((g,l)=>{ const m=g[l.sku]=g[l.sku]||{mat:l.material,un:l.un,q:0,v:0,ter:!!l.ter}; m.q+=l.qtd; m.v+=l.valor; return g; },{})).sort((a,b)=>b.v-a.v).slice(0,10);
+  // Mesma categoria da loja e de outro fornecedor: a origem vai na mesma linha.
+  cats.forEach(c=>{ if(cats.filter(x=>x.k===c.k).length>1){ c.k+=c.claro?" · outro fornecedor":" · loja"; c.sub=""; } });
+  const mats=Object.values(d.conf.filter(l=>!l.ter).reduce((g,l)=>{ const m=g[l.sku]=g[l.sku]||{mat:l.material,un:l.un,q:0,v:0,ter:!!l.ter}; m.q+=l.qtd; m.v+=l.valor; return g; },{})).sort((a,b)=>b.v-a.v).slice(0,10);
   const ter=terTodos().filter(t=>t.conferencia==="CONFERIDO"&&noMes(t)).sort((a,b)=>a.dataRef.localeCompare(b.dataRef)||a.id.localeCompare(b.id));
-  // Pagamento: só a parcela já vencida conta como vencida (as que ainda vão vencer não entram nesse valor)
-  const selo=t=>{ const ps=t.parcelas||[], p=terPag(t), pagas=ps.filter(x=>x.pago).length, ab=ps.filter(x=>!x.pago).sort((a,b)=>String(a.vencimento||"9").localeCompare(String(b.vencimento||"9")));
+  // Pagamento na data de corte: paga só se foi paga até ela; vencida só se venceu até ela sem estar paga (depois dela é "próxima")
+  const selo=t=>{ const ps=t.parcelas||[], pagas=ps.filter(pagaAte).length, ab=ps.filter(x=>!pagaAte(x)).sort((a,b)=>String(a.vencimento||"9").localeCompare(String(b.vencimento||"9")));
     if(!ps.length) return `<span class="rx-pg ab">A pagar</span>`;
-    if(p.sit==="PAGO") return `<span class="rx-pg ok">Pago</span>`;
-    const q=pagas+" de "+ps.length+(ps.length===1?" paga":" pagas"), vc=ab.filter(x=>x.vencimento&&x.vencimento<hoje);
-    if(vc.length) return `<span class="rx-pg venc">${q} · ${brl(p.vencido)} ${vc.length===1?"vencida em":"vencidas desde"} ${rxDm(vc[0].vencimento)}</span>`;
+    if(!ab.length) return `<span class="rx-pg ok">Pago</span>`;
+    const q=pagas+" de "+ps.length+(ps.length===1?" paga":" pagas"), vc=ab.filter(vencAte);
+    if(vc.length) return `<span class="rx-pg venc">${q} · ${brl(sum(vc,x=>x.valor))} ${vc.length===1?"vencida em":"vencidas desde"} ${rxDm(vc[0].vencimento)}</span>`;
     return `<span class="rx-pg ab">${q}${ab[0]&&ab[0].vencimento?" · próxima "+rxDm(ab[0].vencimento):""}</span>`; };
   const tabMats=`<table class="rxt"><thead><tr><th>#</th><th>Material</th><th class="n">Qtd.</th><th class="n">Custo</th><th class="n">% do mês</th></tr></thead><tbody>${mats.map((m,i)=>`<tr><td class="pc">${i+1}</td><td>${esc(m.ter?String(m.mat).replace(TER_ETQ," (outro fornecedor)"):m.mat)}</td><td class="n">${m.ter?"—":qtd(m.q)+" "+esc(m.un)}</td><td class="n"><b>${brl(m.v)}</b></td><td class="n pc">${rxPc(m.v,d.custo)}</td></tr>`).join("")}</tbody></table>`;
-  const tabTer=`<table class="rxt"><thead><tr><th>Data</th><th>Obra</th><th>Fornecedor / o que foi</th><th class="n">Valor</th><th>Pagamento</th></tr></thead><tbody>${ter.map(t=>`<tr><td>${rxDm(t.dataRef)}</td><td class="cod">${t.obra&&t.obra!=="SEM VÍNCULO"?esc(t.obra):"—"}</td><td>${esc(t.fornecedor)}${t.descricao?`<small>${esc(t.descricao)}</small>`:""}</td><td class="n"><b>${brl(t.valor)}</b></td><td>${selo(t)}</td></tr>`).join("")}<tr class="t"><td colspan="3">Total · ${ter.length} ${ter.length===1?"compra":"compras"}</td><td class="n">${brl(sum(ter,t=>t.valor))}</td><td></td></tr></tbody></table>`;
-  const det=(forns.length||cats.length?`<div class="rx-duas">${forns.length?`<div>${rxS("Quem recebeu","Custo do mês por fornecedor.",rxLst2(forns,d.custo,"forn"),1)}</div>`:""}${cats.length?`<div>${rxS("O que foi comprado","Custo do mês por tipo de material.",rxLst2(cats,d.custo,"cat"),1)}</div>`:""}</div>`:"")+
-    (mats.length?rxS(mats.length+(mats.length===1?" material que mais pesou":" materiais que mais pesaram"),"",tabMats,1):"")+
-    (ter.length?rxS("Compras de outros fornecedores","Serviços e compras fora da loja, já conferidos e somados no custo do mês.",tabTer,ter.length<=12):"");
+  const nf=s=>{ s=String(s||"").trim(); return /^\d/.test(s)?"NF "+s:s; }; // nº da nota/orçamento: "4512" vira "NF 4512"
+  const tabTer=`<table class="rxt"><thead><tr><th>Data</th><th>Obra</th><th>Fornecedor / o que foi</th><th class="n">Valor</th><th>Pagamento (em ${rxDm(corte)})</th></tr></thead><tbody>${ter.map(t=>`<tr><td>${rxDm(t.dataRef)}</td><td class="cod">${t.obra&&t.obra!=="SEM VÍNCULO"?esc(t.obra):"—"}</td><td>${esc(t.fornecedor)}${t.descricao?`<small>${esc(t.descricao)}</small>`:""}${t.nota?`<small>${esc(nf(t.nota))}</small>`:""}</td><td class="n"><b>${brl(t.valor)}</b></td><td>${selo(t)}</td></tr>`).join("")}<tr class="t"><td colspan="3">Total · ${ter.length} ${ter.length===1?"compra":"compras"}</td><td class="n">${brl(sum(ter,t=>t.valor))}</td><td></td></tr></tbody></table>`;
+  // Materiais que ainda não chegaram (na data de corte): até 15 linhas. A tabela não se divide: se não couber na folha 2, vai inteira para a folha 3 (com o cabeçalho), sem linhas soltas.
+  const ultEnt=id=>{ const g=entregasPedido(id).filter(x=>x.data<=corte); return g[g.length-1]; };
+  const linPend=i=>{ const p=(D.pedidos||{})[i.pedido]||{}, g=ultEnt(i.pedido), np=x=>rxNomeProprio(x)||"—";
+    return `<tr><td><b class="nw">…${esc(String(i.pedido).slice(-8))}</b><small>${rxDm(i.data)}</small></td><td class="cod">${esc(ob(i.obra))}</td><td>${esc(i.material)}</td><td class="n">${qtd(i.qtdSol)} / ${qtd(i.ent)} / <b>${qtd(i.falta)}</b> ${esc(String(i.un||"").toUpperCase())}</td><td>${esc(rxNome(p.criadoPor||p.email)||"—")}<small class="rx-1l">Atendente: ${esc(np(i.atendente||p.atendente))}</small></td><td>${esc(np(p.entregador||i.entregador))}</td><td>${g?rxDm(g.data)+" · recebido por "+esc(np(g.recebidoPor)):"nenhuma entrega"}</td></tr>`; };
+  const pTop=pend.slice(0,15), maisP=pend.length-pTop.length;
+  const tabPend=`<table class="rxt fx pend"><thead><tr><th style="width:11%">Pedido</th><th style="width:8%">Obra</th><th style="width:17%">Material</th><th class="n" style="width:13%">Pedido / Chegou / Falta</th><th style="width:20%">Fez o pedido</th><th style="width:12%">Entregador</th><th style="width:19%">Última entrega até ${rxDm(corte)}</th></tr></thead><tbody>${pTop.map(linPend).join("")}${maisP?`<tr><td colspan="7" class="pc">e mais ${maisP} ${maisP===1?"material":"materiais"}</td></tr>`:""}</tbody></table>`;
+  const det=(forns.length||cats.length?`<div class="rx-duas">${forns.length?`<div>${rxS("Para quem foi o dinheiro","Custo do mês por fornecedor.",rxLst2(forns,d.custo,"forn"),1)}</div>`:""}${cats.length?`<div>${rxS("O que foi comprado","Custo do mês por tipo de material.",rxLst2(cats,d.custo,"cat"),1)}</div>`:""}</div>`:"")+
+    (mats.length?rxS(mats.length+(mats.length===1?" material da loja que mais pesou":" materiais da loja que mais pesaram"),"",tabMats,1):"")+
+    (ter.length?rxS("Compras de outros fornecedores","Serviços e compras fora da loja, já conferidos e somados no custo do mês.",tabTer,ter.length<=12):"")+
+    (pend.length?rxS("Materiais que ainda não chegaram","",tabPend,1):"");
   const ass=`<div class="rx-ass3"><div>Conferido por</div><div>Data</div><div>Visto da diretoria</div></div>`;
-  const montar=(cl,qb)=>rxFolha(`<div class="rxm${cl}">${p1}${det?(qb?`<div class="rx-quebra"></div>`:"")+rxCabM(k,"Detalhes",ini,fim)+det:""}${ass}</div>`);
-  let html=montar("",1); if(rxAltFolha1(html)>RX_LIM1){ html=montar(" aperta",1); if(rxAltFolha1(html)>RX_LIM1) html=montar(" aperta",0); }
+  const montar=(cl,qb,cl2)=>rxFolha(`<div class="rxm${cl}">${p1}${det?(qb?`<div class="rx-quebra"></div>`:"")+`<div class="rx-det${cl2||""}">${rxCabM(k,"Detalhes",ini,fim)}${det}${ass}</div>`:ass}</div>`);
+  let cl="", qb=1, html=montar(cl,qb); if(rxAltFolha1(html)>RX_LIM1){ cl=" aperta"; html=montar(cl,qb); if(rxAltFolha1(html)>RX_LIM1){ qb=0; html=montar(cl,qb); } }
+  if(qb&&det&&rxAltFolha1(html,1)>RX_LIM1) html=montar(cl,qb," aperta2"); // folha 2 não coube: só os espaços diminuem (a letra não muda)
   return html;
 }
 function folhaRelObra(id,ini,fim,periodo){
