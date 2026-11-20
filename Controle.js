@@ -1063,7 +1063,7 @@ function doPost(e) {
     : c.acao === 'backup' ? backupAgora(c.token)
     : c.acao === 'destinosResumo' ? salvarDestinosResumo(c.token, c.destinos)
     : c.acao === 'resumoTeste' ? enviarResumoTeste(c.token)
-    : getDadosPainel(c.token, c.semSinc === true); }
+    : getDadosPainel(c.token, c.semSinc === true, c.conferir === true); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
 }
@@ -1497,10 +1497,27 @@ function desconectarAparelhos(token, usuario) {
 }
 
 /** Chamado pelo Painel.html com a chave do aparelho. Devolve só valores simples (sem objetos Date). */
-function getDadosPainel(token, semSinc) {
+/** Segundos desde a hora gravada em B10 ('dd/MM/yyyy HH:mm · ...', fuso de São Paulo). Sem hora: muito antiga. */
+function idadeSinc_(txt) {
+  const m = String(txt || '').match(/^(\d\d\/\d\d\/\d{4} \d\d:\d\d)/);
+  if (!m) return 1e9;
+  return Math.max(0, Math.round((Date.now() - Utilities.parseDate(m[1], CTRL.fuso, 'dd/MM/yyyy HH:mm').getTime()) / 1000));
+}
+/** Painel aberto (no máximo 1 vez por minuto por painel): se a última conferência (B10) tem mais de 1 minuto,
+ *  roda a mesma rotina do acionador (com trava; só faz a cópia completa quando o formulário mudou). Se outra
+ *  sincronização estiver rodando, não espera: o painel tenta na próxima conferência. */
+function conferirPeloPainel_() {
+  try {
+    const cel = planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc);
+    if (idadeSinc_(texto_(cel.getValue())) <= 60) return sincronizarSeHouverNovidade_();
+    return sincronizacaoAutomaticaCorpo_();
+  } catch (e) { Logger.log('Conferência pelo painel não feita: ' + e.message); return false; }
+}
+function getDadosPainel(token, semSinc, conferir) {
   const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
   if (ac.erro) return ac.erro;
-  if (!semSinc) sincronizarSeHouverNovidade_(); // logo depois do login responde já, sem sincronizar: a atualização seguinte sincroniza
+  if (conferir) conferirPeloPainel_(); // B10 velho: confere o formulário e atualiza a hora
+  else if (!semSinc) sincronizarSeHouverNovidade_(); // logo depois do login responde já, sem sincronizar: a atualização seguinte sincroniza
   return dadosPainel_(ac.u);
 }
 /** Dados do painel para um usuário (quem = null: sem dados de administrador; usado pelo resumo semanal por e-mail). */
@@ -1588,6 +1605,7 @@ function dadosPainel_(quem) {
     hoje: Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd'),
     modo: texto_(conf.getRange(CTRL.celulaModo).getValue()) || 'PRODUÇÃO',
     sincronizadoEm: texto_(conf.getRange(CTRL.celulaUltimaSinc).getValue()).split(' · ')[0],
+    sincronizadoHa: idadeSinc_(texto_(conf.getRange(CTRL.celulaUltimaSinc).getValue())), // segundos desde a última conferência
     limitesOrc: ALERTA_ORC, // [Função 1]
     areas: areasObras_(), // [Função 3] m² de cada obra
     // [Função 4] meses fechados: detalhes só para Admin Zayda; os outros recebem só mês e tipo (para o cadeado 🔒 dos gráficos).

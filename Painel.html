@@ -86,6 +86,7 @@ a,button,input,select,textarea,summary,label{-webkit-tap-highlight-color:transpa
 .chip.test{background:var(--amber-soft);color:var(--amber)}
 .chip.prod{background:var(--brand-soft);color:var(--brand)}
 .muted{color:var(--ink-3);font-size:12px}
+#updated.atraso{color:var(--laranja);font-weight:700}
 .btn svg{width:16px;height:16px}
 .btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 14px;font-weight:700;font-size:13px;cursor:pointer;text-decoration:none;color:var(--ink)}
 @media (hover:hover) and (pointer:fine){.btn:hover{border-color:var(--brand);color:var(--brand)}}
@@ -1254,45 +1255,49 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
   html,body{background:#fff!important;color:#0F1A14!important}
   .app,.acesso,.aviso,#intro{display:none!important}
   *{animation:none!important;transition:none!important}
-  #printArea{display:block;font:500 10.5px/1.4 var(--f-ui);color:#0F1A14;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  /* Só a folha vai para o papel, na largura toda: nada de fora alarga a página (o navegador encolheria tudo para caber). */
+  html,body{width:auto!important;min-width:0!important;max-width:none!important;margin:0!important;padding:0!important;overflow:visible!important}
+  body>:not(#printArea){display:none!important}
+  #printArea{width:auto!important;max-width:none!important;margin:0!important;zoom:1!important;transform:none!important}
+  #printArea{display:block;font:500 11.75px/1.4 var(--f-ui);color:#0F1A14;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 }
 #printArea,#printArea *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
 #printArea .ph{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;border-bottom:2px solid #00632B;padding-bottom:10px}
 #printArea .ph img{width:170px;height:auto}
 #printArea .ph .t{text-align:right}
-#printArea .ph h1{margin:0;font-size:16px;letter-spacing:.04em;color:#00632B}
-#printArea .ph .marca{display:inline-block;margin:4px 0 2px;padding:2px 10px;border:2px solid #C62828;border-radius:4px;color:#C62828;font-weight:800;font-size:12px;letter-spacing:.08em}
-#printArea .ph .id{font-family:var(--f-mono);font-size:12px;margin-top:3px;color:#0F1A14}
-#printArea .ph .muted{color:#3A4A40;font-size:10px}
+#printArea .ph h1{margin:0;font-size:18px;letter-spacing:.04em;color:#00632B}
+#printArea .ph .marca{display:inline-block;margin:4px 0 2px;padding:2px 10px;border:2px solid #C62828;border-radius:4px;color:#C62828;font-weight:800;font-size:13.5px;letter-spacing:.08em}
+#printArea .ph .id{font-family:var(--f-mono);font-size:13.5px;margin-top:3px;color:#0F1A14}
+#printArea .ph .muted{color:#3A4A40;font-size:11.25px}
 #printArea .blk{display:grid;grid-template-columns:repeat(3,1fr);gap:6px 14px;margin:12px 0;padding:10px 12px;border:1px solid #B9CCBF;border-radius:8px;background:#F1F8F3}
 #printArea .blk .w2{grid-column:span 2}#printArea .blk .w3{grid-column:1/-1}
-#printArea .blk dt{font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#3A4A40}
-#printArea .blk dd{margin:1px 0 0;font-weight:700;font-size:11px;color:#0F1A14}
+#printArea .blk dt{font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#3A4A40}
+#printArea .blk dd{margin:1px 0 0;font-weight:700;font-size:12.25px;color:#0F1A14}
 #printArea .blk dd small{font-family:var(--f-mono);color:#00632B;font-weight:600;margin-right:5px}
-#printArea h2{font-size:11px;letter-spacing:.06em;margin:14px 0 6px;color:#00632B}
-/* Margens de TODAS as folhas (A4), num lugar só. Se mudar aqui, ajuste também o @page rx e o PDF (cortesPdf/gerarPdf: MARG_PDF). */
+#printArea h2{font-size:12.25px;letter-spacing:.06em;margin:14px 0 6px;color:#00632B}
+/* Margens de TODAS as folhas (A4), num lugar só. Se mudar aqui, ajuste também o PDF (cortesPdf/gerarPdf: MARG_PDF). */
 #printArea{--imp-lado:15mm;--imp-topo:12mm;--imp-base:15mm}
 #printArea table.folha{width:100%;border-collapse:collapse}
 #printArea table.folha>thead>tr>td,#printArea table.folha>tfoot>tr>td,#printArea table.folha>tbody>tr>td{padding:0 var(--imp-lado);border:0;background:none}
 #printArea table.folha>thead .esp{height:var(--imp-topo)}
 #printArea table.folha>tfoot .esp{height:var(--imp-base)}
-#printArea table.tb{width:100%;border-collapse:collapse;font-size:10px;color:#0F1A14}
-#printArea .tb th{background:#00632B!important;color:#FFFFFF;font-weight:800;font-size:8.5px;letter-spacing:.05em;padding:5px 6px;border:1px solid #00632B;border-radius:0;white-space:nowrap}
+#printArea table.tb{width:100%;border-collapse:collapse;font-size:11.25px;color:#0F1A14}
+#printArea .tb th{background:#00632B!important;color:#FFFFFF;font-weight:800;font-size:9.5px;letter-spacing:.05em;padding:5px 6px;border:1px solid #00632B;border-radius:0;white-space:nowrap}
 #printArea .tb td{padding:5px 6px;border:1px solid #B9CCBF;vertical-align:top}
 #printArea .tb tbody tr:nth-child(even) td{background:#F3F9F5}
 #printArea .tb td.n,#printArea .tb th.n{text-align:right;white-space:nowrap}
-#printArea .tb td small{display:block;font-family:var(--f-mono);font-size:8.5px;color:#00632B}
+#printArea .tb td small{display:block;font-family:var(--f-mono);font-size:9.5px;color:#00632B}
 #printArea .tb tr{break-inside:avoid}
 #printArea .tot{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:8px}
 #printArea .tot div{border:1px solid #B9CCBF;border-radius:8px;padding:7px 10px;background:#F1F8F3}
-#printArea .tot span{display:block;font-size:8.5px;font-weight:800;letter-spacing:.06em;color:#3A4A40}
-#printArea .tot b{font-size:13px;color:#0F1A14}
+#printArea .tot span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.06em;color:#3A4A40}
+#printArea .tot b{font-size:14.5px;color:#0F1A14}
 #printArea .ass{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;break-inside:avoid}
 #printArea .ass>div{border:1px solid #B9CCBF;border-radius:8px;padding:8px 10px;min-height:90px}
 #printArea .ass img{display:block;max-width:100%;height:58px;object-fit:contain;margin:4px 0}
-#printArea .ass span{font-size:9px;color:#3A4A40}
+#printArea .ass span{font-size:10px;color:#3A4A40}
 #printArea .linha{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);margin-top:34px;break-inside:avoid}
-#printArea .linha div{border-top:1px solid #0F1A14;padding-top:5px;font-size:10px;font-weight:700;color:#0F1A14;text-align:center;letter-spacing:.04em;text-transform:uppercase}
+#printArea .linha div{border-top:1px solid #0F1A14;padding-top:5px;font-size:11.25px;font-weight:700;color:#0F1A14;text-align:center;letter-spacing:.04em;text-transform:uppercase}
 #printArea .rel h2{break-after:avoid}
 #printArea .rel .tot{margin:8px 0}
 #printArea .rel .tot.q4{grid-template-columns:repeat(4,1fr)}
@@ -1300,22 +1305,22 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rel .tb thead{display:table-header-group}
 #printArea .rel .tb tr.t td{font-weight:800;color:#0F1A14;background:#E6F4EA!important;border-top:1.5px solid #00632B}
 #printArea .rel .tb tr.t td.n{color:#0A8A3E}
-#printArea .rel .av{margin:4px 0 0;font-size:9.5px;color:#3A4A40}
-#printArea .rel .emit{margin-top:30px;font-size:10px;font-weight:700;color:#0F1A14;break-inside:avoid}
-#printArea .ru .ph .ru-quem{font-family:inherit;font-weight:700;font-size:12px}
-#printArea .ru .ru-nome{margin-top:22px;padding-top:8px;border-top:2px solid #00632B;font-size:13px;color:#00632B}
+#printArea .rel .av{margin:4px 0 0;font-size:10.75px;color:#3A4A40}
+#printArea .rel .emit{margin-top:30px;font-size:11.25px;font-weight:700;color:#0F1A14;break-inside:avoid}
+#printArea .ru .ph .ru-quem{font-family:inherit;font-weight:700;font-size:13.5px}
+#printArea .ru .ru-nome{margin-top:22px;padding-top:8px;border-top:2px solid #00632B;font-size:14.5px;color:#00632B}
 #printArea .ru .tot.ru-cards{grid-template-columns:repeat(4,minmax(0,1fr))}
 #printArea .ru .ru-cards>div{display:flex;flex-direction:column;gap:2px}
-#printArea .ru .ru-cards b{font-size:16px;line-height:1.15}
-#printArea .ru .ru-cards small{font-size:9px;color:#3A4A40;font-weight:600}
+#printArea .ru .ru-cards b{font-size:18px;line-height:1.15}
+#printArea .ru .ru-cards small{font-size:10px;color:#3A4A40;font-weight:600}
 #printArea .ru .ru-cards .ru-alerta b{color:#B26A00}
 #printArea .ru .ru-bar{display:block;height:8px;margin-top:4px;border:1px solid #0A8A3E;border-radius:5px;background:#E6F4EA;overflow:hidden}
 #printArea .ru .ru-bar>i{display:block;height:100%;background:#0A8A3E}
 #printArea .ru .blk.ru-ped{display:block;padding:0;gap:0;margin:10px 0;background:#fff;border:1px solid #B9CCBF;border-radius:8px;break-inside:avoid;page-break-inside:avoid}
 #printArea .ru .ru-topo{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:7px 10px;background:#F1F8F3;border-bottom:1px solid #B9CCBF;border-radius:7px 7px 0 0}
-#printArea .ru .ru-topo small{color:#3A4A40;font-weight:600;font-size:9.5px;margin-left:6px}
-#printArea .ru .ru-id{font-family:var(--f-mono);font-size:11px;font-weight:800;color:#0F1A14}
-#printArea .ru .ru-selo{flex:none;font-style:normal;padding:2px 8px;border-radius:4px;color:#FFFFFF;font-weight:800;font-size:9px;letter-spacing:.06em;white-space:nowrap}
+#printArea .ru .ru-topo small{color:#3A4A40;font-weight:600;font-size:10.75px;margin-left:6px}
+#printArea .ru .ru-id{font-family:var(--f-mono);font-size:12.25px;font-weight:800;color:#0F1A14}
+#printArea .ru .ru-selo{flex:none;font-style:normal;padding:2px 8px;border-radius:4px;color:#FFFFFF;font-weight:800;font-size:10px;letter-spacing:.06em;white-space:nowrap}
 #printArea .ru .ru-s-ok{background:#00632B}
 #printArea .ru .ru-s-pend{background:#B26A00}
 #printArea .ru .ru-s-canc{background:#C62828}
@@ -1329,94 +1334,97 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .ru .ru-pl+.ru-pl{border-top:1px solid #B9CCBF}
 #printArea .ru .ru-pl>div{min-width:0;padding:6px 10px;border-left:1px solid #B9CCBF;overflow-wrap:anywhere}
 #printArea .ru .ru-pl>div:first-child{border-left:0}
-#printArea .ru .ru-pl .ru-l{display:block;font-style:normal;font-size:8.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#3A4A40}
-#printArea .ru .ru-pl b{display:inline;font-size:13px;font-weight:800;color:#0F1A14}
-#printArea .ru .ru-pl small{font-size:8.5px;font-weight:600;color:#3A4A40;margin-left:4px}
+#printArea .ru .ru-pl .ru-l{display:block;font-style:normal;font-size:9.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:#3A4A40}
+#printArea .ru .ru-pl b{display:inline;font-size:14.5px;font-weight:800;color:#0F1A14}
+#printArea .ru .ru-pl small{font-size:9.5px;font-weight:600;color:#3A4A40;margin-left:4px}
 #printArea .ru .ru-pl .ru-val{text-align:right}
 #printArea .ru .ru-pl .ru-val b{color:#0A8A3E}
 #printArea .ru .ru-pl .ru-val small.ru-ns{display:block;margin:0;color:#C62828}
-#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:8.5px;color:#C62828;margin:0;font-weight:700}
+#printArea .ru .ru-ns{display:block;font-family:inherit;font-size:9.5px;color:#C62828;margin:0;font-weight:700}
 #printArea .ru .ru-cod{font-family:var(--f-mono);font-weight:800;white-space:nowrap}
 @media screen{#printArea .ru .ru-ped{overflow-x:auto}}
 @media screen and (max-width:600px){#printArea .ru .tot.ru-cards{grid-template-columns:repeat(2,minmax(0,1fr))}
   #printArea .ru .ru-pl{grid-template-columns:repeat(2,minmax(0,1fr))}#printArea .ru .ru-pl>div:nth-child(3){border-left:0}#printArea .ru .ru-pl>div:nth-child(n+3){border-top:1px solid #B9CCBF}}
-#printArea .rod{margin-top:14px;font-size:8.5px;color:#3A4A40;display:flex;justify-content:space-between}
-#printArea .esp .rod{margin:0;padding-top:2mm;line-height:1}
+/* "Emitido por" no cabeçalho de cada folha; regra do custo logo abaixo dos números do fechamento */
+#printArea .ph .emi,#printArea .rxm .rx-cab .emi{margin-top:2px;font-size:10px;font-weight:500;color:#6B7A70}
+#printArea .rxm .rx-ajuda{margin:5px 0 0;font-size:10.75px;color:#6B7A70}
 #printArea table.folha>tbody>tr>td>:last-child,#printArea table.folha>tbody>tr>td>.rel>:last-child{margin-bottom:0}
 /* Relatório mensal e lançamento de outro fornecedor: fonte maior, legível em preto e branco (cor só de apoio) */
-#printArea .rx{font-size:11.5px;line-height:1.45}
+#printArea .rx{font-size:13px;line-height:1.35}
 #printArea .rx .ph img{width:180px}
-#printArea .rx .ph h1{font-size:19px;letter-spacing:.02em}
-#printArea .rx .ph .id{font-family:var(--f-ui);font-size:13px;font-weight:800}
-#printArea .rx .ph .muted{font-size:10.5px;margin-top:2px}
-#printArea .rx h2{font-size:13.5px;letter-spacing:.03em;margin:18px 0 3px;padding-left:8px;border-left:4px solid #00632B;color:#0F1A14;text-transform:uppercase;break-after:avoid;page-break-after:avoid}
-#printArea .rx h3{font-size:11.5px;margin:0 0 4px;color:#0F1A14;break-after:avoid;page-break-after:avoid}
-#printArea .rx .rx-exp{margin:0 0 8px;font-size:10px;color:#3A4A40;break-after:avoid;page-break-after:avoid}
+#printArea .rx .ph h1{font-size:21.25px;letter-spacing:.02em}
+#printArea .rx .ph .id{font-family:var(--f-ui);font-size:14.5px;font-weight:800}
+#printArea .rx .ph .muted{font-size:11.75px;margin-top:2px}
+#printArea .rx h2{font-size:15px;letter-spacing:.03em;margin:12px 0 3px;padding-left:8px;border-left:4px solid #00632B;color:#0F1A14;text-transform:uppercase;break-after:avoid;page-break-after:avoid}
+#printArea .rx h3{font-size:13px;margin:0 0 4px;color:#0F1A14;break-after:avoid;page-break-after:avoid}
+#printArea .rx .rx-exp{margin:0 0 8px;font-size:11.25px;color:#3A4A40;break-after:avoid;page-break-after:avoid}
 #printArea .rx .rx-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 #printArea .rx .rx-kpis.k3{grid-template-columns:repeat(3,minmax(0,1fr))}
 #printArea .rx .rx-kpi{min-width:0;padding:9px 11px;border:1px solid #9DB5A6;border-radius:8px;break-inside:avoid}
 #printArea .rx .rx-kpi.pri{border:2px solid #00632B;background:#F1F8F3}
-#printArea .rx .rx-kpi span{display:block;font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3A4A40}
-#printArea .rx .rx-kpi b{display:block;margin-top:3px;font-size:19px;line-height:1.2;color:#0F1A14;overflow-wrap:anywhere}
-#printArea .rx .rx-kpi small{display:block;margin-top:3px;font-size:9.5px;color:#3A4A40}
-#printArea .rx .tb{font-size:10.5px}
-#printArea .rx .tb th{font-size:9.5px}
-#printArea .rx .tb td{padding:6px 7px}
+#printArea .rx .rx-kpi span{display:block;font-size:10.75px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3A4A40}
+#printArea .rx .rx-kpi b{display:block;margin-top:3px;font-size:21.25px;line-height:1.2;color:#0F1A14;overflow-wrap:anywhere}
+#printArea .rx .rx-kpi small{display:block;margin-top:3px;font-size:10.75px;color:#3A4A40}
+#printArea .rx .tb{font-size:11.75px}
+#printArea .rx .tb th{font-size:10.75px}
+#printArea .rx .tb td{padding:4px 7px}
 #printArea .rx .rx-sit{font-weight:800}
 #printArea .rx .rx-sit.fora{color:#B42318}#printArea .rx .rx-sit.risco{color:#8A5A00}#printArea .rx .rx-sit.dentro{color:#00632B}
 #printArea .rx .rx-duas{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:18px}
 #printArea .rx .rx-duas>div{min-width:0}
 #printArea .rx .blk{margin:4px 0 0;break-inside:avoid}
-#printArea .rx .blk dt{font-size:9px}
-#printArea .rx .blk dd{font-size:12px;overflow-wrap:anywhere}
-#printArea .rx .rx-selo{display:inline-block;margin:2px 0;padding:2px 10px;border:2px solid currentColor;border-radius:4px;font-size:11px;font-weight:800;letter-spacing:.06em}
+#printArea .rx .blk dt{font-size:10px}
+#printArea .rx .blk dd{font-size:13.5px;overflow-wrap:anywhere}
+#printArea .rx .rx-selo{display:inline-block;margin:2px 0;padding:2px 10px;border:2px solid currentColor;border-radius:4px;font-size:12.25px;font-weight:800;letter-spacing:.06em}
 #printArea .rx .rx-selo.ok{color:#00632B}#printArea .rx .rx-selo.aguard{color:#8A5A00}#printArea .rx .rx-selo.bad{color:#B42318}#printArea .rx .rx-selo.canc{color:#4A4A4A}
 #printArea .rx .rx-tot2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin-top:8px;break-inside:avoid}
 #printArea .rx .rx-tot2 div{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:6px 10px;border:1px solid #9DB5A6;border-radius:8px}
-#printArea .rx .rx-tot2 span{font-size:9.5px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3A4A40}
-#printArea .rx .rx-tot2 b{font-size:14px;color:#0F1A14}
+#printArea .rx .rx-tot2 span{font-size:10.75px;font-weight:800;letter-spacing:.04em;text-transform:uppercase;color:#3A4A40}
+#printArea .rx .rx-tot2 b{font-size:15.75px;color:#0F1A14}
 #printArea .rx .rx-reg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:4px 0 0;break-inside:avoid}
 #printArea .rx .rx-reg>div{min-width:0;padding:8px 10px;border:1px solid #9DB5A6;border-radius:8px}
-#printArea .rx .rx-reg dt{font-size:9px;font-weight:800;letter-spacing:.05em;color:#3A4A40}
-#printArea .rx .rx-reg dd{margin:2px 0 0;font-size:12px;font-weight:800;color:#0F1A14;overflow-wrap:anywhere}
-#printArea .rx .rx-reg small{display:block;margin-top:2px;font-size:9.5px;color:#3A4A40}
-#printArea .rx .rx-ass{margin-top:28px;font-size:11px;font-weight:700;break-inside:avoid}
+#printArea .rx .rx-reg dt{font-size:10px;font-weight:800;letter-spacing:.05em;color:#3A4A40}
+#printArea .rx .rx-reg dd{margin:2px 0 0;font-size:13.5px;font-weight:800;color:#0F1A14;overflow-wrap:anywhere}
+#printArea .rx .rx-reg small{display:block;margin-top:2px;font-size:10.75px;color:#3A4A40}
+#printArea .rx .rx-ass{margin-top:28px;font-size:12.25px;font-weight:700;break-inside:avoid}
 /* Relatório mensal (fechamento): verde suave, pouca tinta. Barra escura = loja BSJ, clara = outros fornecedores (diferentes também em preto e branco). */
-#printArea .rxm{--rv:#1D6B38;--rc:#9BD0A9;--rl:#E6ECE8;font-size:10.5px;line-height:1.38}
-#printArea .rxm .rx-cab{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:16px;padding-bottom:10px;border-bottom:1px solid #D5DED8;break-inside:avoid}
-#printArea .rxm .rx-faixa{grid-column:1/-1;height:1.4mm;margin-bottom:4mm;border-radius:1mm;background:var(--rv)}
+#printArea .rxm{--rv:#1D6B38;--rc:#9BD0A9;--rl:#E6ECE8;font-size:11.75px;line-height:1.3;font-variant-numeric:tabular-nums}
+#printArea .rxm .rx-1l{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#printArea .rxm table.rxt.fx{table-layout:fixed}
+#printArea .rxm .rx-cab{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:end;gap:16px;padding-bottom:7px;border-bottom:1px solid #D5DED8;break-inside:avoid}
+#printArea .rxm .rx-faixa{grid-column:1/-1;height:1.4mm;margin-bottom:3mm;border-radius:1mm;background:var(--rv)}
 #printArea .rxm .rx-cab img{width:150px;height:auto}
 #printArea .rxm .rx-cab .t{text-align:right}
-#printArea .rxm .rx-kick{font-size:8.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#3F6B4E}
-#printArea .rxm .rx-cab h1{margin:2px 0 1px;font-size:22px;line-height:1.15;font-weight:800;letter-spacing:0;color:#0F1A14}
-#printArea .rxm .rx-per{font-size:10px;color:#5B6B61}
-#printArea .rxm .rx-frase{margin:10px 0 0;padding:8px 12px;border-left:3px solid var(--rv);border-radius:0 8px 8px 0;background:#F1F8F3;font-size:11px;break-inside:avoid}
-#printArea .rxm .rx-kpis{margin-top:10px}
-#printArea .rxm .rx-kpi{padding:8px 10px;border-color:#C9D8CF}
+#printArea .rxm .rx-kick{font-size:9.5px;font-weight:800;letter-spacing:.16em;text-transform:uppercase;color:#3F6B4E}
+#printArea .rxm .rx-cab h1{margin:2px 0 1px;font-size:24.75px;line-height:1.15;font-weight:800;letter-spacing:0;color:#0F1A14}
+#printArea .rxm .rx-per{font-size:11.25px;color:#5B6B61}
+#printArea .rxm .rx-frase{margin:8px 0 0;padding:6px 12px;border-left:3px solid var(--rv);border-radius:0 8px 8px 0;background:#F1F8F3;font-size:12.25px;break-inside:avoid}
+#printArea .rxm .rx-kpis{margin-top:8px}
+#printArea .rxm .rx-kpi{padding:6px 10px;border-color:#C9D8CF}
 #printArea .rxm .rx-kpi.pri{border:1px solid #9DC5AA;background:#EEF6F0}
 #printArea .rxm .rx-kpi.pri b{color:var(--rv)}
-#printArea .rxm .rx-kpi span{font-size:8.5px;letter-spacing:.1em}
-#printArea .rxm .rx-kpi b{font-size:17px}
-#printArea .rxm h2{display:flex;align-items:center;gap:10px;margin:14px 0 2px;padding:0;border:0;font-size:10px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rv);break-after:avoid;page-break-after:avoid}
+#printArea .rxm .rx-kpi span{font-size:9.5px;letter-spacing:.1em}
+#printArea .rxm .rx-kpi b{font-size:19px}
+#printArea .rxm h2{display:flex;align-items:center;gap:10px;margin:11px 0 2px;padding:0;border:0;font-size:11.25px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--rv);break-after:avoid;page-break-after:avoid}
 #printArea .rxm h2::after{content:"";flex:1;border-top:1px solid #D5DED8}
-#printArea .rxm .rx-exp{margin:0 0 5px;font-size:9.5px;color:#5B6B61}
+#printArea .rxm .rx-exp{margin:0 0 3px;font-size:10.75px;color:#5B6B61}
 #printArea .rxm .rx-int{break-inside:avoid;page-break-inside:avoid}
-#printArea .rxm .rx-at{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:5px}
-#printArea .rxm .rx-at>div{position:relative;min-width:0;padding:7px 10px 7px 25px;border:1px solid #D5DED8;border-radius:8px;break-inside:avoid;overflow-wrap:anywhere}
-#printArea .rxm .rx-at i{position:absolute;left:10px;top:11px;width:8px;height:8px;border-radius:50%;background:#98A2A6}
+#printArea .rxm .rx-at{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-top:4px}
+#printArea .rxm .rx-at>div{position:relative;min-width:0;padding:5px 10px 5px 25px;border:1px solid #D5DED8;border-radius:8px;break-inside:avoid;overflow-wrap:anywhere}
+#printArea .rxm .rx-at i{position:absolute;left:10px;top:9px;width:8px;height:8px;border-radius:50%;background:#98A2A6}
 #printArea .rxm .rx-at .verm i{background:#C0392B}#printArea .rxm .rx-at .lar i{background:#E59A1F}#printArea .rxm .rx-at .ok i{background:var(--rv)}
 #printArea .rxm .rx-at>div.ok{grid-column:1/-1;border-color:#B9D9C3;background:#F1F8F3}
-#printArea .rxm .rx-at b{display:block;font-size:11px;color:#0F1A14}
-#printArea .rxm .rx-at span{display:block;font-size:10px;color:#2B3A31}
-#printArea .rxm table.rxt{width:100%;border-collapse:collapse;font-size:10.5px;color:#0F1A14}
+#printArea .rxm .rx-at b{display:block;font-size:12.25px;color:#0F1A14}
+#printArea .rxm .rx-at span{display:block;font-size:11.25px;color:#2B3A31}
+#printArea .rxm table.rxt{width:100%;border-collapse:collapse;font-size:11.75px;color:#0F1A14}
 #printArea .rxm .rxt thead{display:table-header-group}
-#printArea .rxm .rxt th{padding:4px 7px;border-bottom:1.5px solid #0F1A14;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:#3F4F45;white-space:nowrap;background:none;border-radius:0}
-#printArea .rxm .rxt td{padding:4px 7px;border-bottom:1px solid #E1E8E3;vertical-align:middle}
+#printArea .rxm .rxt th{padding:3px 7px;border-bottom:1.5px solid #0F1A14;font-size:9.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;text-align:left;color:#3F4F45;white-space:nowrap;background:none;border-radius:0}
+#printArea .rxm .rxt td{padding:3px 7px;border-bottom:1px solid #E1E8E3;vertical-align:middle}
 #printArea .rxm .rxt tr{break-inside:avoid;page-break-inside:avoid}
 #printArea .rxm .rxt .n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
 #printArea .rxm .rxt .pc{color:#5B6B61}
 #printArea .rxm .rxt .cod{width:1%;color:var(--rv);font-weight:800;white-space:nowrap}
-#printArea .rxm .rxt td small{display:block;font-family:inherit;font-size:9.5px;color:#5B6B61}
+#printArea .rxm .rxt td small{display:block;font-family:inherit;font-size:10.75px;color:#5B6B61}
 #printArea .rxm .rxt tr.t td{border-bottom:0;background:#F1F8F3;font-weight:800}
 #printArea .rxm .rxt th.rx-cb{width:30%}
 #printArea .rxm .rx-b2{display:flex;height:8px;border-radius:99px;background:var(--rl);overflow:hidden}
@@ -1424,31 +1432,31 @@ body.nao-admin [data-orc],body.nao-admin [data-area]{display:none!important}
 #printArea .rxm i.e{background:var(--rv)}#printArea .rxm i.c{background:var(--rc)}
 #printArea .rxm .rx-b1{display:block;height:7px;border-radius:99px;background:var(--rl);overflow:hidden}
 #printArea .rxm .rx-b1 i{border-radius:99px}
+#printArea .rxm .rx-bl .n,#printArea .rxm .rx-leg b,#printArea .rxm .rx-leg small,#printArea .rxm .rxt .n{text-align:right;font-variant-numeric:tabular-nums}
 #printArea .rxm .rx-et{display:flex;gap:2px;height:13px;margin-top:5px;border-radius:99px;overflow:hidden}
 #printArea .rxm .rx-et span{display:block;min-width:2px;height:100%}
 #printArea .rxm .rx-leg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 22px;margin-top:6px}
-#printArea .rxm .rx-leg>div{display:grid;grid-template-columns:10px minmax(0,1fr) auto 36px;gap:7px;align-items:center;padding:3px 0;border-bottom:1px solid #E1E8E3;break-inside:avoid}
+#printArea .rxm .rx-leg>div{display:grid;grid-template-columns:10px minmax(0,1fr) auto 36px;gap:7px;align-items:center;padding:2px 0;border-bottom:1px solid #E1E8E3;break-inside:avoid}
 #printArea .rxm .rx-leg i{width:10px;height:10px;border-radius:2px}
 #printArea .rxm .rx-leg span{overflow-wrap:anywhere}
 #printArea .rxm .rx-leg b{white-space:nowrap;font-variant-numeric:tabular-nums}
-#printArea .rxm .rx-leg small,#printArea .rxm .rx-bl small.n{text-align:right;font-size:9.5px;color:#5B6B61}
+#printArea .rxm .rx-leg small,#printArea .rxm .rx-bl small.n{text-align:right;font-size:10.75px;color:#5B6B61}
 #printArea .rxm .rx-duas{gap:26px}
-#printArea .rxm .rx-bl>div{display:grid;grid-template-columns:minmax(0,1fr) 22% auto 36px;gap:8px;align-items:center;padding:3px 0;border-bottom:1px solid #E1E8E3;break-inside:avoid}
+#printArea .rxm .rx-bl>div{display:grid;grid-template-columns:38% minmax(30px,1fr) 7.4em 3.6em;gap:6px;align-items:center;padding:2px 0;border-bottom:1px solid #E1E8E3;break-inside:avoid}
 #printArea .rxm .rx-bl span{min-width:0;overflow-wrap:anywhere}
 #printArea .rxm .rx-bl span b{display:block;font-weight:800}
 #printArea .rxm .rx-bl.cat span b{font-weight:500}
-#printArea .rxm .rx-bl span small{display:block;font-size:9px;color:#5B6B61}
+#printArea .rxm .rx-bl span small{display:block;font-size:10px;color:#5B6B61}
 #printArea .rxm .rx-bl b.n{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
-#printArea .rxm .rx-pg{display:inline-block;padding:1px 8px;border-radius:99px;font-size:9px;font-weight:800;white-space:nowrap}
+#printArea .rxm .rx-pg{display:inline-block;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:800;white-space:nowrap}
 #printArea .rxm .rx-pg.ok{background:#E3F2E7;color:#1D6B38}#printArea .rxm .rx-pg.venc{background:#FCE9E7;color:#A12A1E}#printArea .rxm .rx-pg.ab{background:#EAF0F5;color:#2F4E68}
-#printArea .rxm .rx-ass3{display:grid;grid-template-columns:1fr .75fr 1fr;gap:28px;margin-top:30px;break-inside:avoid;page-break-inside:avoid}
-#printArea .rxm .rx-ass3>div{padding-top:5px;border-top:1px solid #0F1A14;font-size:10px;color:#3F4F45}
+#printArea .rxm .rx-ass3{display:grid;grid-template-columns:1fr .75fr 1fr;gap:28px;margin-top:24px;break-inside:avoid;page-break-inside:avoid}
+/* Folha 1 alta demais (muitas obras/avisos longos): só os espaços diminuem, as letras não */
+#printArea .rxm.aperta{line-height:1.2}#printArea .rxm.aperta h2{margin-top:7px}#printArea .rxm.aperta .rx-exp{margin-bottom:1px}#printArea .rxm.aperta .rx-cab{padding-bottom:4px}#printArea .rxm.aperta .rx-faixa{margin-bottom:2mm}
+#printArea .rxm.aperta .rx-frase{margin-top:5px;padding:4px 10px}#printArea .rxm.aperta .rx-kpis{margin-top:5px}#printArea .rxm.aperta .rx-kpi{padding:4px 8px}#printArea .rxm.aperta .rx-at>div{padding-top:3px;padding-bottom:3px}#printArea .rxm.aperta .rxt td{padding-top:1px;padding-bottom:1px}
+#printArea .rxm .rx-ass3>div{padding-top:5px;border-top:1px solid #0F1A14;font-size:11.25px;color:#3F4F45}
 @media print{
   #printArea .rx-quebra{break-before:page;page-break-before:always}
-  /* Número da página nos 10 mm de baixo (longe dos ~5 mm que a impressora não imprime); o rodapé da tabela fica com o resto de --imp-base, então o texto continua a 15 mm da borda. 10mm e 15mm: os mesmos valores de cima (o @page não lê variáveis). */
-  #printArea table.rx-pag>tfoot .esp{height:calc(var(--imp-base) - 10mm)}
-  @page rx{size:A4;margin:0 0 10mm 0;@bottom-right{content:"Página " counter(page) " de " counter(pages);font:600 8.5px Arial,sans-serif;color:#3A4A40;padding-right:15mm;vertical-align:top}}
-  #printArea table.rx-pag{page:rx}
 }
 /* Tela de introdução: uma vez por sessão, por cima de tudo só enquanto anima (script logo abaixo dela) */
 #intro{position:fixed;inset:0;z-index:9999;color:#fff;display:grid;
@@ -3525,15 +3533,19 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-bkp]"); i
 
 
 /* ---------- atualização automática (ao vivo) ---------- */
-const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura={};
+const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura={}, ULT_CONF=0;
+// Idade da última conferência do formulário (B10), em segundos, contando o tempo desde a leitura.
+const idadeConf=()=>D&&D.sincronizadoHa!=null?D.sincronizadoHa+Math.round((Date.now()-LIDO)/1000):null;
 // Retrato dos dados para comparar, em três partes: custo (lançamentos), pedidos (pedidos e itens) e o resto (obras etc.).
 // Sem os horários de leitura, sem diferença entre campo vazio e ausente e sem depender da ordem das chaves.
 const canon=x=>JSON.stringify(x,(k,v)=>{ if(v==null) return undefined; if(typeof v!=="object"||Array.isArray(v)) return v; const o={}; Object.keys(v).sort().forEach(c=>o[c]=v[c]); return o; });
-const assinar=({geradoEm,sincronizadoEm,versaoPainel,lanc,terceiros,fornecedores,itens,pedidos,...resto})=>({custo:canon([lanc,terceiros||[],fornecedores||{}]),ped:canon([itens,pedidos]),resto:canon(resto)});
+const assinar=({geradoEm,sincronizadoEm,sincronizadoHa,versaoPainel,lanc,terceiros,fornecedores,itens,pedidos,...resto})=>({custo:canon([lanc,terceiros||[],fornecedores||{}]),ped:canon([itens,pedidos]),resto:canon(resto)});
 function textoAtualizado(){
   const seg=Math.round((Date.now()-LIDO)/1000);
-  const lido=seg<10?"agora":seg<60?"há "+seg+" s":"há "+Math.round(seg/60)+" min";
-  $("updated").textContent=(D.sincronizadoEm?"Formulário sincronizado às "+D.sincronizadoEm.slice(-5)+" · ":"")+"lido "+lido;
+  const lido=seg<60?"há "+seg+" s":"há "+Math.round(seg/60)+" min", idade=idadeConf(), hora=D.sincronizadoEm?D.sincronizadoEm.slice(-5):"";
+  const atraso=!!hora&&idade!=null&&idade>600; // mais de 10 min sem conferência: aviso em laranja
+  $("updated").classList.toggle("atraso",atraso);
+  $("updated").textContent=atraso?"Formulário sem conferência desde "+hora:(hora?"Formulário conferido às "+hora+" · ":"")+"lido "+lido;
   $("updated").title=D.sincronizadoEm?"Última verificação do formulário: "+D.sincronizadoEm:"";
 }
 // Só não atualiza com a lista de obra/material aberta ou com o calendário em uso; na busca, o cursor é mantido.
@@ -3543,11 +3555,13 @@ function atualizarAgora(manual){
   if(buscando||!(window.google&&google.script&&google.script.run)) return;
   if(!manual&&(document.hidden||listaAberta())) return;
   buscando=true; $("live").classList.remove("off");
-  buscarDados(TOKEN).then(d=>{buscando=false;
+  // Última conferência com mais de 1 minuto: o servidor roda a rotina do acionador (no máximo 1 vez por minuto por painel).
+  const conferir=Date.now()-ULT_CONF>=60000&&(idadeConf()||0)>60; if(conferir) ULT_CONF=Date.now();
+  buscarDados(TOKEN,false,conferir).then(d=>{buscando=false;
       if(!d||d.acesso===false){ if(d&&d.motivo==="ERRO") return; esquecerCodigo(); telaAcesso(motivoTxt(d&&d.motivo)); return; }
       avisarVersao(d);
       const nova=assinar(d), mudouCusto=nova.custo!==assinatura.custo, mudouPed=nova.ped!==assinatura.ped, mudouResto=nova.resto!==assinatura.resto;
-      if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
+      if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.sincronizadoHa=d.sincronizadoHa; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
       const n=mudouCusto||mudouPed?novidades(fotoVivo(D),fotoVivo(d)):null;
       manterRolagem(()=>{ carregar(d);
       if(manual||mudouCusto) renderMantendo(n,manual); // custo mudou: transição do valor antigo ao novo; botão Atualizar: redesenha tudo do zero
@@ -3664,7 +3678,7 @@ function chamarApi(corpo,funcao,args){
     .then(r=>{clearTimeout(t); if(!r.ok) throw new Error("HTTP "+r.status); return r.json();})
     .catch(e=>{clearTimeout(t); console.warn("Canal direto falhou, usando reserva:",e); return viaScript();});
 }
-const buscarDados = (token,semSinc) => semSinc?chamarApi({token,semSinc:true},"getDadosPainel",[token,true]):chamarApi({token},"getDadosPainel",[token]);
+const buscarDados = (token,semSinc,conferir) => semSinc?chamarApi({token,semSinc:true},"getDadosPainel",[token,true]):conferir?chamarApi({token,conferir:true},"getDadosPainel",[token,false,true]):chamarApi({token},"getDadosPainel",[token]);
 /* Promessa com prazo: se o Google não responder em ms, falha (quem chamou decide se tenta de novo). */
 const comLimite = (pr,ms) => new Promise((ok,erro)=>{ const t=setTimeout(()=>erro(new Error("O Google não respondeu a tempo.")),ms); pr.then(r=>{clearTimeout(t);ok(r)},e=>{clearTimeout(t);erro(e)}); });
 const buscarEntregas = pedido => chamarApi({token:TOKEN,acao:"entregas",pedido},"getEntregasPedido",[TOKEN,pedido]);
@@ -3686,12 +3700,12 @@ function abrirJanelaImpressao(html){
   const w=window.open("","_blank"); if(!w) return falhou();
   const css=[...document.querySelectorAll("style")].map(s=>s.textContent).join("\n"), fontes=document.querySelector('link[rel="stylesheet"]');
   const extra=`html,body{background:#fff!important;color:#0F1A14!important}
-#printArea{display:block;width:210mm;margin:64px auto 0;font:500 10.5px/1.4 var(--f-ui);color:#0F1A14;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+#printArea{display:block;width:210mm;margin:64px auto 0;font:500 11.75px/1.4 var(--f-ui);color:#0F1A14;-webkit-print-color-adjust:exact;print-color-adjust:exact}
 .imp-barra{position:fixed;top:0;left:0;right:0;z-index:10;display:flex;justify-content:flex-end;gap:10px;padding:10px 12px;background:#fff;border-bottom:1px solid #cfd8d2}
 .imp-barra button{padding:9px 18px;border:1px solid #cfd8d2;border-radius:10px;background:#fff;color:#111;font:700 15px var(--f-ui);cursor:pointer}
 .imp-barra .imp-ok{background:#00632B;border-color:#00632B;color:#fff}
 @media print{.imp-barra{display:none!important}#printArea{width:auto;margin:0;zoom:1!important}}`;
-  const aoCarregar="var a=document.getElementById('printArea');function z(){a.style.zoom=Math.min(1,innerWidth/794)}z();addEventListener('resize',z);(document.fonts&&document.fonts.ready||Promise.resolve()).then(function(){setTimeout(function(){window.print()},300)})";
+  const aoCarregar="var a=document.getElementById('printArea');function z(){a.style.zoom=Math.min(1,innerWidth/794)}z();addEventListener('resize',z);addEventListener('beforeprint',function(){a.style.zoom=''});addEventListener('afterprint',z);(document.fonts&&document.fonts.ready||Promise.resolve()).then(function(){setTimeout(function(){window.print()},300)})";
   try{
     w.document.open();
     w.document.write(`<!doctype html><html lang="pt-BR" data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Zayda Construtora | Impressão</title>${fontes?`<link rel="stylesheet" href="${esc(fontes.href)}">`:""}<style>${css}${extra}</style></head><body onload="${aoCarregar}"><div class="imp-barra"><button type="button" class="imp-ok" onclick="window.print()">Imprimir</button><button type="button" onclick="window.close()">Fechar</button></div><div id="printArea">${html}</div></body></html>`);
@@ -3731,17 +3745,16 @@ async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao
   gerandoPdf=true; aviso("Gerando PDF…");
   const el=$("printArea");
   // o html2canvas desenha em dobro as bordas de tabela coladas: o ajuste vale já para o cálculo dos cortes
-  const ajuste=document.createElement("style"); ajuste.textContent="#printArea .tb{border-top:1px solid #B9CCBF;border-left:1px solid #B9CCBF}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}#printArea .esp .rod{visibility:hidden}";
+  const ajuste=document.createElement("style"); ajuste.textContent="#printArea .tb{border-top:1px solid #B9CCBF;border-left:1px solid #B9CCBF}#printArea .tb th,#printArea .tb td{border-width:0 1px 1px 0!important}#printArea *{font-variant-numeric:normal!important}"; // números de largura fixa: o html2canvas desenha com espaços no meio ("13,4 %"), então no PDF ficam normais
   try{
     await carregarLibsPdf();
     el.innerHTML=html;
-    el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;background:#fff;font:500 10.5px/1.4 var(--f-ui);color:#0F1A14";
+    el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;background:#fff;font:500 11.75px/1.4 var(--f-ui);color:#0F1A14";
     document.head.appendChild(ajuste);
     await Promise.all([...el.querySelectorAll("img")].map(i=>i.complete?1:new Promise(r=>{i.onload=i.onerror=r})));
     if(document.fonts) await document.fonts.ready;
     await new Promise(r=>requestAnimationFrame(()=>r()));
-    const cortes=cortesPdf(el), rod=el.querySelector(".esp .rod"), rodS=rod?[...rod.children]:[], comPag=!!(rod&&rod.dataset.pag);
-    const rodE=rodS.length>1?rodS[0].textContent.trim():"", rodD=rodS.length>1?rodS[1].textContent.trim():rod?rod.textContent.trim():"";
+    const cortes=cortesPdf(el);
     const pdf=new jspdf.jsPDF({unit:"mm",format:"a4",orientation:"portrait"}), mm=210/794;
     for(let i=0;i<cortes.length;i++){
       const [a,b]=cortes[i], alt=b-a;
@@ -3754,8 +3767,6 @@ async function gerarPdf(html,nome,op){ // op.destino(dados): em vez de mandar ao
       let img=tela.toDataURL("image/png"), tipo="PNG";
       if(op&&op.leve){ img=tela.toDataURL("image/jpeg",.9); tipo="JPEG"; } else if(img.length*.75>3e6){ img=tela.toDataURL("image/jpeg",.97); tipo="JPEG"; } // página pesada demais em PNG
       pdf.addImage(img,tipo,0,i?MARG_PDF.topo:0,210,alt*mm,undefined,"FAST");
-      const esq=rodE+(comPag?(rodE?" · ":"")+"Página "+(i+1)+" de "+cortes.length:"");
-      if(esq||rodD){ pdf.setFont("helvetica","normal"); let fz=7; pdf.setFontSize(fz); while(fz>5&&pdf.getTextWidth(esq+"    "+rodD)>210-2*MARG_PDF.lado){ fz-=.25; pdf.setFontSize(fz); } pdf.setTextColor(58,74,64); if(esq) pdf.text(esq,MARG_PDF.lado,288); if(rodD) pdf.text(rodD,210-MARG_PDF.lado,288,{align:"right"}); } // a 9 mm da borda: dentro da área que a impressora imprime
       tela.width=tela.height=0;
     }
     const dados=pdf.output("arraybuffer");
@@ -3771,15 +3782,14 @@ function imprimirPedido(id){
 function folhaPedido(id,its){
   const P=(D.pedidos||{})[id]||{}, f=its[0], o=D.obras.find(x=>x.id===f.obra);
   const logo=document.querySelector(".logo img").src;
-  const agora=new Date(), hj=pad(agora.getDate())+"/"+pad(agora.getMonth()+1)+"/"+agora.getFullYear()+" às "+pad(agora.getHours())+":"+pad(agora.getMinutes());
   const dh=t=>t?dbr(t.slice(0,10))+(t.length>=16?" "+t.slice(11,16):""):"—";
   const sal=i=>"saldoReal" in i?i.saldoReal:i.saldo, fe=P.cancelamento; // encerrado: mostra o que faltou de verdade
   const valor=sum(its,i=>i.valorRef), entV=sum(its,i=>i.precoRef==null?0:Math.min(i.entregue,i.qtdSol)*i.precoRef), faltaV=sum(its,i=>i.precoRef==null?0:Math.max(sal(i),0)*i.precoRef);
   const obraTxt=f.obra==="SEM VÍNCULO"?"Obra não reconhecida":`<small>${esc(f.obra)}</small>${esc(obraNome(f.obra))}`;
-  // Tabela externa: o cabeçalho e o rodapé vazios se repetem em cada folha e fazem a margem de cima e de baixo.
+  // Tabela externa: o cabeçalho e o rodapé vazios se repetem em cada folha e fazem a margem de cima e de baixo (sem texto no rodapé).
   // Com a margem da página zerada, o navegador não imprime data, título e endereço do site.
-  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${hj}</span></div></div></td></tr></tfoot><tbody><tr><td>
-  <div class="ph"><img src="${logo}" alt="Zayda Construtora"><div class="t"><h1>SOLICITAÇÃO DE MATERIAIS</h1>${fe?`<div class="marca">${fe.tipo==="ENCERRADO"?"ENCERRADO":"CANCELADO"}</div>`:""}<div class="id">${esc(id)}</div><div class="muted">Revisão ${esc(P.rev||f.rev)} · pedido feito em ${dh(P.criado||f.data)}${P.atualizado&&P.atualizado!==P.criado?" · alterado em "+dh(P.atualizado):""}</div></div></div>
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td>
+  <div class="ph"><img src="${logo}" alt="Zayda Construtora"><div class="t"><h1>SOLICITAÇÃO DE MATERIAIS</h1>${fe?`<div class="marca">${fe.tipo==="ENCERRADO"?"ENCERRADO":"CANCELADO"}</div>`:""}<div class="id">${esc(id)}</div><div class="muted">Revisão ${esc(P.rev||f.rev)} · pedido feito em ${dh(P.criado||f.data)}${P.atualizado&&P.atualizado!==P.criado?" · alterado em "+dh(P.atualizado):""}</div><div class="emi">${rxEmitido()}</div></div></div>
   <dl class="blk">
     <div class="w2"><dt>OBRA</dt><dd>${obraTxt}</dd></div><div><dt>CLIENTE</dt><dd>${esc(o&&o.cliente||"—")}</dd></div>
     <div class="w2"><dt>ENDEREÇO DE ENTREGA (COMO FOI DIGITADO)</dt><dd>${esc(P.endereco||"—")}${P.casa?" · "+esc(P.casa):""}</dd></div><div><dt>SITUAÇÃO</dt><dd>${fe?(fe.tipo==="ENCERRADO"?"Encerrado":"Cancelado"):faltaV>0||its.some(i=>sal(i)>0)?(entV>0?"Entrega parcial":"Aguardando entrega"):"Tudo entregue"}</dd></div>
@@ -3815,7 +3825,7 @@ function relTabela(cols,linhas,total){
   const n=cols.map(c=>Array.isArray(c)&&c[1]==="n"), tit=cols.map(c=>Array.isArray(c)?c[0]:c), lin=(cel,cl)=>`<tr${cl?` class="${cl}"`:""}>${cel.map((c,i)=>`<td${n[i]?' class="n"':""}>${c}</td>`).join("")}</tr>`;
   return `<table class="tb"><thead><tr>${tit.map((c,i)=>`<th${n[i]?' class="n"':""}>${c}</th>`).join("")}</tr></thead><tbody>${linhas.map(c=>lin(c)).join("")}${total?lin(total,"t"):""}</tbody></table>`;
 }
-const relCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}<div class="muted">Emitido em ${relAgora()}</div></div></div>`;
+const relCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}<div class="emi">${rxEmitido()}</div></div></div>`;
 const relFolha = corpo => `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel">${corpo}<div class="emit">Emitido por: ______________________</div></div></td></tr></tbody></table>`;
 const relVazio = t => `<p class="av">${t}</p>`;
 function relCategorias(conf,total,rotulo){
@@ -3832,22 +3842,39 @@ const rxNome = e => { const m=String(e||"").trim().toLowerCase(); if(!m) return 
 const rxEmissor = () => D&&D.eu?(D.eu.nome||D.eu.usuario||""):"";
 const rxSec = (titulo,exp,corpo) => `<section class="rx-sec"><h2>${titulo}</h2>${exp?`<p class="rx-exp">${exp}</p>`:""}${corpo}</section>`;
 const rxKpi = (t,v,sub,cl) => `<div class="rx-kpi${cl?" "+cl:""}"><span>${t}</span><b>${v}</b>${sub?`<small>${sub}</small>`:""}</div>`;
-const rxCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}</div></div>`;
-/* Folha A4 com rodapé em todas as páginas: nome do documento, página (PDF e navegadores que aceitam) e quem emitiu.
-   dir: texto da direita do rodapé (relatório mensal: quem emitiu fica à esquerda). */
-function rxFolha(corpo,doc,dir){ const emit="Emitido por "+esc(rxEmissor()||"—")+" em "+relAgora();
-  return `<table class="folha rx-pag"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod" data-pag="1">${dir?`<span>${emit.replace(/ (\d\d:\d\d)$/," às $1")}</span><span>${dir}</span>`:`<span>Zayda Construtora · ${doc}</span><span>${emit}</span>`}</div></div></td></tr></tfoot><tbody><tr><td><div class="rel rx">${corpo}</div></td></tr></tbody></table>`; }
+const rxCab = (titulo,linhas) => `<div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>${titulo}</h1>${linhas.map((l,i)=>`<div class="${i?"muted":"id"}">${l}</div>`).join("")}<div class="emi">${rxEmitido()}</div></div></div>`;
+/* "Emitido por <nome> em dd/mm/aaaa às hh:mm": vai no cabeçalho de todas as folhas (não há rodapé). */
+const rxEmitido = () => "Emitido por "+esc(rxEmissor()||"—")+" em "+relAgora().replace(" "," às ");
+/* Folha A4: cabeçalho e rodapé vazios fazem as margens de cima e de baixo em todas as páginas. */
+function rxFolha(corpo){
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel rx">${corpo}</div></td></tr></tbody></table>`; }
 const RX_SIT={DENTRO:"Dentro",RISCO:"Atenção",FORA:"Estourado"};
 const RX_REGRA="Custo confirmado = material entregue × preço do pedido + outros fornecedores conferidos";
 const rxDm = s => s ? s.slice(8,10)+"/"+s.slice(5,7) : "—"; // dd/mm
 const rxMix = t => { const a=[0x14,0x4D,0x2A], b=[0xCF,0xEA,0xD7]; return "#"+a.map((x,i)=>Math.round(x+(b[i]-x)*t).toString(16).padStart(2,"0")).join(""); }; // verde escuro (0) → claro (1)
-const rxB1 = (v,max,claro) => `<span class="rx-b1"><i class="${claro?"c":"e"}" style="width:${max?Math.max(0,Math.min(100,v/max*100)).toFixed(1):0}%"></i></span>`;
+const rxB1 = (v,max,claro) => `<span class="rx-b1"><i class="${claro?"c":"e"}" style="width:${max?Math.max(0,Math.min(100,v/max*100)).toFixed(1):0}%${v>0?";min-width:3px":""}"></i></span>`;
 const rxS = (titulo,exp,corpo,inteira) => `<section class="rx-sec${inteira?" rx-int":""}"><h2>${titulo}</h2>${exp?`<p class="rx-exp">${exp}</p>`:""}${corpo}</section>`; // inteira: não quebra no meio
-const rxCabM = (k,parte,ini,fim) => `<div class="rx-cab"><div class="rx-faixa"></div><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><div class="rx-kick">Fechamento do mês · ${parte}</div><h1>${MESES_LONGO[+k.slice(5,7)-1]} de ${k.slice(0,4)}</h1><div class="rx-per">${rxDm(ini)} a ${dbr(fim)} · todas as obras</div></div></div>`;
+const rxCabM = (k,parte,ini,fim) => `<div class="rx-cab"><div class="rx-faixa"></div><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><div class="rx-kick">Fechamento do mês · ${parte}</div><h1>${MESES_LONGO[+k.slice(5,7)-1]} de ${k.slice(0,4)}</h1><div class="rx-per">${rxDm(ini)} a ${dbr(fim)} · todas as obras</div><div class="emi">${rxEmitido()}</div></div></div>`;
+/* % do relatório mensal: sempre 1 casa, sem espaço antes do % ("19,1%", "2,0%"). */
+const rxPc = (v,t) => (t?Math.round(v/t*1000)/10:0).toFixed(1).replace(".",",")+"%";
+/* Nome em minúsculas com a primeira letra de cada nome maiúscula ("da", "de", "dos", "e" ficam minúsculos). */
+const rxNomeProprio = s => String(s||"").toLowerCase().replace(/(^|[\s/(.-])(\p{L})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/ (Da|De|Do|Das|Dos|E) /g,m=>m.toLowerCase());
+/* Nome curto da obra para o relatório: "Sta. Cecília · Casa 02", "Arnobio Chagas · Lote 69"; sem casa/lote, os 2 primeiros trechos do endereço. */
+function rxObraCurta(id){ const e=obraNome(id); if(!e||e===id) return id;
+  const p=e.split(/,| - /).map(x=>x.trim()).filter(Boolean), cs=e.match(/\bCasa\s*[\w-]+/i), lt=e.match(/\bLote\s*[\w-]+/i);
+  const rua=p[0].replace(/^(Rua|R\.)\s+/i,"").replace(/^Avenida\s+/i,"Av. ").replace(/^Santa\s+/i,"Sta. ").replace(/^Santo\s+/i,"Sto. ");
+  if(cs||lt) return /^lote\b/i.test(p[0])?(cs||lt)[0]:rua+" · "+(cs||lt)[0];
+  return p.slice(0,2).join(", "); }
+/* Altura da folha 1 do fechamento (até a quebra antes de "Detalhes"), medida numa folha A4 fora da tela. */
+const RX_LIM1=Math.floor(794*(297-15)/210)-2; // px: altura A4 menos a margem de baixo (a de cima já está na folha)
+function rxAltFolha1(html){ const el=$("printArea"); if(!el||gerandoPdf) return 0;
+  const st=el.style.cssText, antes=el.innerHTML; el.style.cssText="display:block;position:fixed;left:-10000px;top:0;width:794px;font:500 11.75px/1.4 var(--f-ui)"; el.innerHTML=html;
+  const q=el.querySelector(".rx-quebra"), a=q?q.getBoundingClientRect().top-el.getBoundingClientRect().top:0;
+  el.innerHTML=antes; el.style.cssText=st; return a; }
 /* Lista com barra (quem recebeu, o que foi comprado): até 10 linhas, o resto vira "Demais (N)". Barra proporcional ao maior; clara = outro fornecedor. */
 function rxLst2(itens,total,cl){ const top=itens.length>10?itens.slice(0,9):itens, resto=itens.slice(top.length);
   const l=top.concat(resto.length?[{k:"Demais ("+resto.length+")",v:sum(resto,x=>x.v),claro:resto.every(x=>x.claro)}]:[]), max=Math.max(0,...l.map(x=>x.v));
-  return `<div class="rx-bl ${cl}">${l.map(x=>`<div><span><b>${esc(x.k)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:""}</span>${rxB1(x.v,max,x.claro)}<b class="n">${brl(x.v)}</b><small class="n">${relPct(x.v,total)}</small></div>`).join("")}</div>`; }
+  return `<div class="rx-bl ${cl}">${l.map(x=>`<div><span><b>${esc(x.k)}</b>${x.sub?`<small>${esc(x.sub)}</small>`:""}</span>${rxB1(x.v,max,x.claro)}<b class="n">${brl(x.v)}</b><small class="n">${rxPc(x.v,total)}</small></div>`).join("")}</div>`; }
 /* Relatório mensal (impresso e PDF do fechamento): página 1 = resumo; página 2 = detalhes, sempre em folha nova.
    Números de sempre (relDados, custoPorEtapa, ordemEtapas, fornCusto, terTodos, terPag, orcObras); só a apresentação mudou. Seções vazias não aparecem. */
 function folhaRelMes(k){
@@ -3859,8 +3886,8 @@ function folhaRelMes(k){
   const ob=id=>id&&id!=="SEM VÍNCULO"?id:"sem obra";
   // ---- Em uma frase ----
   const mes=MESES_LONGO[+k.slice(5,7)-1].toLowerCase(), topo=reais[0];
-  const frase=d.custo>0?`Em ${mes} as obras custaram <b>${brl(d.custo)}</b>: ${relPct(d.custoBsj,d.custo)} em materiais da loja BSJ e ${relPct(d.custoTer,d.custo)} em outros fornecedores.${topo?` A obra que mais gastou foi a <b>${esc(topo.id)}</b> (${relPct(topo.v,d.custo)}).`:""}`:`Em ${mes} não houve custo confirmado.`;
-  const kpis=`<div class="rx-kpis">${rxKpi("Custo confirmado",brl(d.custo),d.nBsj+(d.nBsj===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros fornecedores":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),relPct(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),relPct(d.custoTer,d.custo)+(terAgV?" · "+brl(terAgV)+" a conferir":d.nTer?" · todos conferidos":""))}${rxKpi("Pedidos feitos no mês",brl(d.ref),brl(faltaRef)+" ainda a entregar")}</div>`;
+  const frase=d.custo>0?`Em ${mes} as obras custaram <b>${brl(d.custo)}</b>: ${rxPc(d.custoBsj,d.custo)} em materiais da loja BSJ e ${rxPc(d.custoTer,d.custo)} em outros fornecedores.${topo?` A obra que mais gastou foi a <b>${esc(topo.id)}</b> (${rxPc(topo.v,d.custo)}).`:""}`:`Em ${mes} não houve custo confirmado.`;
+  const kpis=`<div class="rx-kpis">${rxKpi("Custo confirmado",brl(d.custo),d.nBsj+(d.nBsj===1?" entrega":" entregas")+" da loja"+(d.nTer?" + "+d.nTer+(d.nTer===1?" compra":" compras")+" de outros fornecedores":""),"pri")}${rxKpi("Loja BSJ",brl(d.custoBsj),rxPc(d.custoBsj,d.custo)+" do custo")}${rxKpi("Outros fornecedores",brl(d.custoTer),rxPc(d.custoTer,d.custo)+(terAgV?" · "+brl(terAgV)+" a conferir":d.nTer?" · todos conferidos":""))}${rxKpi("Pedidos feitos no mês",brl(d.ref),brl(faltaRef)+" ainda a entregar")}</div><p class="rx-ajuda">${RX_REGRA}</p>`;
   // ---- Precisa de atenção (só o que tem conteúdo) ----
   const at=[];
   const venc=terTodos().filter(t=>t.conferencia!=="CANCELADO"&&noMes(t)&&terPag(t).temVenc).map(t=>({t,ps:(t.parcelas||[]).filter(p=>!p.pago&&p.vencimento&&p.vencimento<hoje)}));
@@ -3868,24 +3895,28 @@ function folhaRelMes(k){
   if(nV){ const x=venc[0], lin1=esc(x.t.fornecedor)+" · "+esc(ob(x.t.obra));
     at.push(["verm",nV===1?"1 parcela vencida":nV+" parcelas vencidas",nV===1?[lin1,brl(vV)+" · venceu "+rxDm(x.ps[0].vencimento)]:[lin1+(venc.length>1?" e mais "+(venc.length-1):""),"Total vencido: "+brl(vV)]]); }
   const saldo=d.I.filter(i=>i.saldo>0);
-  if(saldo.length) at.push(["lar",saldo.length===1?"1 material não chegou":saldo.length+" materiais não chegaram",saldo.slice(0,2).map(i=>esc(i.material)+" ("+esc(ob(i.obra))+")").concat(saldo.length>2?["e mais "+(saldo.length-2)]:[])]);
+  if(saldo.length) at.push(["lar",saldo.length===1?"1 material não chegou":saldo.length+" materiais não chegaram",saldo.slice(0,2).map(i=>esc(i.material)+" ("+esc(ob(i.obra))+")").concat(saldo.length>2?["e mais "+(saldo.length-2)]:[]),"rx-1l"]);
   const nSemOrc=reais.filter(o=>!temOrc(o.id)).length, nSemObra=uniq(d.I.filter(i=>i.obra==="SEM VÍNCULO").map(i=>i.pedido)).length, nSemCusto=d.L.filter(l=>l.situacao==="PENDENTE DE CUSTO").length;
   const cz=[nSemOrc?["Sem orçamento",(nSemOrc===1?"1 obra sem orçamento cadastrado":nSemOrc+" obras sem orçamento cadastrado")+": ainda não dá para comparar"]:null,
     nSemObra?["Pedido sem obra",nSemObra===1?"1 pedido sem obra reconhecida":nSemObra+" pedidos sem obra reconhecida"]:null,
     nSemCusto?["Entrega sem valor",nSemCusto===1?"1 entrega sem valor":nSemCusto+" entregas sem valor"]:null].filter(Boolean);
   if(cz.length) at.push(["cin",cz.length===1?cz[0][0]:"Para conferir",cz.map(c=>c[1])]);
-  const atHtml=`<div class="rx-at">${(at.length?at:[["ok","Nada pendente neste mês",[]]]).map(([c,t,l])=>`<div class="${c}"><i></i><b>${t}</b>${l.map(x=>`<span>${x}</span>`).join("")}</div>`).join("")}</div>`;
+  const atHtml=`<div class="rx-at">${(at.length?at:[["ok","Nada pendente neste mês",[]]]).map(([c,t,l,u])=>`<div class="${c}"><i></i><b>${t}</b>${l.map(x=>`<span${u?` class="${u}"`:""}>${x}</span>`).join("")}</div>`).join("")}</div>`;
   // ---- Quanto cada obra custou: barra escura = loja BSJ, clara = outros; a maior obra ocupa a barra inteira ----
-  const maxO=obras.length?obras[0].v:0, pw=v=>maxO?Math.max(0,Math.min(100,v/maxO*100)).toFixed(1):0;
   const cli=id=>{ const o=D.obras.find(x=>x.id===id); return o&&(o.cliente||o.empreendimento)||""; };
-  const tabObras=`<table class="rxt"><thead><tr><th>Obra</th><th></th><th class="rx-cb">Loja BSJ × outros</th><th class="n">Custo no mês</th><th class="n">% do mês</th>${comOrc?`<th class="n">Orçamento</th><th>Situação</th>`:""}</tr></thead><tbody>${obras.map(o=>{ const sv=o.id==="SEM VÍNCULO", x=orc[o.id], tem=!sv&&temOrc(o.id);
-    return `<tr><td class="cod">${sv?"—":esc(o.id)}</td><td><b>${esc(obraNome(o.id))}</b>${!sv&&cli(o.id)?`<small>${esc(cli(o.id))}</small>`:""}</td><td><span class="rx-b2"><i class="e" style="width:${pw(o.bsj)}%"></i><i class="c" style="width:${pw(o.v-o.bsj)}%"></i></span></td><td class="n"><b>${brl(o.v)}</b></td><td class="n pc">${relPct(o.v,d.custo)}</td>${comOrc?`<td class="n">${tem?brl(x.orc):"—"}</td><td>${tem?`<span class="rx-sit ${x.sit.toLowerCase()}">${RX_SIT[x.sit]||ORC_SIT[x.sit].t}</span>`:"—"}</td>`:""}</tr>`; }).join("")}<tr class="t"><td colspan="3">Total${reais.length?" · "+reais.length+(reais.length===1?" obra":" obras"):""}</td><td class="n">${brl(d.custo)}</td><td class="n">${relPct(d.custo,d.custo)}</td>${comOrc?"<td></td><td></td>":""}</tr></tbody></table>`;
+  // Mais de 12 obras: as 11 maiores e "Demais obras (N)" com a soma. Cada obra em 2 linhas (nome curto e cliente), cortadas com reticências.
+  const linhasOb=obras.length>12?obras.slice(0,11).concat([{id:"",demais:obras.length-11,v:sum(obras.slice(11),o=>o.v),bsj:sum(obras.slice(11),o=>o.bsj)}]):obras;
+  const maxO=Math.max(0,...linhasOb.map(o=>o.v)), pw=v=>maxO?Math.max(0,Math.min(100,v/maxO*100)).toFixed(1):0; // a maior linha ocupa a barra inteira
+  const larg=comOrc?[8,27,16,15,10,14,10]:[8,35,25,18,14]; // % da largura de cada coluna (tabela de largura fixa)
+  const tabObras=`<table class="rxt fx"><thead><tr>${["Obra","","Loja BSJ × outros",["Custo no mês","n"],["% do mês","n"]].concat(comOrc?[["Orçamento","n"],"Situação"]:[]).map((c,i)=>`<th${Array.isArray(c)?' class="n"':""} style="width:${larg[i]}%">${Array.isArray(c)?c[0]:c}</th>`).join("")}</tr></thead><tbody>${linhasOb.map(o=>{ const sv=o.id==="SEM VÍNCULO", x=orc[o.id], tem=!sv&&!o.demais&&temOrc(o.id);
+    const nome=o.demais?"Demais obras ("+o.demais+")":sv?obraNome(o.id):rxObraCurta(o.id), cl=!sv&&!o.demais?rxNomeProprio(cli(o.id)):"";
+    return `<tr><td class="cod">${sv||o.demais?"—":esc(o.id)}</td><td><b class="rx-1l">${esc(nome)}</b>${cl?`<small class="rx-1l">${esc(cl)}</small>`:""}</td><td><span class="rx-b2"><i class="e" style="width:${pw(o.bsj)}%"></i><i class="c" style="width:${pw(o.v-o.bsj)}%"></i></span></td><td class="n"><b>${brl(o.v)}</b></td><td class="n pc">${rxPc(o.v,d.custo)}</td>${comOrc?`<td class="n">${tem?brl(x.orc):"—"}</td><td>${tem?`<span class="rx-sit ${x.sit.toLowerCase()}">${RX_SIT[x.sit]||ORC_SIT[x.sit].t}</span>`:"—"}</td>`:""}</tr>`; }).join("")}<tr class="t"><td colspan="3">Total${reais.length?" · "+reais.length+(reais.length===1?" obra":" obras"):""}</td><td class="n">${brl(d.custo)}</td><td class="n">100%</td>${comOrc?"<td></td><td></td>":""}</tr></tbody></table>`;
   // ---- Em que etapa foi gasto: faixa única, verde do escuro ao claro na ordem das etapas; sem etapa em cinza ----
   const eg=custoPorEtapa(d.conf), eks=ordemEtapas(Object.keys(eg)).filter(x=>eg[x]), nCor=eks.filter(x=>x!==ET_SEM).length; let ci=0;
   const etapas=eks.map(x=>({k:nomeEtapa(x),v:eg[x],cor:x===ET_SEM?"#B7BEC2":rxMix(nCor>1?(ci++)/(nCor-1)*.9:.1)}));
-  const etHtml=`<div class="rx-et">${etapas.map(e=>`<span style="flex:${e.v};background:${e.cor}"></span>`).join("")}</div><div class="rx-leg">${etapas.map(e=>`<div><i style="background:${e.cor}"></i><span>${esc(e.k)}</span><b>${brl(e.v)}</b><small>${relPct(e.v,d.custo)}</small></div>`).join("")}</div>`;
+  const etHtml=`<div class="rx-et">${etapas.map(e=>`<span style="flex:${e.v};background:${e.cor}"></span>`).join("")}</div><div class="rx-leg">${etapas.map(e=>`<div><i style="background:${e.cor}"></i><span>${esc(e.k)}</span><b>${brl(e.v)}</b><small>${rxPc(e.v,d.custo)}</small></div>`).join("")}</div>`;
   const p1=rxCabM(k,"Resumo",ini,fim)+`<div class="rx-frase"><b>Em uma frase:</b> ${frase}</div>`+kpis+rxS("Precisa de atenção","",atHtml,1)+
-    (obras.length?rxS("Quanto cada obra custou","Barra escura = materiais da loja BSJ · barra clara = outros fornecedores. Ordem: da obra que mais gastou para a que menos gastou.",tabObras,obras.length<=12):"")+
+    (obras.length?rxS("Quanto cada obra custou","Barra escura = materiais da loja BSJ · barra clara = outros fornecedores. Ordem: da obra que mais gastou para a que menos gastou.",tabObras,1):"")+
     (etapas.length?rxS("Em que etapa foi gasto","Cada cor é uma etapa da obra; o tamanho mostra quanto ela pesou no mês.",etHtml,1):"");
   // ---- Página 2: detalhes ----
   const forns=fornCusto(d.conf).filter(f=>f.v>0).map(f=>({k:f.nome,v:f.v,claro:!f.bsj,sub:[f.tipo,f.n+" "+(f.bsj?(f.n===1?"entrega":"entregas"):(f.n===1?"compra":"compras"))].filter(Boolean).join(" · ")}));
@@ -3899,13 +3930,15 @@ function folhaRelMes(k){
     const q=pagas+" de "+ps.length+(ps.length===1?" paga":" pagas"), vc=ab.filter(x=>x.vencimento&&x.vencimento<hoje);
     if(vc.length) return `<span class="rx-pg venc">${q} · ${brl(p.vencido)} ${vc.length===1?"vencida em":"vencidas desde"} ${rxDm(vc[0].vencimento)}</span>`;
     return `<span class="rx-pg ab">${q}${ab[0]&&ab[0].vencimento?" · próxima "+rxDm(ab[0].vencimento):""}</span>`; };
-  const tabMats=`<table class="rxt"><thead><tr><th>#</th><th>Material</th><th class="n">Qtd.</th><th class="n">Custo</th><th class="n">% do mês</th></tr></thead><tbody>${mats.map((m,i)=>`<tr><td class="pc">${i+1}</td><td>${esc(m.ter?String(m.mat).replace(TER_ETQ," (outro fornecedor)"):m.mat)}</td><td class="n">${m.ter?"—":qtd(m.q)+" "+esc(m.un)}</td><td class="n"><b>${brl(m.v)}</b></td><td class="n pc">${relPct(m.v,d.custo)}</td></tr>`).join("")}</tbody></table>`;
+  const tabMats=`<table class="rxt"><thead><tr><th>#</th><th>Material</th><th class="n">Qtd.</th><th class="n">Custo</th><th class="n">% do mês</th></tr></thead><tbody>${mats.map((m,i)=>`<tr><td class="pc">${i+1}</td><td>${esc(m.ter?String(m.mat).replace(TER_ETQ," (outro fornecedor)"):m.mat)}</td><td class="n">${m.ter?"—":qtd(m.q)+" "+esc(m.un)}</td><td class="n"><b>${brl(m.v)}</b></td><td class="n pc">${rxPc(m.v,d.custo)}</td></tr>`).join("")}</tbody></table>`;
   const tabTer=`<table class="rxt"><thead><tr><th>Data</th><th>Obra</th><th>Fornecedor / o que foi</th><th class="n">Valor</th><th>Pagamento</th></tr></thead><tbody>${ter.map(t=>`<tr><td>${rxDm(t.dataRef)}</td><td class="cod">${t.obra&&t.obra!=="SEM VÍNCULO"?esc(t.obra):"—"}</td><td>${esc(t.fornecedor)}${t.descricao?`<small>${esc(t.descricao)}</small>`:""}</td><td class="n"><b>${brl(t.valor)}</b></td><td>${selo(t)}</td></tr>`).join("")}<tr class="t"><td colspan="3">Total · ${ter.length} ${ter.length===1?"compra":"compras"}</td><td class="n">${brl(sum(ter,t=>t.valor))}</td><td></td></tr></tbody></table>`;
   const det=(forns.length||cats.length?`<div class="rx-duas">${forns.length?`<div>${rxS("Quem recebeu","Custo do mês por fornecedor.",rxLst2(forns,d.custo,"forn"),1)}</div>`:""}${cats.length?`<div>${rxS("O que foi comprado","Custo do mês por tipo de material.",rxLst2(cats,d.custo,"cat"),1)}</div>`:""}</div>`:"")+
     (mats.length?rxS(mats.length+(mats.length===1?" material que mais pesou":" materiais que mais pesaram"),"",tabMats,1):"")+
     (ter.length?rxS("Compras de outros fornecedores","Serviços e compras fora da loja, já conferidos e somados no custo do mês.",tabTer,ter.length<=12):"");
   const ass=`<div class="rx-ass3"><div>Conferido por</div><div>Data</div><div>Visto da diretoria</div></div>`;
-  return rxFolha(`<div class="rxm">${p1}${det?`<div class="rx-quebra"></div>`+rxCabM(k,"Detalhes",ini,fim)+det:""}${ass}</div>`,"Relatório de gastos",RX_REGRA);
+  const montar=(cl,qb)=>rxFolha(`<div class="rxm${cl}">${p1}${det?(qb?`<div class="rx-quebra"></div>`:"")+rxCabM(k,"Detalhes",ini,fim)+det:""}${ass}</div>`);
+  let html=montar("",1); if(rxAltFolha1(html)>RX_LIM1){ html=montar(" aperta",1); if(rxAltFolha1(html)>RX_LIM1) html=montar(" aperta",0); }
+  return html;
 }
 function folhaRelObra(id,ini,fim,periodo){
   const o=D.obras.find(x=>x.id===id), x=orcObras()[id], d=relDados(ini,fim,id), c=o.pct==null?"—":Math.round(o.pct*100)+"%";
@@ -3941,7 +3974,7 @@ function folhaTer(t){ const f=(D.fornecedores||{})[t.fornecedorId]||{}, hoje=D.h
     (obs?rxSec("Observação","",`<dl class="blk">${obs}</dl>`):"")+
     rxSec("Registro","",`<dl class="rx-reg">${reg("LANÇADO POR",rxNome(t.criadoPor),dataHoraBr(t.criadoEm))}${t.conferidoPor?reg(rotConf,rxNome(t.conferidoPor),t.conferidoEm?dataHoraBr(t.conferidoEm):""):reg("CONFERIDO POR","Ainda não conferido","")}${reg("EMITIDO POR",rxEmissor(),relAgora())}</dl>`)+
     (t.conferencia==="AGUARDANDO"||t.conferencia==="REPROVADO"?`<div class="rx-ass">Conferido por: ________________________________ &nbsp;&nbsp; Data: ____/____/________</div>`:"");
-  return rxFolha(corpo,"Lançamento de outro fornecedor"); }
+  return rxFolha(corpo); }
 function imprimirTer(id){ const t=terTodos().find(x=>x.id===id); if(!t) return; imprimirFolha(folhaTer(t),"Zayda - Lançamento "+t.id+".pdf"); }
 /* Quem entregou o material de um lançamento: "entregue por" da entrega (mesmo ID); sem esse dado, o entregador do pedido. */
 const entreguePorLanc = l => { const P=(D.pedidos||{})[l.pedido]||{}, e=(P.entregas||[]).find(x=>x.id===l.id); return (e&&e.entreguePor)||P.entregador||""; };
@@ -3963,8 +3996,8 @@ function folhaDia(obra,dia){
   const grupos=Object.entries(relGrupo(L,l=>l.obra)).sort((a,b)=>(a[0]==="SEM VÍNCULO")-(b[0]==="SEM VÍNCULO")||a[0].localeCompare(b[0],"pt-BR",{numeric:true}));
   const dados=obra?`<div class="w2"><dt>OBRA</dt><dd>${obra==="SEM VÍNCULO"?"":`<small>${esc(obra)}</small>`}${nomeOb(obra)}</dd></div><div><dt>CLIENTE</dt><dd>${esc(cli(o)||"—")}</dd></div>`:`<div class="w2"><dt>OBRAS</dt><dd>Todas as obras (${grupos.length} com entrega neste dia)</dd></div>`;
   const corpo=obra?`<h2>ENTREGAS</h2>${tabela(L,"TOTAL")}`:grupos.map(([id,a])=>`<h2>${id==="SEM VÍNCULO"?"":esc(id)+" · "}${nomeOb(id)}${cli(D.obras.find(x=>x.id===id))?" · "+esc(cli(D.obras.find(x=>x.id===id))):""}</h2>${tabela(a,"Subtotal da obra")}`).join("")+`<div class="tot"><div><span>TOTAL GERAL DO DIA</span><b>${brl(r.total)}</b></div></div>`;
-  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${relAgora()}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel">
-  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>Relatório do dia</h1><div class="id">${dbr(dia)}</div></div></div>
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel">
+  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>Relatório do dia</h1><div class="id">${dbr(dia)}</div><div class="emi">${rxEmitido()}</div></div></div>
   <dl class="blk">${dados}<div><dt>DATA</dt><dd>${dbr(dia)}</dd></div></dl>
   <h2>RESUMO DO DIA</h2><div class="tot q5"><div><span>TOTAL DO DIA</span><b>${brl(r.total)}</b></div><div><span>ENTREGAS</span><b>${r.n}</b></div><div><span>MATERIAIS DIFERENTES</span><b>${r.mats}</b></div><div><span>PEDIDOS</span><b>${r.peds}</b></div><div><span>ENTREGADORES</span><b>${ent.length}</b></div></div>
   ${quadroEnt}
@@ -4323,8 +4356,8 @@ function folhaRelUsu(email,per,mov){
         ["TOTAL","",sum(ls,l=>l.r.peds),brl(sum(ls,l=>l.r.valor)),sum(ls,l=>l.r.entregas),sum(ls,l=>l.r.fechados)])+
       ls.map(l=>ruDetalhe(l.u,l.x,per,true)).join("");
   } else corpo=ruDetalhe(u,mov[em]||{peds:[],regs:[]},per);
-  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"><div class="rod"><span></span><span>Impresso em ${relAgora()} por ${esc(D.eu&&(D.eu.nome||D.eu.usuario)||"—")}</span></div></div></td></tr></tfoot><tbody><tr><td><div class="rel ru">
-  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>RELATÓRIO POR USUÁRIO</h1><div class="id ru-quem">${todos?"Todos os usuários":ruQuem(u)}</div><div class="muted">Período: ${esc(per.txt)}</div></div></div>
+  return `<table class="folha"><thead><tr><td><div class="esp"></div></td></tr></thead><tfoot><tr><td><div class="esp"></div></td></tr></tfoot><tbody><tr><td><div class="rel ru">
+  <div class="ph"><img src="${document.querySelector(".logo img").src}" alt="Zayda Construtora"><div class="t"><h1>RELATÓRIO POR USUÁRIO</h1><div class="id ru-quem">${todos?"Todos os usuários":ruQuem(u)}</div><div class="muted">Período: ${esc(per.txt)}</div><div class="emi">${rxEmitido()}</div></div></div>
   ${corpo}
 </div></td></tr></tbody></table>`;
 }
