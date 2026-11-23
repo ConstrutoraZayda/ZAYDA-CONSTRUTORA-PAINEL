@@ -965,6 +965,7 @@ td.mono{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-2);white-spac
 .sis-txt{margin:0 0 12px;color:var(--ink-2);font-size:13px}
 .sis-dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 14px;margin:0}
 .sis-dl div{min-width:0}.sis-dl dt{font-size:12px;font-weight:700;color:var(--ink-3)}.sis-dl dd{margin:2px 0 0;font-weight:800;font-size:15px;overflow-wrap:anywhere}
+.sis-aviso{margin:12px 0 0;padding:8px 10px;border-radius:10px;background:var(--amber-soft);color:var(--amber);font-weight:700;font-size:13px;overflow-wrap:anywhere}
 .sis-dl dd.warn{color:var(--amber)}.sis-dl dd.bad{color:var(--red)}
 .sis-erro{margin:12px 0 0;padding:8px 10px;border-radius:10px;background:var(--red-soft);color:var(--red);font-weight:700;font-size:13px;overflow-wrap:anywhere}
 .sis-card .sc-sist{margin:0;padding:0;border:0;font-size:13px}
@@ -3479,9 +3480,10 @@ function sisAviso(){ const s=D&&D.sistema; if(!s) return ""; const b=s.backup, r
   return ""; }
 const sisNum=v=>String(v||0).replace(".",",");
 function htmlSinc(){ const s=D.sistema, q=s.sinc||{}, cl=q.min>80?"bad":q.min>60?"warn":"";
-  return `<p class="sis-txt">Com o painel aberto, os dados chegam em segundos. Com ele fechado, em até 5 minutos.</p>
+  return `<p class="sis-txt">Com o painel aberto, os dados chegam em segundos. Com ele fechado, em até 5 minutos (das 20h às 6h, em até 1 hora).</p>
   <dl class="sis-dl"><div><dt>Última sincronização</dt><dd>${esc(D.sincronizadoEm||"—")}</dd></div><div><dt>Execuções hoje</dt><dd>${q.n||0}</dd></div>
-  <div><dt>Minutos usados hoje</dt><dd class="${cl}">${sisNum(q.min)} de ${q.cota||90}</dd></div><div><dt>Média por execução</dt><dd>${sisNum(q.media)} s</dd></div></dl>
+  <div><dt>Minutos usados hoje</dt><dd class="${cl}">${sisNum(q.min)} de ${q.cota||90}</dd></div><div><dt>Média por execução hoje</dt><dd>${sisNum(q.media)} s</dd></div></dl>
+  ${q.min>60?`<p class="sis-aviso">Uso alto hoje: ${sisNum(q.min)} de ${q.cota||90} minutos. Perto do limite diário do Google, a sincronização automática para até o dia seguinte.</p>`:""}
   ${s.sincErro?`<p class="sis-erro">A sincronização automática falhou em ${sisDh(s.sincErro.em)}. O painel continua sincronizando quando é aberto.</p>`:""}${linhaResumo()}`; }
 /* [Função 5] Situação do resumo semanal, em uma linha curta (sem texto técnico). */
 function linhaResumo(){ const r=D.resumo; if(!r) return ""; const u=r.ultimo;

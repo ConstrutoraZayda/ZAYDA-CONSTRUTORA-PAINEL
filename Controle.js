@@ -36,7 +36,9 @@ const CTRL = Object.freeze({
   obras: 'OBRAS', solicitacoes: 'SOLICITACOES', lancamentos: 'MATERIAIS_E_CUSTOS',
   abaEtapasOrigem: 'ETAPAS', destEtapas: '_IMPORT_ETAPAS', orcamentos: 'ORCAMENTOS',
   abaCancelOrigem: 'CANCELAMENTOS', destCancel: '_IMPORT_CANCELAMENTOS', destEntregas: '_IMPORT_ENTREGAS',
-  intervaloMinutos: 5, copiaCompletaMinutos: 15
+  // Sem novidade no formulário: cópia completa de segurança e conferência das obras no máximo 1 vez por hora.
+  // Das 20h às 6h o acionador de 5 min só confere 1 vez por hora.
+  intervaloMinutos: 5, copiaCompletaMinutos: 60, conferirObrasMinutos: 60, noiteDe: 20, noiteAte: 6
 });
 
 /* ============================== MENU ============================== */
@@ -234,7 +236,7 @@ function escreverEtapas_(ss, etapas) {
 }
 
 /** Atualiza obras e etapas se a planilha de obras mudou (compara a assinatura dos dados).
- *  Chamado a cada 5 minutos, a cada consulta do painel e na hora em que alguém edita a planilha de obras. */
+ *  Chamado na hora em que alguém edita a planilha de obras e, no máximo 1 vez por hora, pelo acionador e pelo painel (conferirObrasDeHora_). */
 function atualizarObrasSeMudou_(forcar) {
   const props = PropertiesService.getScriptProperties();
   let obras;
@@ -255,6 +257,18 @@ function atualizarObrasSeMudou_(forcar) {
     return true;
   } finally { lock.releaseLock(); }
 }
+
+/** Obras pelo acionador de 5 min e pelo painel: no máximo 1 vez por hora (quem edita a planilha de obras já dispara aoEditarObras). */
+function obrasNaHora_(props) { return Date.now() - Number(props.getProperty('OBRAS_CONFERIDAS_EM') || 0) >= CTRL.conferirObrasMinutos * 60000; }
+function conferirObrasDeHora_() {
+  const props = PropertiesService.getScriptProperties();
+  if (!obrasNaHora_(props)) return false;
+  props.setProperty('OBRAS_CONFERIDAS_EM', String(Date.now()));
+  return atualizarObrasSeMudou_(false);
+}
+/** Trava das ações do painel (orçamento, área, fechamento, usuários, conferência e pagamento). É outra trava, não a da
+ *  sincronização (getScriptLock): uma sincronização demorada nunca faz essas ações esperarem nem falharem. */
+function travaAcoes_() { return LockService.getUserLock(); }
 
 /** Acionador "ao editar" da planilha Controle e Planejamento de Obras (criado em Ativar sincronização automática). */
 function aoEditarObras(e) {
@@ -337,8 +351,8 @@ function salvarOrcamento(token, obra, valor, data, obs) {
   const nota = texto_(obs);
   if (nota.length > 300) return {ok: false, motivo: 'A observação pode ter no máximo 300 caracteres.'};
   if (/^[=+@]/.test(nota)) return {ok: false, motivo: 'A observação não pode começar com =, + ou @.'};
-  const lock = LockService.getScriptLock();
-  if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está sincronizando. Tente de novo em alguns segundos.'};
+  const lock = travaAcoes_();
+  if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
   try {
     const ss = planilhaControle_();
     const achar = () => { const sh = ss.getSheetByName(CTRL.orcamentos), n = sh ? sh.getLastRow() - 1 : 0;
@@ -519,7 +533,7 @@ function fecharMes(token, mes, foto, pdf) {
   const n = v => { const x = Number(v); return isFinite(x) ? Math.round(x * 100) / 100 : 0; };
   const mapa = o => { const r = {}; Object.keys(o && typeof o === 'object' ? o : {}).slice(0, 500).forEach(k => { r[String(k).slice(0, 80)] = n(o[k]); }); return r; };
   if (!pdf || String(pdf).length > 20e6) return {ok: false, motivo: 'O relatório em PDF não chegou. Tente de novo.'};
-  const lock = LockService.getScriptLock();
+  const lock = travaAcoes_();
   if (!lock.tryLock(15000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
   try {
     const est = estadoFech_(lerFechamentos_(), m);
@@ -544,7 +558,7 @@ function reabrirMes(token, mes, motivo) {
   const m = texto_(mes), mot = texto_(motivo);
   if (mot.length < 5) return {ok: false, motivo: 'Informe o motivo (mínimo 5 caracteres).'};
   if (mot.length > 300 || /^[=+@-]/.test(mot)) return {ok: false, motivo: 'Motivo inválido (até 300 caracteres, sem começar com =, +, - ou @).'};
-  const lock = LockService.getScriptLock();
+  const lock = travaAcoes_();
   if (!lock.tryLock(15000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
   try {
     const est = estadoFech_(lerFechamentos_(), m);
@@ -573,7 +587,7 @@ function salvarArea(token, obra, m2) {
     if (v === '' || !(v > 0) || v > 1000000) return {ok: false, motivo: 'Informe a área em m², maior que zero (ex.: 120,5), ou apague o valor para remover.'};
     v = Math.round(v * 100) / 100;
   }
-  const lock = LockService.getScriptLock();
+  const lock = travaAcoes_();
   if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
   try {
     const a = areasObras_();
@@ -816,13 +830,18 @@ function escreverEntregas_(ss, entregas, pedidos) {
 function sincronizarFormulario(esperaMs) {
   // Trava do script (não do documento): vale também quando a sincronização é chamada pelo painel (app da Web).
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(esperaMs || 30000)) throw new Error('Outra sincronização está em andamento.');
+  if (!lock.tryLock(esperaMs == null ? 30000 : esperaMs)) throw new Error('Outra sincronização está em andamento.'); // 0 = não espera
   try {
     const ss = planilhaControle_();
     const dados = lerOrigem_(); // toda a leitura acontece antes de qualquer escrita
     // Obras: uma falha aqui não impede a sincronização dos pedidos; fica registrada no resumo.
+    // Planilha de obras: pelo menu, sempre; pelo acionador e pelo painel, no máximo 1 vez por hora (a edição dela já atualiza por aoEditarObras).
     let obras = {ativo: false, linhas: []}, avisoObras = '';
-    try { obras = lerObras_(); } catch (e) { avisoObras = ' · OBRAS NÃO ATUALIZADAS: ' + e.message; }
+    const propsObras = PropertiesService.getScriptProperties();
+    if (esperaMs == null || obrasNaHora_(propsObras)) {
+      propsObras.setProperty('OBRAS_CONFERIDAS_EM', String(Date.now()));
+      try { obras = lerObras_(); } catch (e) { avisoObras = ' · OBRAS NÃO ATUALIZADAS: ' + e.message; }
+    }
     const obrasAtuais = Math.max(0, ss.getSheetByName(CTRL.obras).getLastRow() - CTRL.linhaObras + 1);
     if (obras.ativo && !obras.linhas.length && obrasAtuais > 0) {
       obras.ativo = false; avisoObras = ' · OBRAS NÃO ATUALIZADAS: a planilha de obras não retornou nenhuma obra OB-xx';
@@ -891,7 +910,7 @@ function sincronizarComAviso() {
 }
 
 /** Acionador de 5 em 5 minutos (CTRL.intervaloMinutos). Verificação rápida: só faz a cópia completa quando o formulário
- *  registrou algo novo (pedido, revisão ou entrega) ou a cada 15 minutos (obras e catálogo).
+ *  registrou algo novo (pedido, revisão ou entrega) ou, de segurança, 1 vez por hora. Obras: 1 vez por hora (e ao editar a planilha de obras).
  *  Assim fica quase em tempo real sem estourar o limite diário de execução do Google. */
 /** Marca rápida do formulário: nº de linhas de PEDIDOS, ITENS_PEDIDO, ENTREGAS, AUDITORIA, CANCELAMENTOS, TERCEIROS, TERCEIROS_PARCELAS, FORNECEDORES e CATALOGO. */
 function marcaOrigem_(conf) {
@@ -911,8 +930,8 @@ function sincronizarSeHouverNovidade_() {
     const conf = planilhaControle_().getSheetByName(CTRL.conf);
     const props = PropertiesService.getScriptProperties();
     const marca = marcaOrigem_(conf);
-    if (marca === props.getProperty('MARCA_ORIGEM')) return atualizarObrasSeMudou_(false);
-    sincronizarFormulario(1500); // se outra sincronização estiver rodando, não espera: o painel lê o que já existe
+    if (marca === props.getProperty('MARCA_ORIGEM')) return conferirObrasDeHora_();
+    sincronizarFormulario(0); // se outra sincronização estiver rodando, não espera: o painel lê o que já existe e a próxima conferência pega a novidade
     props.setProperty('MARCA_ORIGEM', marca);
     props.setProperty('ULTIMA_COPIA_COMPLETA', String(Date.now()));
     return true;
@@ -921,14 +940,20 @@ function sincronizarSeHouverNovidade_() {
 
 /** [Etapa 1] Gatilho de 5 em 5 minutos: mede a duração de cada execução (cota de 90 min/dia de gatilhos da conta gratuita). */
 function sincronizacaoAutomatica() {
+  const agoraSp = new Date(), hora = Number(Utilities.formatDate(agoraSp, CTRL.fuso, 'H'));
+  if (hora >= CTRL.noiteDe || hora < CTRL.noiteAte) { // fora do expediente: só a primeira rodada de cada hora confere
+    const p = PropertiesService.getScriptProperties(), chave = Utilities.formatDate(agoraSp, CTRL.fuso, 'yyyy-MM-dd HH');
+    if (p.getProperty('SINC_NOITE') === chave) return 'Fora do expediente: confere de hora em hora.';
+    p.setProperty('SINC_NOITE', chave);
+  }
   const t0 = Date.now(); let r = '';
   try { r = sincronizacaoAutomaticaCorpo_(); marcarErroSinc_(''); return r; }
   catch (e) { marcarErroSinc_(String(e && e.message || e)); throw e; } // a tela Sistema mostra o aviso (só para Admin Zayda)
   finally { registrarExecucaoSinc_(Date.now() - t0, /^(Sem novidades|Outra sincronização)/.test(String(r || ''))); }
 }
-function sincronizacaoAutomaticaCorpo_() {
+function sincronizacaoAutomaticaCorpo_(esperaMs) { // esperaMs 0: chamado pelo painel, nunca espera a trava
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(200)) return 'Outra sincronização em andamento.';
+  if (!lock.tryLock(esperaMs === 0 ? 0 : 200)) return 'Outra sincronização em andamento.';
   lock.releaseLock();
   const ss = planilhaControle_();
   const conf = ss.getSheetByName(CTRL.conf);
@@ -939,12 +964,12 @@ function sincronizacaoAutomaticaCorpo_() {
   if (marca === props.getProperty('MARCA_ORIGEM') && agora - ultimaCompleta < CTRL.copiaCompletaMinutos * 60000) {
     // Nada novo no formulário: confere se a planilha de obras (fase, status, etapas) mudou
     // e atualiza a hora da verificação em B10 (o painel mostra essa hora).
-    const mudouObras = atualizarObrasSeMudou_(false);
+    const mudouObras = conferirObrasDeHora_();
     const cel = conf.getRange(CTRL.celulaUltimaSinc), txt = texto_(cel.getValue()), i = txt.indexOf(' · ');
     cel.setValue(Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm') + (i >= 0 ? txt.slice(i) : ''));
     return mudouObras ? 'Obras atualizadas.' : 'Sem novidades no formulário.';
   }
-  const r = sincronizarFormulario();
+  const r = sincronizarFormulario(esperaMs === 0 ? 0 : 30000);
   props.setProperty('MARCA_ORIGEM', marca);
   props.setProperty('ULTIMA_COPIA_COMPLETA', String(agora));
   return r;
@@ -1425,7 +1450,7 @@ function salvarUsuario(token, dados) {
   if (['Zayda', 'BSJ'].indexOf(novo.empresa) < 0) return {ok: false, motivo: 'Empresa deve ser Zayda ou BSJ.'};
   if (['Admin', 'Pedidos'].indexOf(novo.perfil) < 0) return {ok: false, motivo: 'Perfil deve ser Admin ou Pedidos.'};
   if ([novo.nome, novo.obs].some(t => /^[=+@-]/.test(t))) return {ok: false, motivo: 'Nome e observação não podem começar com =, +, - ou @.'};
-  const lock = LockService.getScriptLock();
+  const lock = travaAcoes_();
   if (!lock.tryLock(10000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
   try {
     limparCacheUsuarios_();
@@ -1510,7 +1535,7 @@ function conferirPeloPainel_() {
   try {
     const cel = planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc);
     if (idadeSinc_(texto_(cel.getValue())) <= 60) return sincronizarSeHouverNovidade_();
-    return sincronizacaoAutomaticaCorpo_();
+    return sincronizacaoAutomaticaCorpo_(0);
   } catch (e) { Logger.log('Conferência pelo painel não feita: ' + e.message); return false; }
 }
 function getDadosPainel(token, semSinc, conferir) {
@@ -1688,7 +1713,7 @@ function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
     if (mot.length > 300) return {ok: false, motivo: 'Motivo muito longo (máximo 300 caracteres).'};
     if (/^[=+@\-]/.test(mot)) return {ok: false, motivo: 'O motivo não pode começar com =, +, - ou @.'};
   }
-  const lock = LockService.getScriptLock();
+  const lock = travaAcoes_();
   if (!lock.tryLock(15000)) return {ok: false, motivo: 'Sistema ocupado. Tente de novo em instantes.'};
   try {
     const origem = origemPlanilha_(), sh = origem.getSheetByName(TERC.abaLanc);
@@ -1731,7 +1756,7 @@ function pagarParcelaTerceiro(token, idParcela, op, data, forma, motivo) {
     if (mot.length > 300) return {ok: false, motivo: 'Motivo muito longo (máximo 300 caracteres).'};
     if (/^[=+@\-]/.test(mot)) return {ok: false, motivo: 'O motivo não pode começar com =, +, - ou @.'};
   }
-  const lock = LockService.getScriptLock();
+  const lock = travaAcoes_();
   if (!lock.tryLock(15000)) return {ok: false, motivo: 'Sistema ocupado. Tente de novo em instantes.'};
   try {
     const origem = origemPlanilha_(), sh = origem.getSheetByName(TERC.abaParc), shL = origem.getSheetByName(TERC.abaLanc);
