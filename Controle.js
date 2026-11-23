@@ -1577,24 +1577,14 @@ function idadeSinc_(txt) {
   if (!m) return 1e9;
   return Math.max(0, Math.round((Date.now() - Utilities.parseDate(m[1], CTRL.fuso, 'dd/MM/yyyy HH:mm').getTime()) / 1000));
 }
-/** Painel aberto (no máximo 1 vez por minuto por painel): se a última conferência (B10) tem mais de 1 minuto,
- *  roda a mesma rotina do acionador (com trava; só faz a cópia completa quando o formulário mudou). Se outra
- *  sincronização estiver rodando, não espera: o painel tenta na próxima conferência. */
-function conferirPeloPainel_() {
-  try {
-    const cel = planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc);
-    if (idadeSinc_(texto_(cel.getValue())) <= 60) return sincronizarSeHouverNovidade_();
-    return sincronizacaoAutomaticaCorpo_(0);
-  } catch (e) { Logger.log('Conferência pelo painel não feita: ' + e.message); return false; }
-}
+/** Dados do painel. Em nenhum caminho (normal, semSinc, conferir) sincroniza nem abre a planilha do formulário:
+ *  só lê a planilha de controle (inclusive a hora da última sincronização, B10). Quem sincroniza é só o acionador de 5 min.
+ *  semSinc e conferir continuam aceitos (o painel publicado ainda manda), mas não mudam nada. */
 function getDadosPainel(token, semSinc, conferir) {
   const t = cronometro_('getDadosPainel' + (conferir ? ' (conferir)' : semSinc ? ' (sem sincronizar)' : ''));
   const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
   t('autenticar');
   if (ac.erro) { t.fim(); return ac.erro; }
-  if (conferir) conferirPeloPainel_(); // B10 velho: confere o formulário e atualiza a hora
-  else if (!semSinc) sincronizarSeHouverNovidade_(); // logo depois do login responde já, sem sincronizar: a atualização seguinte sincroniza
-  t('sincronização');
   const r = dadosPainel_(ac.u);
   t('dados do painel'); t.fim();
   return r;
@@ -1770,12 +1760,32 @@ function copiarLinhaTerc_(nome, id, valores) {
   sh.getRange(i + 2, 1, 1, valores.length).setNumberFormats([valores.map(v => typeof v === 'string' ? '@' : v instanceof Date ? 'yyyy-mm-dd hh:mm:ss' : '0.##########')]).setValues([valores]);
   return true;
 }
-/** Outros fornecedores lidos da cópia no controle; se a cópia ainda não existe (antes da 1ª sincronização), da planilha do formulário. */
+/** Outros fornecedores lidos só da cópia no controle (o painel nunca abre a planilha do formulário).
+ *  Cópia ainda não existe: listas vazias e aviso no registro (rodar criarCopiaOutrosFornecedores ou esperar a sincronização). */
 function lerTerceirosPainel_() {
   const ss = planilhaControle_();
   if (COPIAS_TERC.every(c => ss.getSheetByName(c.para))) return lerTerceiros_(ss, ABAS_TERC_COPIA);
-  console.log('[tempo] cópia dos outros fornecedores ainda não existe: leitura da planilha do formulário');
-  return lerTerceiros_();
+  console.error('Cópia dos outros fornecedores não existe no controle: rode criarCopiaOutrosFornecedores no editor.');
+  return {terceiros: [], fornecedores: {}};
+}
+/** Rodar 1 vez pelo editor (ou quando quiser refazer): monta as 3 abas _IMPORT_ de outros fornecedores no controle,
+ *  copiando TERCEIROS, TERCEIROS_PARCELAS e FORNECEDORES do formulário (um setValues por aba). Depois a sincronização mantém. */
+function criarCopiaOutrosFornecedores() {
+  const lock = LockService.getScriptLock();
+  if (!lock.tryLock(60000)) throw new Error('Sincronização em andamento. Rode de novo em 1 minuto.');
+  try {
+    const ss = planilhaControle_(), origem = origemPlanilha_(), props = PropertiesService.getScriptProperties(), digs = {}, feito = [];
+    COPIAS_TERC.forEach(c => {
+      const v = valoresAba_(origem, c.de), t0 = Date.now();
+      copiarAba_(ss, c.para, v);
+      // Mesmo resumo que a sincronização usa: a próxima rodada não regrava o que acabou de ser copiado.
+      digs['DIG_' + c.chave] = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(v), Utilities.Charset.UTF_8).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
+      feito.push(c.para + ': ' + Math.max(v.length - 1, 0) + ' linhas (' + (Date.now() - t0) + ' ms)');
+    });
+    SpreadsheetApp.flush(); props.setProperties(digs);
+    const msg = 'Cópia dos outros fornecedores criada · ' + feito.join(' · ');
+    console.log(msg); return msg;
+  } finally { lock.releaseLock(); }
 }
 function linhasOrigem_(origem, nome, n) {
   const sh = origem.getSheetByName(nome);

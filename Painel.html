@@ -4529,6 +4529,7 @@ function acChamar(corpo,funcao,args,ok){
   vai(1).then(r=>ok(r||{})).catch(e=>acErro(repete?"Não foi possível entrar agora. Tente de novo.":"Erro do Google: "+(e&&e.message?e.message:e)));
 }
 $("formAcesso").addEventListener("submit",e=>{e.preventDefault();
+  if($("btnEntrar").disabled) return; // já tem uma chamada rodando (Enter de novo, duplo toque): não manda outra
   const v=id=>$(id).value.trim(), sv=id=>$(id).value; // senha sem trim: espaço no início/fim é recusado
   if(MODO_AC==="entrar"){ const u=v("acUsuario"),p=sv("acPin");
     if(!u||!p) return acErro(!u?"Digite seu usuário.":"Digite sua senha.");
