@@ -56,7 +56,23 @@ function onOpen() {
 /* ========================== SINCRONIZAÇÃO ========================= */
 /** A planilha de controle. No acionador "ao editar" da planilha de obras, a planilha ativa é a de obras;
  *  por isso o ID do controle fica guardado (gravado em Ativar sincronização automática e a cada uso normal). */
+/** Medição de tempo de cada etapa, só no registro (Apps Script > Execuções > clique na execução). Ex.: const t = cronometro_('x'); ...; t('etapa'); t.fim(); */
+function cronometro_(nome) {
+  const t0 = Date.now(), partes = []; let ult = t0;
+  const marca = etapa => { const a = Date.now(); partes.push(etapa + ' ' + (a - ult) + ' ms'); ult = a; };
+  marca.fim = () => console.log('[tempo] ' + nome + ': ' + (Date.now() - t0) + ' ms · ' + partes.join(' · '));
+  return marca;
+}
+/* As duas planilhas são abertas uma vez só por chamada (abrir com openById é a parte lenta): o objeto fica guardado até o fim da execução. */
+let PLANILHA_CONTROLE_ = null, PLANILHA_ORIGEM_ = null;
 function planilhaControle_() {
+  if (PLANILHA_CONTROLE_) return PLANILHA_CONTROLE_;
+  const t0 = Date.now();
+  PLANILHA_CONTROLE_ = abrirPlanilhaControle_();
+  console.log('[tempo] abrir planilha de controle: ' + (Date.now() - t0) + ' ms');
+  return PLANILHA_CONTROLE_;
+}
+function abrirPlanilhaControle_() {
   const props = PropertiesService.getScriptProperties();
   const ativa = SpreadsheetApp.getActiveSpreadsheet();
   if (ativa && ativa.getSheetByName(CTRL.conf)) {
@@ -99,7 +115,7 @@ function lerOrigem_() {
   const conf = planilhaControle_().getSheetByName(CTRL.conf);
   const id = texto_(conf.getRange(CTRL.celulaOrigemId).getValue());
   if (!id) throw new Error('Preencha CONFIGURACOES!' + CTRL.celulaOrigemId + ' com o ID da planilha CATÁLOGO E SOLICITAÇÕES.');
-  const origem = SpreadsheetApp.openById(id);
+  const origem = origemPlanilha_();
   const aba = cel => {
     const nome = texto_(conf.getRange(cel).getValue());
     const sh = origem.getSheetByName(nome);
@@ -763,7 +779,7 @@ function escreverObrasFormulario_(linhas) {
   });
   const props = PropertiesService.getScriptProperties();
   const assinatura = Utilities.base64Encode(Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(dados)));
-  const origem = SpreadsheetApp.openById(texto_(conf.getRange(CTRL.celulaOrigemId).getValue()));
+  const origem = origemPlanilha_();
   let sh = origem.getSheetByName(CTRL.obras);
   if (sh && props.getProperty('HASH_OBRAS_FORMULARIO') === assinatura) return;
   if (!sh) {
@@ -783,27 +799,35 @@ function uniq_(a) { return a.filter((v, i) => a.indexOf(v) === i); }
 function escrever_(ss, nome, linhas, nCols) {
   const sh = ss.getSheetByName(nome);
   if (!sh) throw new Error('Aba técnica não encontrada: ' + nome);
-  const ultima = sh.getMaxRows();
-  if (ultima > 1) sh.getRange(2, 1, ultima - 1, nCols).clearContent();
+  // Texto puro para IDs e SKUs: evita conversão automática de "00123" em número.
+  regravar_(sh, linhas, nCols, (i, n) => sh.getRange(i, 1, n, 1).setNumberFormat('@'));
+}
+
+/** Regrava as linhas de dados (a partir da linha 2) de uma vez: um setValues só, por cima do que já existe,
+ *  e depois apaga só as linhas que sobraram da versão anterior. Sem apagar tudo antes (a planilha fica livre mais rápido).
+ *  formatar(linha, quantas): só nas linhas que ainda não existiam (as antigas já têm o formato). */
+function regravar_(sh, linhas, nCols, formatar) {
+  const antes = Math.max(sh.getLastRow(), 1), fim = linhas.length + 1;
   if (linhas.length) {
-    if (sh.getMaxRows() < linhas.length + 1) sh.insertRowsAfter(sh.getMaxRows(), linhas.length + 1 - sh.getMaxRows());
-    // Texto puro para IDs e SKUs: evita conversão automática de "00123" em número.
-    sh.getRange(2, 1, linhas.length, 1).setNumberFormat('@');
+    if (sh.getMaxRows() < fim) sh.insertRowsAfter(sh.getMaxRows(), fim - sh.getMaxRows());
+    if (formatar && fim > antes) formatar(antes + 1, fim - antes);
     sh.getRange(2, 1, linhas.length, nCols).setValues(linhas);
   }
+  if (antes > fim) sh.getRange(fim + 1, 1, antes - fim, nCols).clearContent();
+}
+
+/** Cabeçalho da linha 1: só escreve se estiver diferente. */
+function cabecalho_(sh, cab) {
+  const r = sh.getRange(1, 1, 1, cab.length);
+  if (r.getValues()[0].map(texto_).join('|') !== cab.join('|')) r.setValues([cab]).setFontWeight('bold');
 }
 
 /** Grava os pedidos cancelados/encerrados na aba oculta _IMPORT_CANCELAMENTOS (cria se não existir). */
 function escreverCancelamentos_(ss, linhas) {
   let sh = ss.getSheetByName(CTRL.destCancel);
   if (!sh) { sh = ss.insertSheet(CTRL.destCancel, ss.getNumSheets()); sh.hideSheet(); }
-  sh.getRange(1, 1, 1, 6).setValues([['PEDIDO_ID', 'TIPO', 'DATA_HORA', 'EMAIL_LOGIN', 'MOTIVO', 'ITENS_NAO_ENTREGUES']]).setFontWeight('bold');
-  const ultima = sh.getMaxRows();
-  if (ultima > 1) sh.getRange(2, 1, ultima - 1, 6).clearContent();
-  if (!linhas.length) return;
-  if (sh.getMaxRows() < linhas.length + 1) sh.insertRowsAfter(sh.getMaxRows(), linhas.length + 1 - sh.getMaxRows());
-  sh.getRange(2, 1, linhas.length, 6).setNumberFormat('@');
-  sh.getRange(2, 1, linhas.length, 6).setValues(linhas);
+  cabecalho_(sh, ['PEDIDO_ID', 'TIPO', 'DATA_HORA', 'EMAIL_LOGIN', 'MOTIVO', 'ITENS_NAO_ENTREGUES']);
+  regravar_(sh, linhas, 6, (i, n) => sh.getRange(i, 1, n, 6).setNumberFormat('@'));
 }
 
 /** Grava cada entrega do formulário na aba oculta _IMPORT_ENTREGAS (cria se não existir), com quem entregou e quem recebeu.
@@ -815,15 +839,9 @@ function escreverEntregas_(ss, entregas, pedidos) {
   const cab = ['ENTREGA_ID', 'PEDIDO_ID', 'SKU', 'PRODUTO', 'UNIDADE', 'QTD_ENTREGUE', 'DATA_ENTREGA', 'RECEBIDO_POR', 'ENTREGUE_POR', 'OBSERVACOES', 'REGISTRADO_POR'];
   let sh = ss.getSheetByName(CTRL.destEntregas);
   if (!sh) { sh = ss.insertSheet(CTRL.destEntregas, ss.getNumSheets()); sh.hideSheet(); }
-  sh.getRange(1, 1, 1, cab.length).setValues([cab]).setFontWeight('bold');
-  const ultima = sh.getMaxRows();
-  if (ultima > 1) sh.getRange(2, 1, ultima - 1, cab.length).clearContent();
-  if (!entregas.length) return;
+  cabecalho_(sh, cab);
   const linhas = entregas.map(e => [e.id, e.pedido, e.sku, e.produto, e.un, e.qtd, e.data, e.recebidoTxt, e.entreguePor || entregador[e.pedido] || '', e.obsTxt, texto_(e.email).toLowerCase()]);
-  if (sh.getMaxRows() < linhas.length + 1) sh.insertRowsAfter(sh.getMaxRows(), linhas.length + 1 - sh.getMaxRows());
-  sh.getRange(2, 1, linhas.length, cab.length).setNumberFormat('@');
-  sh.getRange(2, 6, linhas.length, 1).setNumberFormat('0.###');
-  sh.getRange(2, 1, linhas.length, cab.length).setValues(linhas);
+  regravar_(sh, linhas, cab.length, (i, n) => { sh.getRange(i, 1, n, cab.length).setNumberFormat('@'); sh.getRange(i, 6, n, 1).setNumberFormat('0.###'); });
 }
 
 /** Execução principal (também usada pelo acionador automático). */
@@ -850,16 +868,18 @@ function sincronizarFormulario(esperaMs) {
     if (!dados.pedidos.length && atuais > 0 && !dados.catalogo.length) {
       throw new Error('A origem não retornou pedidos nem catálogo. Confira o ID da planilha em CONFIGURACOES. Nada foi alterado.');
     }
-    // [Etapa 1] Só regrava a aba de destino quando o conteúdo mudou (impressão digital MD5 em PropertiesService). A cada 6 h regrava tudo,
-    // por segurança. Se a comparação falhar, copia normalmente.
-    const props = PropertiesService.getScriptProperties(), tudo = Date.now() - Number(props.getProperty('REESCRITA_TOTAL') || 0) > 6 * 3600000, digs = {};
-    const gravar = (chave, conteudo, fn) => { let d = '';
+    // [Etapa 1] Só regrava a aba de destino quando ela mudou: compara o resumo MD5 do conteúdo (guardado em PropertiesService)
+    // e o número de linhas que a aba tem hoje. Igual nos dois: não escreve nada. Se a comparação falhar, copia normalmente.
+    const props = PropertiesService.getScriptProperties(), digs = {};
+    const gravar = (chave, conteudo, fn, nomeAba, nLinhas) => { let d = '';
       try { d = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(conteudo), Utilities.Charset.UTF_8).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join(''); } catch (e) { d = ''; }
-      if (d && !tudo && props.getProperty('DIG_' + chave) === d) return false;
-      fn(); if (d) digs['DIG_' + chave] = d; return true; };
-    gravar('catalogo', dados.catalogo, () => escrever_(ss, CTRL.destCatalogo, dados.catalogo, 6));
-    gravar('itens', dados.itens, () => escrever_(ss, CTRL.destItens, dados.itens, 11));
-    if (obras.ativo && (tudo || obras.assinatura !== props.getProperty('HASH_OBRAS'))) {
+      const aba = ss.getSheetByName(nomeAba);
+      if (d && props.getProperty('DIG_' + chave) === d && aba && Math.max(aba.getLastRow() - 1, 0) === nLinhas) return false;
+      const t0 = Date.now(); fn(); console.log('[tempo] regravar ' + nomeAba + ' (' + nLinhas + ' linhas): ' + (Date.now() - t0) + ' ms');
+      if (d) digs['DIG_' + chave] = d; return true; };
+    gravar('catalogo', dados.catalogo, () => escrever_(ss, CTRL.destCatalogo, dados.catalogo, 6), CTRL.destCatalogo, dados.catalogo.length);
+    gravar('itens', dados.itens, () => escrever_(ss, CTRL.destItens, dados.itens, 11), CTRL.destItens, dados.itens.length);
+    if (obras.ativo && obras.assinatura !== props.getProperty('HASH_OBRAS')) {
       escreverObras_(ss, obras.linhas); escreverEtapas_(ss, obras.etapas);
       PropertiesService.getScriptProperties().setProperty('HASH_OBRAS', obras.assinatura);
     }
@@ -869,13 +889,16 @@ function sincronizarFormulario(esperaMs) {
     // Coluna O de _IMPORT_PEDIDOS: obra identificada pelo script (código ou rua + casa).
     // [Função 6] Coluna Q de _IMPORT_PEDIDOS: ETAPA da obra informada no pedido.
     const linhasPed = dados.pedidos.map((p, i) => p.concat([ident.porLinha[i], p.referencia || '', p.etapa || '']));
-    gravar('pedidos', linhasPed, () => escrever_(ss, CTRL.destPedidos, linhasPed, 17));
+    gravar('pedidos', linhasPed, () => escrever_(ss, CTRL.destPedidos, linhasPed, 17), CTRL.destPedidos, linhasPed.length);
     const cabP = ss.getSheetByName(CTRL.destPedidos).getRange('P1');
     if (texto_(cabP.getValue()) !== 'PONTO_REFERENCIA') cabP.setValue('PONTO_REFERENCIA');
     const cabQ = ss.getSheetByName(CTRL.destPedidos).getRange('Q1');
     if (texto_(cabQ.getValue()) !== 'ETAPA') cabQ.setValue('ETAPA');
-    gravar('cancelamentos', dados.cancelamentos, () => escreverCancelamentos_(ss, dados.cancelamentos));
-    gravar('entregas', [dados.entregas, dados.pedidos.map(p => [p[0], p[1], p[6]])], () => escreverEntregas_(ss, dados.entregas, dados.pedidos));
+    gravar('cancelamentos', dados.cancelamentos, () => escreverCancelamentos_(ss, dados.cancelamentos), CTRL.destCancel, dados.cancelamentos.length);
+    gravar('entregas', [dados.entregas, dados.pedidos.map(p => [p[0], p[1], p[6]])], () => escreverEntregas_(ss, dados.entregas, dados.pedidos), CTRL.destEntregas, dados.entregas.length);
+    // Outros fornecedores: cópia simples das 3 abas do formulário (o painel lê daqui e não abre a planilha do formulário).
+    COPIAS_TERC.forEach(c => { const v = valoresAba_(origemPlanilha_(), c.de);
+      gravar(c.chave, v, () => copiarAba_(ss, c.para, v), c.para, Math.max(v.length - 1, 0)); });
     const novasEntregas = lancarEntregas_(ss, dados, ident);
     // Lista de obras para as sugestões de endereço do formulário (só regrava quando muda).
     if (obras.ativo) { try { escreverObrasFormulario_(obras.linhas); } catch (e) { avisoObras += ' · LISTA DE OBRAS DO FORMULÁRIO NÃO ATUALIZADA: ' + e.message; } }
@@ -888,7 +911,7 @@ function sincronizarFormulario(esperaMs) {
       (dados.orfaos.length ? ' · ITENS SEM PEDIDO: ' + dados.orfaos.join(', ') : '');
     ss.getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc).setNumberFormat('@').setValue(resumo);
     SpreadsheetApp.flush();
-    try { if (tudo) digs.REESCRITA_TOTAL = String(Date.now()); if (Object.keys(digs).length) props.setProperties(digs); } catch (e) {} // [Etapa 1]
+    try { if (Object.keys(digs).length) props.setProperties(digs); } catch (e) {} // [Etapa 1]
     Logger.log(resumo);
     return resumo;
   } finally { lock.releaseLock(); }
@@ -914,7 +937,7 @@ function sincronizarComAviso() {
  *  Assim fica quase em tempo real sem estourar o limite diário de execução do Google. */
 /** Marca rápida do formulário: nº de linhas de PEDIDOS, ITENS_PEDIDO, ENTREGAS, AUDITORIA, CANCELAMENTOS, TERCEIROS, TERCEIROS_PARCELAS, FORNECEDORES e CATALOGO. */
 function marcaOrigem_(conf) {
-  const origem = SpreadsheetApp.openById(texto_(conf.getRange(CTRL.celulaOrigemId).getValue()));
+  const origem = origemPlanilha_();
   const ult = nome => { const sh = origem.getSheetByName(nome); return sh ? sh.getLastRow() : 0; };
   // Todas as abas do formulário que o painel usa: só o número de linhas de cada uma (leve, sem ler o conteúdo).
   // Edições que não criam linha (conferência, pagamento, edição de lançamento, preço do catálogo) entram na AUDITORIA, que também é contada.
@@ -961,6 +984,7 @@ function sincronizacaoAutomaticaCorpo_(esperaMs) { // esperaMs 0: chamado pelo p
   const marca = marcaOrigem_(conf);
   const ultimaCompleta = Number(props.getProperty('ULTIMA_COPIA_COMPLETA') || 0);
   const agora = Date.now();
+  atualizarCacheUsuarios_(); // lista de usuários sempre pronta no cache: login e painel não abrem a planilha do formulário para isso
   if (marca === props.getProperty('MARCA_ORIGEM') && agora - ultimaCompleta < CTRL.copiaCompletaMinutos * 60000) {
     // Nada novo no formulário: confere se a planilha de obras (fase, status, etapas) mudou
     // e atualiza a hora da verificação em B10 (o painel mostra essa hora).
@@ -1170,13 +1194,19 @@ const USUARIO_DONO = '_dono'; // recuperação pelo código mestre, quando o don
 
 function simNao_(v) { return v === true || semAcento_(texto_(v)).toUpperCase() === 'SIM'; }
 function origemPlanilha_() {
-  return SpreadsheetApp.openById(texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaOrigemId).getValue()));
+  if (PLANILHA_ORIGEM_) return PLANILHA_ORIGEM_;
+  const id = texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaOrigemId).getValue()), t0 = Date.now();
+  PLANILHA_ORIGEM_ = SpreadsheetApp.openById(id);
+  console.log('[tempo] abrir planilha do formulário: ' + (Date.now() - t0) + ' ms');
+  return PLANILHA_ORIGEM_;
 }
-/** Usuários da aba USUARIOS (guardados por 2 minutos; o painel limpa a cada alteração). */
+/** Usuários da aba USUARIOS (planilha do formulário), guardados no cache: o acionador relê a cada rodada (atualizarCacheUsuarios_)
+ *  e o painel limpa a cada alteração. Assim o login e o painel quase nunca abrem a planilha do formulário (abrir leva até 18 s). */
 function usuariosPainel_() {
   const cache = CacheService.getScriptCache();
   const c = cache.get('PAINEL_USUARIOS_V1');
   if (c) return JSON.parse(c);
+  const t = cronometro_('ler USUARIOS (sem cache)');
   const sh = origemPlanilha_().getSheetByName(ABA_USUARIOS);
   const lista = [];
   if (sh && sh.getLastRow() > 1) sh.getRange(2, 1, sh.getLastRow() - 1, 9).getValues().forEach((r, i) => {
@@ -1185,10 +1215,13 @@ function usuariosPainel_() {
     lista.push({linha: i + 2, email, nome: texto_(r[1]), usuario: texto_(r[2]).toLowerCase(), empresa: texto_(r[3]), perfil: texto_(r[4]),
       formulario: simNao_(r[5]), painel: simNao_(r[6]), ativo: simNao_(r[7]), obs: texto_(r[8])});
   });
-  try { cache.put('PAINEL_USUARIOS_V1', JSON.stringify(lista), 120); } catch (e) {}
+  try { cache.put('PAINEL_USUARIOS_V1', JSON.stringify(lista), 21600); } catch (e) {}
+  t('ler'); t.fim();
   return lista;
 }
 function limparCacheUsuarios_() { try { CacheService.getScriptCache().remove('PAINEL_USUARIOS_V1'); } catch (e) {} }
+/** Acionador: relê a aba USUARIOS e guarda no cache (mudança feita direto na planilha vale na rodada seguinte). */
+function atualizarCacheUsuarios_() { try { limparCacheUsuarios_(); usuariosPainel_(); } catch (e) { Logger.log('Usuários não relidos: ' + e.message); } }
 function usuarioPorLogin_(login) {
   const u = texto_(login).toLowerCase();
   if (!u) return null;
@@ -1292,6 +1325,12 @@ function contarTokens_() {
 }
 /** Valida a chave do aparelho e confere de novo, a cada chamada, se o usuário continua com PAINEL Sim e ATIVO Sim. */
 function autenticar_(token) {
+  const tt = cronometro_('autenticar_');
+  const r = autenticarCorpo_(token);
+  tt.fim();
+  return r;
+}
+function autenticarCorpo_(token) {
   const t = texto_(token);
   if (!/^[0-9a-f]{96}$/.test(t)) return {erro: {acesso: false, motivo: 'TOKEN'}};
   const props = PropertiesService.getScriptProperties(), v = props.getProperty('TOKEN_' + t);
@@ -1336,10 +1375,12 @@ function presencaFormulario_() {
 /** Login com usuário + senha. 5 erros seguidos no mesmo usuário bloqueiam por 15 minutos.
  *  Quem ainda tem o PIN antigo entra com ele e recebe novaSenha: true (o painel pede a senha nova). */
 function entrarPainel(usuario, senha) {
+  const t = cronometro_('entrarPainel');
   const login = texto_(usuario).toLowerCase(), cache = CacheService.getScriptCache(), s = textoSenha_(senha);
   if (!login) return {acesso: false, motivo: 'INCORRETO'};
   if (cache.get('PINBLOQ_' + login)) return {acesso: false, motivo: 'BLOQUEADO_PIN'};
   const u = login === USUARIO_DONO ? null : usuarioPorLogin_(login);
+  t('usuário');
   const erro = () => {
     const n = Number(cache.get('PINERR_' + login) || 0) + 1;
     if (n >= 5) { cache.put('PINBLOQ_' + login, '1', 900); cache.remove('PINERR_' + login); return {acesso: false, motivo: 'BLOQUEADO_PIN'}; }
@@ -1349,10 +1390,18 @@ function entrarPainel(usuario, senha) {
   };
   if (u && !temPin_(u.usuario) && podePainel_(u)) return {acesso: false, motivo: 'SEM_PIN'};
   const confere = u && s && s.length <= 64 ? senhaConfere_(u.usuario, s) : '';
-  if (!confere) return erro();
+  t('conferir senha');
+  if (!confere) { const r = erro(); t.fim(); return r; }
   if (!podePainel_(u)) return {acesso: false, motivo: 'DESATIVADO'};
   cache.remove('PINERR_' + login);
-  return {acesso: true, token: novoToken_(u.usuario), novaSenha: confere === 'antigo'};
+  const token = novoToken_(u.usuario);
+  t('criar chave do aparelho');
+  // Os dados do painel vão na mesma resposta: o aparelho não precisa de outra chamada logo depois de entrar.
+  // Quem ainda usa o PIN antigo cria a senha nova antes (sem dados). Se a leitura falhar, o aparelho busca os dados como antes.
+  let dados = null;
+  if (confere !== 'antigo') { try { marcarVisto_(u.usuario); dados = dadosPainel_(u); } catch (e) { console.error('Dados no login não montados: ' + e.message); } }
+  t('dados do painel'); t.fim();
+  return {acesso: true, token, novaSenha: confere === 'antigo', dados};
 }
 
 /** Primeiro acesso (passo 1): usuário válido, ainda sem senha, com o código de acesso do painel.
@@ -1539,17 +1588,25 @@ function conferirPeloPainel_() {
   } catch (e) { Logger.log('Conferência pelo painel não feita: ' + e.message); return false; }
 }
 function getDadosPainel(token, semSinc, conferir) {
+  const t = cronometro_('getDadosPainel' + (conferir ? ' (conferir)' : semSinc ? ' (sem sincronizar)' : ''));
   const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
-  if (ac.erro) return ac.erro;
+  t('autenticar');
+  if (ac.erro) { t.fim(); return ac.erro; }
   if (conferir) conferirPeloPainel_(); // B10 velho: confere o formulário e atualiza a hora
   else if (!semSinc) sincronizarSeHouverNovidade_(); // logo depois do login responde já, sem sincronizar: a atualização seguinte sincroniza
-  return dadosPainel_(ac.u);
+  t('sincronização');
+  const r = dadosPainel_(ac.u);
+  t('dados do painel'); t.fim();
+  return r;
 }
 /** Dados do painel para um usuário (quem = null: sem dados de administrador; usado pelo resumo semanal por e-mail). */
 function dadosPainel_(quem) {
+  const t = cronometro_('dadosPainel_');
   const ss = planilhaControle_();
+  t('abrir controle');
   const cat = {};
   linhas_(ss, CTRL.destCatalogo, 2, 3).forEach(r => { if (r[0]) cat[texto_(r[0])] = texto_(r[2]); });
+  t('_IMPORT_CATALOGO');
   // Status da planilha de obras -> rótulos usados pelo painel.
   const status = s => ({'EM ANDAMENTO': 'EM EXECUÇÃO', 'A INICIAR': 'PLANEJADA', 'PARADA': 'PARALISADA',
                         'CONCLUÍDA': 'CONCLUÍDA', 'A VERIFICAR': 'A VERIFICAR'})[texto_(s).toUpperCase()] || texto_(s).toUpperCase();
@@ -1560,6 +1617,7 @@ function dadosPainel_(quem) {
     nomesEtapas = v[0].slice(2, v[0].length - 1).map(texto_);
     v.slice(1).forEach(r => { if (texto_(r[0])) etapas[texto_(r[0])] = {lista: r.slice(2, r.length - 1).map(texto_), pct: num_(r[r.length - 1])}; });
   }
+  t('_IMPORT_ETAPAS');
   const obras = linhas_(ss, CTRL.obras, 5, 10).filter(r => texto_(r[0])).map(r => ({
     id: texto_(r[0]), empreendimento: texto_(r[1]), casa: texto_(r[2]) || texto_(r[0]),
     cidade: texto_(r[4]), responsavel: '', status: status(r[7]), inicio: dataIso_(r[8]),
@@ -1567,18 +1625,21 @@ function dadosPainel_(quem) {
     entrega: dataIso_(r[6]), statusTxt: texto_(r[7]), contrato: dataIso_(r[8]),
     pct: (etapas[texto_(r[0])] || {}).pct, etapas: (etapas[texto_(r[0])] || {}).lista || []
   }));
+  t('OBRAS');
   const itens = linhas_(ss, CTRL.solicitacoes, 5, 18).filter(r => texto_(r[0]) && texto_(r[2])).map(r => ({
     pedido: texto_(r[0]), rev: num_(r[1]), sku: texto_(r[2]), material: texto_(r[3]), un: texto_(r[4]),
     qtdSol: num_(r[5]) || 0, precoRef: num_(r[6]), valorRef: num_(r[7]), data: dataIso_(r[8]),
     obra: texto_(r[9]), entregue: num_(r[11]) || 0, saldo: num_(r[12]) || 0, situacao: texto_(r[13]),
     obraTexto: texto_(r[14]), atendente: texto_(r[15]), entregador: texto_(r[16]), statusPedido: texto_(r[17])
   }));
+  t('SOLICITACOES');
   const lanc = linhas_(ss, CTRL.lancamentos, 5, 16).filter(r => texto_(r[0])).map(r => ({
     id: texto_(r[0]), data: dataIso_(r[1]), obra: texto_(r[2]), tipo: texto_(r[3]), pedido: texto_(r[4]),
     sku: texto_(r[5]), material: texto_(r[6]), cat: cat[texto_(r[5])] || 'Outros', un: texto_(r[7]),
     qtd: num_(r[8]) || 0, custo: num_(r[9]), valor: num_(r[10]), resp: texto_(r[11]), conf: texto_(r[12]),
     obs: texto_(r[13]), situacao: texto_(r[14]), alertas: texto_(r[15])
   }));
+  t('MATERIAIS_E_CUSTOS');
   // Dados de cabeçalho de cada pedido (revisão vigente): usados na impressão do pedido.
   const pedidos = {}, primeiraRev = {}; // primeiraRev: e-mail de quem criou o pedido (menor revisão)
   linhas_(ss, CTRL.destPedidos, 2, 17).filter(r => texto_(r[0])).forEach(r => {
@@ -1589,6 +1650,7 @@ function dadosPainel_(quem) {
       entregador: texto_(r[6]), endereco: texto_(r[7]), casa: texto_(r[8]), obs: texto_(r[9]), status: texto_(r[12]),
       referencia: texto_(r[15]), etapa: texto_(r[16])}; // [Função 6] Q: etapa da revisão vigente
   });
+  t('_IMPORT_PEDIDOS');
   // Entregas de cada pedido, com quem entregou e quem recebeu (_IMPORT_ENTREGAS), da mais antiga para a mais nova.
   Object.keys(pedidos).forEach(id => { pedidos[id].criadoPor = primeiraRev[id] ? primeiraRev[id].email : ''; });
   const shEnt = ss.getSheetByName(CTRL.destEntregas);
@@ -1599,6 +1661,7 @@ function dadosPainel_(quem) {
       qtd: num_(r[5]) || 0, data: dataIso_(r[6]), recebidoPor: texto_(r[7]), entreguePor: texto_(r[8]), obs: texto_(r[9]),
       registradoPor: texto_(r[10]).toLowerCase()});
   });
+  t('_IMPORT_ENTREGAS');
   Object.keys(pedidos).forEach(id => { if (pedidos[id].entregas) pedidos[id].entregas.sort((a, b) => a.data.localeCompare(b.data) || a.id.localeCompare(b.id)); });
   // Pedido cancelado ou encerrado no formulário (_IMPORT_CANCELAMENTOS). Vale o primeiro registro de cada pedido.
   const shC = ss.getSheetByName(CTRL.destCancel);
@@ -1608,6 +1671,7 @@ function dadosPainel_(quem) {
     pedidos[id].cancelamento = {tipo: texto_(r[1]).toUpperCase() === 'ENCERRADO' ? 'ENCERRADO' : 'CANCELADO', data: dataHora_(r[2]),
       email: texto_(r[3]), motivo: texto_(r[4]), naoEntregues: texto_(r[5])};
   });
+  t('_IMPORT_CANCELAMENTOS');
   // Orçamentos preenchidos na aba ORCAMENTOS (só as obras com valor).
   const orcamentos = {}, shOrc = ss.getSheetByName(CTRL.orcamentos);
   if (shOrc && shOrc.getLastRow() > 1) {
@@ -1617,11 +1681,13 @@ function dadosPainel_(quem) {
         data: r[4] instanceof Date ? Utilities.formatDate(r[4], CTRL.fuso, 'dd/MM/yyyy') : texto_(r[4]), obs: texto_(r[5])};
     });
   }
-  // Outros fornecedores (planilha do formulário). Uma falha aqui não impede o painel de abrir.
+  // Outros fornecedores (cópia no controle, feita pela sincronização). Uma falha aqui não impede o painel de abrir.
+  t('ORCAMENTOS');
   let ter = {terceiros: [], fornecedores: {}};
-  try { ter = lerTerceiros_(); } catch (e) { Logger.log('Outros fornecedores não lidos: ' + e.message); }
+  try { ter = lerTerceirosPainel_(); } catch (e) { Logger.log('Outros fornecedores não lidos: ' + e.message); }
+  t('outros fornecedores (cópia no controle)');
   const conf = ss.getSheetByName(CTRL.conf);
-  return {
+  const resultado = {
     acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores, formasPag: TERC.formas,
     // Dados técnicos (sincronização, backup e link da planilha): só vão para Admin Zayda; para os outros nem saem do servidor.
     sistema: ehAdminZayda_(quem) ? {sincErro: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('SINC_ERRO') || 'null'); } catch (e) { return null; } })(), sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
@@ -1638,6 +1704,8 @@ function dadosPainel_(quem) {
     resumo: ehAdminZayda_(quem) ? {destinos: destinosResumo_(), ultimo: ultimoResumo_(), hora: RESUMO.hora} : null, // [Função 5] só Admin Zayda
     planilhaUrl: ehAdminZayda_(quem) ? ss.getUrl() : '', versaoPainel: versaoPainel_(), obras, itens, lanc
   };
+  t('montar o resultado (usuários, fechamentos, sistema)'); t.fim();
+  return resultado;
 }
 
 /** Entregas de um pedido, com nome e assinatura de quem recebeu (lidas da aba ENTREGAS do formulário).
@@ -1647,7 +1715,7 @@ function getEntregasPedido(token, pedido) {
   if (ac.erro) return ac.erro;
   const id = texto_(pedido).toUpperCase();
   const conf = planilhaControle_().getSheetByName(CTRL.conf);
-  const sh = SpreadsheetApp.openById(texto_(conf.getRange(CTRL.celulaOrigemId).getValue())).getSheetByName(CTRL.abaEntregasOrigem);
+  const sh = origemPlanilha_().getSheetByName(CTRL.abaEntregasOrigem);
   const n = sh ? sh.getLastRow() : 0;
   const entregas = n < 2 ? [] : sh.getRange(2, 1, n - 1, 13).getValues()
     .filter(r => texto_(r[1]).toUpperCase() === id && texto_(r[0]).indexOf(CTRL.prefixoEntrega) === 0)
@@ -1658,7 +1726,8 @@ function getEntregasPedido(token, pedido) {
 }
 
 /* ===================== OUTROS FORNECEDORES (lançados no formulário) =====================
- * Lidos direto da planilha do formulário na mesma chamada do painel (getDadosPainel), sem cópia na planilha de controle.
+ * A sincronização copia as 3 abas para o controle (_IMPORT_FORNECEDORES, _IMPORT_TERCEIROS, _IMPORT_PARCELAS) e o painel lê de lá.
+ * Conferir e pagar gravam na planilha do formulário e atualizam na cópia só aquela linha.
  * FORNECEDORES  A ID · B NOME · C TIPO_PRINCIPAL · D CPF_CNPJ · E TELEFONE · F OBSERVACAO · G ATIVO · H CRIADO_POR · I CRIADO_EM
  * TERCEIROS     A ID · B CRIADO_EM · C CRIADO_POR · D OBRA_ID · E FORNECEDOR_ID · F FORNECEDOR_NOME · G TIPO · H DESCRICAO · I QUANTIDADE
  *               J UNIDADE · K VALOR_TOTAL · L DATA_REFERENCIA · M NOTA_NUMERO · N ANEXO_URL · O FORMA_PAGAMENTO · P CONFERENCIA
@@ -1668,28 +1737,68 @@ function getEntregasPedido(token, pedido) {
  * Só CONFERENCIA = CONFERIDO vira custo da obra (no painel). Abas ausentes: listas vazias. */
 const TERC = Object.freeze({abaForn: 'FORNECEDORES', abaLanc: 'TERCEIROS', abaParc: 'TERCEIROS_PARCELAS', nLanc: 22, nParc: 12, nForn: 9,
   formas: ['Pix', 'Boleto', 'Cartão', 'Dinheiro', 'Transferência', 'Outro']}); // formas: a mesma lista do formulário (TER.formas em Código.js)
+/** Cópias das 3 abas no controle (ocultas, mesmas colunas, cabeçalho na linha 1): feitas pela sincronização. */
+const COPIAS_TERC = [{chave: 'ter_forn', de: TERC.abaForn, para: '_IMPORT_FORNECEDORES'},
+  {chave: 'ter_lanc', de: TERC.abaLanc, para: '_IMPORT_TERCEIROS'}, {chave: 'ter_parc', de: TERC.abaParc, para: '_IMPORT_PARCELAS'}];
+const ABAS_TERC_COPIA = {abaForn: '_IMPORT_FORNECEDORES', abaLanc: '_IMPORT_TERCEIROS', abaParc: '_IMPORT_PARCELAS'};
+/** Todos os valores de uma aba (com o cabeçalho); aba ausente ou vazia: []. */
+function valoresAba_(planilha, nome) {
+  const sh = planilha.getSheetByName(nome);
+  return sh && sh.getLastRow() >= 1 && sh.getLastColumn() >= 1 ? sh.getRange(1, 1, sh.getLastRow(), sh.getLastColumn()).getValues() : [];
+}
+/** Cópia simples para uma aba oculta do controle (cria se não existir): um setValues só, por cima do que já existe.
+ *  Texto continua texto (formato @, para "2026-11-23" não virar data), data continua data, número continua número. */
+function copiarAba_(ss, nome, valores) {
+  let sh = ss.getSheetByName(nome);
+  if (!sh) { sh = ss.insertSheet(nome, ss.getNumSheets()); sh.hideSheet(); }
+  const antes = sh.getLastRow(), n = valores.length, m = n ? valores[0].length : 0;
+  if (n) {
+    if (sh.getMaxRows() < n) sh.insertRowsAfter(sh.getMaxRows(), n - sh.getMaxRows());
+    if (sh.getMaxColumns() < m) sh.insertColumnsAfter(sh.getMaxColumns(), m - sh.getMaxColumns());
+    const rg = sh.getRange(1, 1, n, m);
+    rg.setNumberFormats(valores.map(r => r.map(v => typeof v === 'string' ? '@' : v instanceof Date ? 'yyyy-mm-dd hh:mm:ss' : '0.##########')));
+    rg.setValues(valores);
+  }
+  if (antes > n) sh.getRange(n + 1, 1, antes - n, Math.max(m, sh.getLastColumn())).clearContent();
+}
+/** Depois de conferir/pagar pelo painel: copia para o controle só aquela linha (achada pelo ID na coluna A). false = cópia não existe. */
+function copiarLinhaTerc_(nome, id, valores) {
+  const sh = planilhaControle_().getSheetByName(nome);
+  if (!sh || sh.getLastRow() < 2) return false;
+  const i = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().map(r => texto_(r[0])).indexOf(id);
+  if (i < 0) return false;
+  sh.getRange(i + 2, 1, 1, valores.length).setNumberFormats([valores.map(v => typeof v === 'string' ? '@' : v instanceof Date ? 'yyyy-mm-dd hh:mm:ss' : '0.##########')]).setValues([valores]);
+  return true;
+}
+/** Outros fornecedores lidos da cópia no controle; se a cópia ainda não existe (antes da 1ª sincronização), da planilha do formulário. */
+function lerTerceirosPainel_() {
+  const ss = planilhaControle_();
+  if (COPIAS_TERC.every(c => ss.getSheetByName(c.para))) return lerTerceiros_(ss, ABAS_TERC_COPIA);
+  console.log('[tempo] cópia dos outros fornecedores ainda não existe: leitura da planilha do formulário');
+  return lerTerceiros_();
+}
 function linhasOrigem_(origem, nome, n) {
   const sh = origem.getSheetByName(nome);
   if (!sh || sh.getLastRow() < 2) return [];
   return sh.getRange(2, 1, sh.getLastRow() - 1, Math.min(n, sh.getMaxColumns())).getValues();
 }
 const urlDrive_ = v => { const s = texto_(v); return /^https:\/\/(drive|docs)\.google\.com\//.test(s) ? s : ''; };
-function lerTerceiros_(origem) {
-  origem = origem || origemPlanilha_();
+function lerTerceiros_(origem, abas) { // abas: nomes das cópias no controle (ABAS_TERC_COPIA); sem: abas do formulário
+  origem = origem || origemPlanilha_(); abas = abas || TERC;
   const fornecedores = {};
-  linhasOrigem_(origem, TERC.abaForn, TERC.nForn).forEach(r => { const id = texto_(r[0]); if (/^FOR-\d+$/.test(id)) fornecedores[id] = {
+  linhasOrigem_(origem, abas.abaForn, TERC.nForn).forEach(r => { const id = texto_(r[0]); if (/^FOR-\d+$/.test(id)) fornecedores[id] = {
     nome: textoForm_(r[1]), tipo: textoForm_(r[2]), doc: textoForm_(r[3]), telefone: textoForm_(r[4]), obs: textoForm_(r[5]), ativo: texto_(r[6]).toUpperCase() !== 'NAO'}; });
   const parc = {};
-  linhasOrigem_(origem, TERC.abaParc, TERC.nParc).forEach(r => {
+  linhasOrigem_(origem, abas.abaParc, TERC.nParc).forEach(r => {
     const lanc = texto_(r[1]); if (texto_(r[0]).indexOf('TER-') !== 0 || !lanc) return;
     (parc[lanc] = parc[lanc] || []).push({id: texto_(r[0]), numero: Number(r[2]) || 0, descricao: textoForm_(r[3]), valor: Math.round((Number(valor_(r[4])) || 0) * 100) / 100,
       vencimento: dataIso_(r[5]), pago: texto_(r[6]).toUpperCase() === 'SIM', dataPagamento: dataIso_(r[7]), forma: textoForm_(r[8]),
       comprovante: urlDrive_(r[9]), registradoPor: texto_(r[10]).toLowerCase(), registradoEm: dataHora_(r[11])});
   });
   // [Função 6] ETAPA procurada pelo nome no cabeçalho da aba TERCEIROS (coluna nova no fim); sem a coluna, etapa vazia.
-  const shTer = origem.getSheetByName(TERC.abaLanc), cabTer = shTer && shTer.getLastColumn() ? shTer.getRange(1, 1, 1, Math.min(shTer.getLastColumn(), 60)).getValues()[0].map(v => texto_(v).toUpperCase()) : [];
+  const shTer = origem.getSheetByName(abas.abaLanc), cabTer = shTer && shTer.getLastColumn() ? shTer.getRange(1, 1, 1, Math.min(shTer.getLastColumn(), 60)).getValues()[0].map(v => texto_(v).toUpperCase()) : [];
   const iEtapaT = cabTer.indexOf('ETAPA');
-  const lista = linhasOrigem_(origem, TERC.abaLanc, Math.max(TERC.nLanc, iEtapaT + 1)).filter(r => texto_(r[0]).indexOf('TER-') === 0).map(r => {
+  const lista = linhasOrigem_(origem, abas.abaLanc, Math.max(TERC.nLanc, iEtapaT + 1)).filter(r => texto_(r[0]).indexOf('TER-') === 0).map(r => {
     const id = texto_(r[0]);
     return {id, criadoEm: dataHora_(r[1]), criadoPor: texto_(r[2]).toLowerCase(), obra: texto_(r[3]).toUpperCase(), fornecedorId: texto_(r[4]),
       fornecedor: textoForm_(r[5]), tipo: textoForm_(r[6]) || 'Outros', descricao: textoForm_(r[7]), quantidade: num_(r[8]), unidade: textoForm_(r[9]),
@@ -1733,7 +1842,9 @@ function conferirTerceiro(token, id, op, motivo, atualizadoEm) {
       ' por ' + (ac.u.nome || ac.u.usuario) + ' · ' + texto_(r[5]) + ' · ' + texto_(r[6]) + ' · R$ ' + valor + ' · obra ' + texto_(r[3]) +
       (acao === 'CANCELAR' ? ' · conferido antes por ' + texto_(r[16]) + ' em ' + dataHora_(r[17]) : '') + (mot ? ' · Motivo: ' + mot : '')]);
     SpreadsheetApp.flush();
-    const dados = lerTerceiros_(origem);
+    // Cópia no controle: só esta linha (colunas A–V); a tela mostra na hora sem reler a planilha do formulário.
+    r[15] = novo; r[16] = ac.u.email; r[17] = agora; r[18] = acao === 'CONFERIR' ? '' : mot;
+    const dados = copiarLinhaTerc_(ABAS_TERC_COPIA.abaLanc, alvo, r) ? lerTerceiros_(planilhaControle_(), ABAS_TERC_COPIA) : lerTerceiros_(origem);
     return {ok: true, status: novo, terceiros: dados.terceiros, fornecedores: dados.fornecedores};
   } finally { lock.releaseLock(); }
 }
@@ -1773,14 +1884,16 @@ function pagarParcelaTerceiro(token, idParcela, op, data, forma, motivo) {
     const agora = Utilities.formatDate(new Date(), CTRL.fuso, 'yyyy-MM-dd HH:mm:ss'), quem = ac.u.usuario || ac.u.nome || ac.u.email;
     const valor = (Number(valor_(r[4])) || 0).toFixed(2).replace('.', ',');
     // G PAGO · H DATA_PAGAMENTO · I FORMA · J COMPROVANTE_URL · K REGISTRADO_POR · L REGISTRADO_EM (comprovante só pelo formulário)
-    sh.getRange(linha, 7, 1, 6).setNumberFormat('@').setValues([acao === 'PAGAR' ? ['SIM', dia, fp, texto_(r[9]), quem, agora] : ['NAO', '', '', '', '', '']]);
+    const novos = acao === 'PAGAR' ? ['SIM', dia, fp, texto_(r[9]), quem, agora] : ['NAO', '', '', '', '', ''];
+    sh.getRange(linha, 7, 1, 6).setNumberFormat('@').setValues([novos]);
     const aud = origem.getSheetByName('AUDITORIA');
     if (aud) aud.appendRow([agora, ac.u.email, acao === 'PAGAR' ? 'TERCEIRO_PAGAMENTO' : 'TERCEIRO_PAGAMENTO_DESFEITO', texto_(r[1]), '', 'Painel: ' +
       (acao === 'PAGAR' ? 'parcela ' + alvo + ' (' + texto_(r[3]) + ', R$ ' + valor + ') paga em ' + dia + ' por ' + fp + ' · registrado por ' + (ac.u.nome || quem)
         : 'pagamento desfeito na parcela ' + alvo + ' (R$ ' + valor + ', pago em ' + dataIso_(r[7]) + ' por ' + texto_(r[8]) + ', registrado por ' + texto_(r[10]) +
           ' em ' + dataHora_(r[11]) + ') por ' + (ac.u.nome || quem) + ' · Motivo: ' + mot)]);
     SpreadsheetApp.flush();
-    const dados = lerTerceiros_(origem);
+    // Cópia no controle: só esta parcela (colunas A–L).
+    const dados = copiarLinhaTerc_(ABAS_TERC_COPIA.abaParc, alvo, r.slice(0, 6).concat(novos)) ? lerTerceiros_(planilhaControle_(), ABAS_TERC_COPIA) : lerTerceiros_(origem);
     return {ok: true, status: acao === 'PAGAR' ? 'PAGO' : 'DESFEITO', terceiros: dados.terceiros, fornecedores: dados.fornecedores};
   } finally { lock.releaseLock(); }
 }

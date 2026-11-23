@@ -3540,6 +3540,7 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-bkp]"); i
 
 
 /* ---------- atualização automática (ao vivo) ---------- */
+const ENTRANDO="Entrando… pode levar até 1 minuto"; // texto do botão enquanto espera o login ou os dados (prazo de 60 s)
 const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura={}, ULT_CONF=0;
 // Idade da última conferência do formulário (B10), em segundos, contando o tempo desde a leitura.
 const idadeConf=()=>D&&D.sincronizadoHa!=null?D.sincronizadoHa+Math.round((Date.now()-LIDO)/1000):null;
@@ -3680,14 +3681,19 @@ function avisarVersao(d){
 function chamarApi(corpo,funcao,args){
   const viaScript=()=>new Promise((ok,erro)=>google.script.run.withSuccessHandler(ok).withFailureHandler(erro)[funcao](...args));
   if(!URL_API) return viaScript();
-  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),15000);
+  // Prazo de 60 s. Demora NUNCA chama a reserva (o servidor ainda está trabalhando: chamar de novo dobraria a carga).
+  // A reserva google.script.run só entra quando o canal direto falha de verdade (rede ou HTTP).
+  const ctl=new AbortController(), t=setTimeout(()=>ctl.abort(),60000);
   return fetch(URL_API,{method:"POST",body:JSON.stringify(corpo),headers:{"Content-Type":"text/plain;charset=utf-8"},credentials:"omit",redirect:"follow",signal:ctl.signal})
     .then(r=>{clearTimeout(t); if(!r.ok) throw new Error("HTTP "+r.status); return r.json();})
-    .catch(e=>{clearTimeout(t); console.warn("Canal direto falhou, usando reserva:",e); return viaScript();});
+    .catch(e=>{clearTimeout(t); if(e&&e.name==="AbortError") throw demorou();
+      console.warn("Canal direto falhou, usando reserva:",e); return viaScript();});
 }
 const buscarDados = (token,semSinc,conferir) => semSinc?chamarApi({token,semSinc:true},"getDadosPainel",[token,true]):conferir?chamarApi({token,conferir:true},"getDadosPainel",[token,false,true]):chamarApi({token},"getDadosPainel",[token]);
-/* Promessa com prazo: se o Google não responder em ms, falha (quem chamou decide se tenta de novo). */
-const comLimite = (pr,ms) => new Promise((ok,erro)=>{ const t=setTimeout(()=>erro(new Error("O Google não respondeu a tempo.")),ms); pr.then(r=>{clearTimeout(t);ok(r)},e=>{clearTimeout(t);erro(e)}); });
+/* Erro de demora (demora: true): quem chamou não tenta de novo, para não rodar a mesma coisa 2 vezes no servidor. */
+function demorou(){ const e=new Error("O Google não respondeu a tempo."); e.demora=true; return e; }
+/* Promessa com prazo: se o Google não responder em ms, falha com erro de demora. */
+const comLimite = (pr,ms) => new Promise((ok,erro)=>{ const t=setTimeout(()=>erro(demorou()),ms); pr.then(r=>{clearTimeout(t);ok(r)},e=>{clearTimeout(t);erro(e)}); });
 const buscarEntregas = pedido => chamarApi({token:TOKEN,acao:"entregas",pedido},"getEntregasPedido",[TOKEN,pedido]);
 
 /* ---------- impressão de um pedido ---------- */
@@ -4486,16 +4492,16 @@ function telaAcesso(msg,modo){
   const i=$({entrar:"acUsuario",primeiro:"acUsuario2",criar:"acPin1",trocar:"acPinAtual"}[MODO_AC]); setTimeout(()=>i.focus({preventScroll:true}),50);
 }
 let tentativa=0;
-/* Entra com a chave do aparelho: busca os dados e monta o painel. */
-function entrar(c){
+/* Entra com a chave do aparelho: busca os dados e monta o painel. dados: já vieram com o login (sem outra chamada). */
+function entrar(c,dados){
   if(!c){telaAcesso("");return;}
   const minha=++tentativa;
-  $("btnEntrar").disabled=true; $("btnEntrar").textContent="Verificando…";
-  // Os dados vêm sem esperar a sincronização do formulário. Demorou mais de 25 s ou deu erro: tenta de novo 1 vez antes de avisar.
+  $("btnEntrar").disabled=true; $("btnEntrar").textContent=ENTRANDO;
+  // Os dados vêm sem esperar a sincronização do formulário. Prazo de 60 s. Só tenta de novo (1 vez) se deu erro de verdade, nunca por demora.
   const falhou=e=>{ if(minha!==tentativa) return; console.warn("Entrada:",e); tentativa++; $("acesso").hidden=false; telaAcesso("Não foi possível entrar agora. Tente de novo."); };
-  const tentar=resta=>comLimite(buscarDados(c,true),25000).then(d=>{ if(d&&d.acesso===false&&d.motivo==="ERRO") throw new Error(d.detalhe||"ERRO"); return d; })
-    .catch(e=>{ if(resta>0&&minha===tentativa){ $("btnEntrar").textContent="Tentando de novo…"; return tentar(resta-1); } throw e; });
-  tentar(1).then(d=>{
+  const tentar=resta=>comLimite(buscarDados(c,true),60000).then(d=>{ if(d&&d.acesso===false&&d.motivo==="ERRO") throw new Error(d.detalhe||"ERRO"); return d; })
+    .catch(e=>{ if(resta>0&&minha===tentativa&&!(e&&e.demora)){ $("btnEntrar").textContent="Tentando de novo…"; return tentar(resta-1); } throw e; });
+  (dados&&dados.acesso?Promise.resolve(dados):tentar(1)).then(d=>{
       if(minha!==tentativa) return;
       if(!d) return falhou("sem dados");
       if(d.acesso===false){ esquecerCodigo(); telaAcesso(motivoTxt(d.motivo)||"Acesso não liberado.");return;}
@@ -4516,10 +4522,10 @@ document.querySelectorAll("#acesso input[type=password]").forEach(i=>{ const w=d
 function olhosFechados(){ document.querySelectorAll("#acesso .ac-pw").forEach(w=>{ const i=w.querySelector("input"), b=w.querySelector(".olho"); i.type="password"; b.setAttribute("aria-pressed","false"); b.setAttribute("aria-label","Mostrar senha"); }); }
 function acErro(t){ $("acessoMsg").textContent=t; $("btnEntrar").disabled=false; $("btnEntrar").textContent=AC_TXT[MODO_AC][1]; }
 function acChamar(corpo,funcao,args,ok){
-  $("btnEntrar").disabled=true; $("btnEntrar").textContent="Verificando…"; $("acessoMsg").textContent="";
-  // Entrar e conferir o código só leem: se demorar mais de 20 s ou falhar, tenta de novo 1 vez antes de avisar.
+  $("btnEntrar").disabled=true; $("btnEntrar").textContent=ENTRANDO; $("acessoMsg").textContent="";
+  // Prazo de 60 s. Entrar e conferir o código só leem: com erro de verdade, tenta de novo 1 vez; por demora, nunca (não roda 2 vezes no servidor).
   const repete=corpo.acao==="entrar"||corpo.acao==="verificarPrimeiro";
-  const vai=resta=>comLimite(chamarApi(corpo,funcao,args),repete?20000:60000).catch(e=>{ if(repete&&resta>0){ $("btnEntrar").textContent="Tentando de novo…"; return vai(resta-1); } throw e; });
+  const vai=resta=>comLimite(chamarApi(corpo,funcao,args),60000).catch(e=>{ if(repete&&resta>0&&!(e&&e.demora)){ $("btnEntrar").textContent="Tentando de novo…"; return vai(resta-1); } throw e; });
   vai(1).then(r=>ok(r||{})).catch(e=>acErro(repete?"Não foi possível entrar agora. Tente de novo.":"Erro do Google: "+(e&&e.message?e.message:e)));
 }
 $("formAcesso").addEventListener("submit",e=>{e.preventDefault();
@@ -4529,7 +4535,7 @@ $("formAcesso").addEventListener("submit",e=>{e.preventDefault();
     acChamar({acao:"entrar",usuario:u,senha:p},"entrarPainel",[u,p],r=>{
       if(!(r.acesso&&r.token)) return acErro(motivoTxt(r.motivo)||"Acesso não liberado.");
       if(r.novaSenha){ PRIM={token:r.token,atual:p}; return telaAcesso("","criar"); } // entrou com o PIN antigo: cria a senha nova antes de usar o painel
-      entrar(r.token); });
+      entrar(r.token,r.dados); }); // os dados do painel já vêm com o login
   } else if(MODO_AC==="primeiro"){ const u=v("acUsuario2"),c=v("acCodigo");
     if(!c) return acErro("Digite o código de acesso.");
     acChamar({acao:"verificarPrimeiro",usuario:u,codigo:c},"verificarPrimeiroAcesso",[u,c],r=>{
