@@ -1809,7 +1809,7 @@ function vPainel(){
     <article class="card kpi kpi-custo">
       <div class="lbl">${ico("coin")}Custo confirmado de materiais</div>
       <div class="val" style="color:var(--brand)" ${nA("custo",s.custo,"brl")}>${brl(s.custo)}</div>
-      <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} da loja · <b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores</div>
+      <div class="foot"><b ${nA("conf",s.nBsj)}>${s.nBsj}</b> ${s.nBsj===1?"entrega":"entregas"} da loja · ${D.terceirosPendente?`<b>Outros fornecedores ainda carregando</b> (o custo mostra só a loja por enquanto)`:`<b>${s.nTer}</b> ${s.nTer===1?"compra conferida":"compras conferidas"} de outros fornecedores`}</div>
       ${s.custo>0?`<div class="segbar" data-lista="seg" aria-hidden="true">${seg}</div>`:""}
       <div class="foot orig fornl" aria-label="Custo confirmado por fornecedor">${partes.map(linhaF).join("")}</div>
       ${variacaoCusto(s)}
@@ -2113,7 +2113,8 @@ function difMes(k){ const e=estadoMes(k); if(!e.fechado) return null; const f=e.
   uniq(Object.keys(f.porObra||{}).concat(Object.keys(a.porObra))).forEach(o=>{ const x=(f.porObra||{})[o]||0, y=a.porObra[o]||0; if(Math.abs(x-y)>=0.005) obras.push({obra:o,antes:x,agora:y}); });
   if(Math.abs(f.total-a.total)<0.005&&!obras.length) return null;
   return {mes:k,fechado:f.total,atual:a.total,dif:Math.round((a.total-f.total)*100)/100,obras}; }
-const mesesAlterados = () => uniq(fechLista().map(f=>f.mes)).map(difMes).filter(Boolean);
+// Outros fornecedores ainda carregando: o custo atual está incompleto, então não compara com o fechamento (não gera "Mês fechado mudou").
+const mesesAlterados = () => D&&D.terceirosPendente ? [] : uniq(fechLista().map(f=>f.mes)).map(difMes).filter(Boolean);
 /* [Função 3] Custo por m²: custo confirmado TOTAL da obra (desde o início) ÷ área construída. Em obra em andamento o valor é parcial ("até agora"). */
 let GASTO_CACHE=null;
 function gastoTotal(id){ if(!GASTO_CACHE||GASTO_CACHE.lanc!==D.lanc){ const g={}; D.lanc.forEach(l=>{ if(l.situacao==="CUSTO CONFIRMADO") g[l.obra]=(g[l.obra]||0)+(l.valor||0); }); GASTO_CACHE={lanc:D.lanc,g}; } return GASTO_CACHE.g[id]||0; }
@@ -2975,6 +2976,7 @@ function vTer(){
   if(S.terRota!==S.rota){ S.terRota=S.rota; S.terTipo=""; S.terForn=""; S.terPag=""; S.terN=50; S.terQ=""; S.terMais=false;
     if(/^forn:/.test(S.sit)){ S.terForn=S.sit.slice(5); S.sit=""; S.terMais=true; } // vindo do painel "Fornecedores"
     else if(/^pag:/.test(S.sit)){ S.terPag=S.sit.slice(4); S.sit=""; } else if(/^parc:/.test(S.sit)){ S.terQ=S.sit.slice(5); S.sit=""; S.terQFoco=true; } else if(/^conf:/.test(S.sit)) S.sit=S.sit.slice(5); }
+  if(D.terceirosPendente) return `<section class="card"><div class="empty"><b>Outros fornecedores ainda carregando</b>As compras aparecem aqui depois da próxima sincronização (até 5 min).</div></section>`;
   if(!terTodos().length) return `<section class="card"><div class="empty"><b>Nenhuma compra de outro fornecedor ainda</b>As compras aparecem aqui quando lançadas no formulário → Outros fornecedores.</div></section>`;
   const base=terTopo(), vivos=base.filter(t=>t.conferencia!=="CANCELADO"), P=vivos.map(terPag), ag=base.filter(t=>t.conferencia==="AGUARDANDO"), conf=base.filter(t=>t.conferencia==="CONFERIDO");
   /* 1. Resumo: um cartão, 4 números */
@@ -3141,7 +3143,7 @@ function relTerceiros(ini,fim,obra){
   const pg=t=>{const p=terPag(t);return p.sit==="PAGO"?"Pago":"Pago "+brl(p.pago)+" · A pagar "+brl(p.aPagar)+(p.temVenc?" (vencido)":"");};
   return `<h2>OUTROS FORNECEDORES</h2>`+(L.length?relTabela(["Data",...(obra?[]:["Obra"]),"Fornecedor","Tipo","Descrição",["Valor","n"],"Pagamento"],
     L.map(t=>[dbr(t.dataRef),...(obra?[]:[esc(t.obra)]),esc(t.fornecedor),esc(t.tipo),esc(t.descricao),brl(t.valor),pg(t)]),["TOTAL",...(obra?[]:[""]),"","","",brl(sum(L,t=>t.valor)),""])
-    :relVazio("Nenhuma compra de outro fornecedor conferida neste período."));
+    :relVazio(D.terceirosPendente?"Outros fornecedores ainda carregando: este relatório mostra só a loja.":"Nenhuma compra de outro fornecedor conferida neste período."));
 }
 const relOrigem=d=>`<div class="tot q2"><div><span>LOJA BSJ</span><b>${brl(sum(d.conf.filter(l=>!l.ter),l=>l.valor))}</b></div><div><span>OUTROS FORNECEDORES (CONFERIDOS)</span><b>${brl(sum(d.conf.filter(l=>l.ter),l=>l.valor))}</b></div></div>`;
 const TITLES={fechamento:["Fechamento do mês","Fotografia dos números de cada mês encerrado, com PDF no Drive e aviso se algo mudar depois. Só administradores da Zayda veem esta tela."],sistema:["Sistema","Sincronização, backup e planilha. Só administradores da Zayda veem esta tela."],usuarios:["Usuários","Quem acessa o formulário e o painel. Só administradores da Zayda veem esta tela."],painel:["Painel de custos","Custo confirmado dos materiais entregues em cada obra."],obras:["Obras","Obras da planilha Controle e Planejamento de Obras. Toque em uma obra para ver o painel só dela."],solicitacoes:["Solicitações","Pedidos do formulário, com o que já chegou e o que falta entregar. Toque na impressora para imprimir um pedido."],lancamentos:["Materiais e custos","Cada entrega recebida na obra, com o custo do material."],terceiros:["Outros fornecedores","Compras e serviços fora da loja BSJ: confira os lançamentos e acompanhe os pagamentos."],orcamentos:["Orçamentos","Orçamento de materiais de cada obra comparado a todo o custo confirmado da obra, sem filtro de período."]};
@@ -3286,9 +3288,11 @@ function carregar(d){
   D.itens=D.itensTodos.filter(i=>i.fechado!=="CANCELADO");
   $("btnRelatorio").hidden=false;
   const mc=$("modeChip"); mc.hidden=false; mc.className="chip "+(D.modo==="TESTE"?"test":"prod"); mc.textContent=D.modo==="TESTE"?"Dados de teste":"Dados reais";
-  LIDO=Date.now(); textoAtualizado();
+  LIDO=Date.now(); ULT_COMPLETO=LIDO; textoAtualizado(); // dados completos acabaram de chegar
   D.lanc.forEach(l=>{if(!l.obra)l.obra="SEM VÍNCULO"});
   D.terceiros=D.terceiros||[]; D.fornecedores=D.fornecedores||{}; aplicarTerceiros(); // outros fornecedores conferidos viram linhas de custo
+  if(D.terceirosPendente&&!carregar.avisou){ carregar.avisou=true; aviso("Outros fornecedores ainda carregando: o custo mostra só a loja por enquanto.",10000); }
+  if(!D.terceirosPendente) carregar.avisou=false;
   cartaoSistema(); // [Etapa 1] sincronização de hoje e último backup (só Admin da Zayda)
   D.fechamentos=D.fechamentos||[]; avisoFech(); // [Função 4]
   const semObra = D.itens.concat(D.lanc).some(x=>x.obra==="SEM VÍNCULO");
@@ -3440,7 +3444,9 @@ function vFechamento(){ if(!ehAdminZayda()) return `<div class="card empty"><b>S
     <section class="card"><div class="cardhead"><div><h2>Meses</h2><div class="sub">Fechar grava os números do mês e o PDF. O painel não altera a planilha do formulário: se alguém mudar algo de um mês fechado, aparece o aviso aqui e em Pendências.</div></div></div>
     <div class="fc-lista">${mesesFech().map(linha).join("")}</div></section>`; }
 const abParaB64 = buf => { const b=new Uint8Array(buf); let s=""; for(let i=0;i<b.length;i+=0x8000) s+=String.fromCharCode.apply(null,b.subarray(i,i+0x8000)); return btoa(s); };
-async function fecharMesAgora(k){ FCH.ocupado=k; FCH.conf=""; FCH.msg=""; manterRolagem(render);
+async function fecharMesAgora(k){
+  if(D.terceirosPendente){ FCH.conf=""; FCH.msg="Outros fornecedores ainda carregando. Feche o mês depois da próxima sincronização."; FCH.msgMes=k; manterRolagem(render); return; }
+  FCH.ocupado=k; FCH.conf=""; FCH.msg=""; manterRolagem(render);
   const fim=(msg)=>{ FCH.ocupado=""; FCH.msg=msg||""; FCH.msgMes=k; manterRolagem(render); };
   const foto=fotoMes(k), op={destino:true,leve:true};
   await gerarPdf(folhaRelMes(k),"Fechamento "+k+".pdf",op);
@@ -3541,7 +3547,7 @@ document.addEventListener("click",e=>{ const b=e.target.closest("[data-bkp]"); i
 
 /* ---------- atualização automática (ao vivo) ---------- */
 const ENTRANDO="Entrando… pode levar até 1 minuto"; // texto do botão enquanto espera o login ou os dados (prazo de 60 s)
-const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura={}, ULT_CONF=0;
+const INTERVALO_MS=15000; let LIDO=0, timerVivo=null, buscando=false, assinatura={}, ULT_CONF=0, ULT_COMPLETO=0;
 // Idade da última conferência do formulário (B10), em segundos, contando o tempo desde a leitura.
 const idadeConf=()=>D&&D.sincronizadoHa!=null?D.sincronizadoHa+Math.round((Date.now()-LIDO)/1000):null;
 // Retrato dos dados para comparar, em três partes: custo (lançamentos), pedidos (pedidos e itens) e o resto (obras etc.).
@@ -3563,19 +3569,26 @@ function atualizarAgora(manual){
   if(buscando||!(window.google&&google.script&&google.script.run)) return;
   if(!manual&&(document.hidden||listaAberta())) return;
   buscando=true; $("live").classList.remove("off");
-  // Última conferência com mais de 1 minuto: o servidor roda a rotina do acionador (no máximo 1 vez por minuto por painel).
-  const conferir=Date.now()-ULT_CONF>=60000&&(idadeConf()||0)>60; if(conferir) ULT_CONF=Date.now();
-  buscarDados(TOKEN,false,conferir).then(d=>{buscando=false;
+  // Conferência leve (getVersaoPainel): só a hora da última sincronização e a versão dos dados, sem abrir planilha.
+  // Os dados completos só vêm quando a versão mudou, no botão Atualizar ou, de segurança, a cada 5 min (pega edição feita direto na planilha).
+  const completo=manual||D.versaoDados==null||Date.now()-ULT_COMPLETO>=300000;
+  const sair=()=>{ buscando=false; esquecerCodigo(); };
+  (completo?Promise.resolve(null):chamarApi({token:TOKEN,acao:"versao"},"getVersaoPainel",[TOKEN])).then(v=>{
+    if(v){
+      if(v.acesso===false){ if(v.motivo==="ERRO"){ buscando=false; return; } sair(); telaAcesso(motivoTxt(v.motivo)); return; }
+      if(v.versao===D.versaoDados){ buscando=false; D.sincronizadoEm=v.sincronizadoEm; D.sincronizadoHa=v.sincronizadoHa; LIDO=Date.now(); textoAtualizado(); return; } // nada novo
+    }
+    return buscarDados(TOKEN,false,false).then(d=>{buscando=false; ULT_COMPLETO=Date.now();
       if(!d||d.acesso===false){ if(d&&d.motivo==="ERRO") return; esquecerCodigo(); telaAcesso(motivoTxt(d&&d.motivo)); return; }
       avisarVersao(d);
-      const nova=assinar(d), mudouCusto=nova.custo!==assinatura.custo, mudouPed=nova.ped!==assinatura.ped, mudouResto=nova.resto!==assinatura.resto;
-      if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.sincronizadoHa=d.sincronizadoHa; D.geradoEm=d.geradoEm; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
+      const nova=assinar(d), mudouCusto=nova.custo!==assinatura.custo, mudouPed=nova.ped!==assinatura.ped, mudouResto=nova.resto!==assinatura.resto||!!d.terceirosPendente!==!!D.terceirosPendente;
+      if(!manual&&!mudouCusto&&!mudouPed&&!mudouResto){ D.sincronizadoEm=d.sincronizadoEm; D.sincronizadoHa=d.sincronizadoHa; D.geradoEm=d.geradoEm; D.versaoDados=d.versaoDados; LIDO=Date.now(); textoAtualizado(); return; } // nada novo: só o texto de horário
       const n=mudouCusto||mudouPed?novidades(fotoVivo(D),fotoVivo(d)):null;
       manterRolagem(()=>{ carregar(d);
       if(manual||mudouCusto) renderMantendo(n,manual); // custo mudou: transição do valor antigo ao novo; botão Atualizar: redesenha tudo do zero
       else if(mudouPed){ if(S.view==="painel") renderPedidos(n); else if(S.view!=="lancamentos"&&S.view!=="orcamentos") renderMantendo(n); } // só pedidos: gráficos de gasto ficam como estão
       else if(S.view==="obras"||S.view==="orcamentos") renderMantendo(null); // só dados das obras: redesenha a lista de obras; no resto, entra no próximo redesenho
-      }); })
+      }); }); })
     .catch(()=>{buscando=false;$("live").classList.add("off");$("updated").textContent="Sem conexão com a planilha · tentando de novo";});
 }
 function iniciarAoVivo(){

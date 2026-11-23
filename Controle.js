@@ -549,6 +549,8 @@ function fecharMes(token, mes, foto, pdf) {
   const n = v => { const x = Number(v); return isFinite(x) ? Math.round(x * 100) / 100 : 0; };
   const mapa = o => { const r = {}; Object.keys(o && typeof o === 'object' ? o : {}).slice(0, 500).forEach(k => { r[String(k).slice(0, 80)] = n(o[k]); }); return r; };
   if (!pdf || String(pdf).length > 20e6) return {ok: false, motivo: 'O relatório em PDF não chegou. Tente de novo.'};
+  // Sem a cópia dos outros fornecedores o custo do mês estaria incompleto: não fecha.
+  if (!COPIAS_TERC.every(c => planilhaControle_().getSheetByName(c.para))) return {ok: false, motivo: 'Outros fornecedores ainda carregando. Feche o mês depois da próxima sincronização.'};
   const lock = travaAcoes_();
   if (!lock.tryLock(15000)) return {ok: false, motivo: 'O sistema está ocupado. Tente de novo em alguns segundos.'};
   try {
@@ -849,9 +851,11 @@ function sincronizarFormulario(esperaMs) {
   // Trava do script (não do documento): vale também quando a sincronização é chamada pelo painel (app da Web).
   const lock = LockService.getScriptLock();
   if (!lock.tryLock(esperaMs == null ? 30000 : esperaMs)) throw new Error('Outra sincronização está em andamento.'); // 0 = não espera
+  const tm = cronometro_('sincronizarFormulario'); // medição de cada etapa (Execuções → linha [tempo])
   try {
     const ss = planilhaControle_();
     const dados = lerOrigem_(); // toda a leitura acontece antes de qualquer escrita
+    tm('ler pedidos, itens, entregas e catálogo do formulário');
     // Obras: uma falha aqui não impede a sincronização dos pedidos; fica registrada no resumo.
     // Planilha de obras: pelo menu, sempre; pelo acionador e pelo painel, no máximo 1 vez por hora (a edição dela já atualiza por aoEditarObras).
     let obras = {ativo: false, linhas: []}, avisoObras = '';
@@ -860,6 +864,7 @@ function sincronizarFormulario(esperaMs) {
       propsObras.setProperty('OBRAS_CONFERIDAS_EM', String(Date.now()));
       try { obras = lerObras_(); } catch (e) { avisoObras = ' · OBRAS NÃO ATUALIZADAS: ' + e.message; }
     }
+    tm('ler planilha de obras' + (obras.ativo ? '' : ' (não precisou)'));
     const obrasAtuais = Math.max(0, ss.getSheetByName(CTRL.obras).getLastRow() - CTRL.linhaObras + 1);
     if (obras.ativo && !obras.linhas.length && obrasAtuais > 0) {
       obras.ativo = false; avisoObras = ' · OBRAS NÃO ATUALIZADAS: a planilha de obras não retornou nenhuma obra OB-xx';
@@ -871,18 +876,20 @@ function sincronizarFormulario(esperaMs) {
     // [Etapa 1] Só regrava a aba de destino quando ela mudou: compara o resumo MD5 do conteúdo (guardado em PropertiesService)
     // e o número de linhas que a aba tem hoje. Igual nos dois: não escreve nada. Se a comparação falhar, copia normalmente.
     const props = PropertiesService.getScriptProperties(), digs = {};
+    let mudou = false; // alguma aba do controle mudou: troca a VERSAO_DADOS (o painel aberto só baixa tudo quando ela muda)
     const gravar = (chave, conteudo, fn, nomeAba, nLinhas) => { let d = '';
       try { d = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(conteudo), Utilities.Charset.UTF_8).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join(''); } catch (e) { d = ''; }
       const aba = ss.getSheetByName(nomeAba);
       if (d && props.getProperty('DIG_' + chave) === d && aba && Math.max(aba.getLastRow() - 1, 0) === nLinhas) return false;
       const t0 = Date.now(); fn(); console.log('[tempo] regravar ' + nomeAba + ' (' + nLinhas + ' linhas): ' + (Date.now() - t0) + ' ms');
-      if (d) digs['DIG_' + chave] = d; return true; };
+      mudou = true; if (d) digs['DIG_' + chave] = d; return true; };
     gravar('catalogo', dados.catalogo, () => escrever_(ss, CTRL.destCatalogo, dados.catalogo, 6), CTRL.destCatalogo, dados.catalogo.length);
     gravar('itens', dados.itens, () => escrever_(ss, CTRL.destItens, dados.itens, 11), CTRL.destItens, dados.itens.length);
     if (obras.ativo && obras.assinatura !== props.getProperty('HASH_OBRAS')) {
-      escreverObras_(ss, obras.linhas); escreverEtapas_(ss, obras.etapas);
+      escreverObras_(ss, obras.linhas); escreverEtapas_(ss, obras.etapas); mudou = true;
       PropertiesService.getScriptProperties().setProperty('HASH_OBRAS', obras.assinatura);
     }
+    tm('comparar/gravar catálogo, itens e obras');
     const obrasParaVinculo = obras.ativo ? obras.linhas :
       linhas_(ss, CTRL.obras, CTRL.linhaObras, 4).filter(r => texto_(r[0]));
     const ident = identificarObras_(ss, dados, obrasParaVinculo);
@@ -896,12 +903,17 @@ function sincronizarFormulario(esperaMs) {
     if (texto_(cabQ.getValue()) !== 'ETAPA') cabQ.setValue('ETAPA');
     gravar('cancelamentos', dados.cancelamentos, () => escreverCancelamentos_(ss, dados.cancelamentos), CTRL.destCancel, dados.cancelamentos.length);
     gravar('entregas', [dados.entregas, dados.pedidos.map(p => [p[0], p[1], p[6]])], () => escreverEntregas_(ss, dados.entregas, dados.pedidos), CTRL.destEntregas, dados.entregas.length);
+    tm('identificar obras e comparar/gravar pedidos, cancelamentos e entregas');
     // Outros fornecedores: cópia simples das 3 abas do formulário (o painel lê daqui e não abre a planilha do formulário).
     COPIAS_TERC.forEach(c => { const v = valoresAba_(origemPlanilha_(), c.de);
       gravar(c.chave, v, () => copiarAba_(ss, c.para, v), c.para, Math.max(v.length - 1, 0)); });
+    tm('ler e copiar outros fornecedores');
     const novasEntregas = lancarEntregas_(ss, dados, ident);
+    if (novasEntregas) mudou = true;
+    tm('lançar entregas novas em MATERIAIS_E_CUSTOS');
     // Lista de obras para as sugestões de endereço do formulário (só regrava quando muda).
     if (obras.ativo) { try { escreverObrasFormulario_(obras.linhas); } catch (e) { avisoObras += ' · LISTA DE OBRAS DO FORMULÁRIO NÃO ATUALIZADA: ' + e.message; } }
+    tm('lista de obras do formulário');
     const resumo = Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm') + ' · ' +
       uniq_(dados.pedidos.map(p => p[0])).length + ' pedidos · ' + dados.pedidos.length + ' revisões · ' +
       dados.itens.length + ' itens · ' + dados.catalogo.length + ' SKUs' +
@@ -911,7 +923,10 @@ function sincronizarFormulario(esperaMs) {
       (dados.orfaos.length ? ' · ITENS SEM PEDIDO: ' + dados.orfaos.join(', ') : '');
     ss.getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc).setNumberFormat('@').setValue(resumo);
     SpreadsheetApp.flush();
-    try { if (Object.keys(digs).length) props.setProperties(digs); } catch (e) {} // [Etapa 1]
+    digs.B10_TEXTO = resumo; // a conferência leve do painel lê a hora daqui, sem abrir planilha
+    if (mudou) digs.VERSAO_DADOS = String(Date.now());
+    try { props.setProperties(digs); } catch (e) {} // [Etapa 1]
+    tm('gravar resumo (B10)'); tm.fim();
     Logger.log(resumo);
     return resumo;
   } finally { lock.releaseLock(); }
@@ -976,7 +991,7 @@ function sincronizacaoAutomatica() {
 }
 function sincronizacaoAutomaticaCorpo_(esperaMs) { // esperaMs 0: chamado pelo painel, nunca espera a trava
   const lock = LockService.getScriptLock();
-  if (!lock.tryLock(esperaMs === 0 ? 0 : 200)) return 'Outra sincronização em andamento.';
+  if (!lock.tryLock(esperaMs === 0 ? 0 : 200)) { console.log('Acionador: outra sincronização ainda está rodando; esta rodada não fez nada.'); return 'Outra sincronização em andamento.'; }
   lock.releaseLock();
   const ss = planilhaControle_();
   const conf = ss.getSheetByName(CTRL.conf);
@@ -990,7 +1005,11 @@ function sincronizacaoAutomaticaCorpo_(esperaMs) { // esperaMs 0: chamado pelo p
     // e atualiza a hora da verificação em B10 (o painel mostra essa hora).
     const mudouObras = conferirObrasDeHora_();
     const cel = conf.getRange(CTRL.celulaUltimaSinc), txt = texto_(cel.getValue()), i = txt.indexOf(' · ');
-    cel.setValue(Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm') + (i >= 0 ? txt.slice(i) : ''));
+    const novoB10 = Utilities.formatDate(new Date(), CTRL.fuso, 'dd/MM/yyyy HH:mm') + (i >= 0 ? txt.slice(i) : '');
+    cel.setValue(novoB10);
+    const pr = {B10_TEXTO: novoB10}; if (mudouObras) pr.VERSAO_DADOS = String(Date.now());
+    props.setProperties(pr);
+    console.log('[tempo] rodada leve (sem novidade no formulário): ' + (Date.now() - agora) + ' ms');
     return mudouObras ? 'Obras atualizadas.' : 'Sem novidades no formulário.';
   }
   const r = sincronizarFormulario(esperaMs === 0 ? 0 : 30000);
@@ -1112,6 +1131,7 @@ function doPost(e) {
     : c.acao === 'backup' ? backupAgora(c.token)
     : c.acao === 'destinosResumo' ? salvarDestinosResumo(c.token, c.destinos)
     : c.acao === 'resumoTeste' ? enviarResumoTeste(c.token)
+    : c.acao === 'versao' ? getVersaoPainel(c.token)
     : getDadosPainel(c.token, c.semSinc === true, c.conferir === true); }
   catch (err) { saida = {acesso: false, motivo: 'ERRO', detalhe: String(err && err.message || err)}; }
   return ContentService.createTextOutput(JSON.stringify(saida)).setMimeType(ContentService.MimeType.JSON);
@@ -1580,6 +1600,18 @@ function idadeSinc_(txt) {
 /** Dados do painel. Em nenhum caminho (normal, semSinc, conferir) sincroniza nem abre a planilha do formulário:
  *  só lê a planilha de controle (inclusive a hora da última sincronização, B10). Quem sincroniza é só o acionador de 5 min.
  *  semSinc e conferir continuam aceitos (o painel publicado ainda manda), mas não mudam nada. */
+/** Conferência leve do painel aberto (a cada 15 s): só a chave do aparelho e 2 propriedades, sem abrir planilha nenhuma.
+ *  versao muda quando a sincronização grava algo no controle; o painel só pede getDadosPainel completo quando ela muda. */
+function getVersaoPainel(token) {
+  const t = cronometro_('getVersaoPainel');
+  const ac = autenticar_(token); if (ac.erro) { t.fim(); return ac.erro; }
+  const p = PropertiesService.getScriptProperties();
+  let b10 = p.getProperty('B10_TEXTO');
+  if (b10 == null) b10 = texto_(planilhaControle_().getSheetByName(CTRL.conf).getRange(CTRL.celulaUltimaSinc).getValue()); // só até a 1ª rodada do acionador
+  const r = {acesso: true, versao: p.getProperty('VERSAO_DADOS') || '', sincronizadoEm: b10.split(' · ')[0], sincronizadoHa: idadeSinc_(b10)};
+  t('ler versão'); t.fim();
+  return r;
+}
 function getDadosPainel(token, semSinc, conferir) {
   const t = cronometro_('getDadosPainel' + (conferir ? ' (conferir)' : semSinc ? ' (sem sincronizar)' : ''));
   const ac = autenticar_(token); // chave do aparelho + usuário ainda com PAINEL Sim e ATIVO Sim
@@ -1674,11 +1706,12 @@ function dadosPainel_(quem) {
   // Outros fornecedores (cópia no controle, feita pela sincronização). Uma falha aqui não impede o painel de abrir.
   t('ORCAMENTOS');
   let ter = {terceiros: [], fornecedores: {}};
-  try { ter = lerTerceirosPainel_(); } catch (e) { Logger.log('Outros fornecedores não lidos: ' + e.message); }
+  try { ter = lerTerceirosPainel_(); } catch (e) { Logger.log('Outros fornecedores não lidos: ' + e.message); ter.pendente = true; }
   t('outros fornecedores (cópia no controle)');
   const conf = ss.getSheetByName(CTRL.conf);
   const resultado = {
     acesso: true, pedidos, nomesEtapas, orcamentos, terceiros: ter.terceiros, fornecedores: ter.fornecedores, formasPag: TERC.formas,
+    terceirosPendente: !!ter.pendente, versaoDados: PropertiesService.getScriptProperties().getProperty('VERSAO_DADOS') || '',
     // Dados técnicos (sincronização, backup e link da planilha): só vão para Admin Zayda; para os outros nem saem do servidor.
     sistema: ehAdminZayda_(quem) ? {sincErro: (() => { try { return JSON.parse(PropertiesService.getScriptProperties().getProperty('SINC_ERRO') || 'null'); } catch (e) { return null; } })(), sinc: resumoSinc_(), backup: (() => { try { const b = JSON.parse(PropertiesService.getScriptProperties().getProperty('BACKUP_ULTIMO') || 'null'); if (b && !b.ok) return {ok: false, em: b.em, origem: b.origem, falta: b.falta || (/permiss|permission|DriveApp/i.test(String(b.erro || '')) ? 'AUTORIZAR' : 'OUTRO')}; return b; } catch (e) { return null; } })()} : null, // [Etapa 1]
     usuarios: usuariosPainel_().reduce((m, u) => { m[u.email] = {nome: u.nome, empresa: u.empresa}; return m; }, {}), eu: quem ? publico_(quem) : null,
@@ -1758,6 +1791,7 @@ function copiarLinhaTerc_(nome, id, valores) {
   const i = sh.getRange(2, 1, sh.getLastRow() - 1, 1).getValues().map(r => texto_(r[0])).indexOf(id);
   if (i < 0) return false;
   sh.getRange(i + 2, 1, 1, valores.length).setNumberFormats([valores.map(v => typeof v === 'string' ? '@' : v instanceof Date ? 'yyyy-mm-dd hh:mm:ss' : '0.##########')]).setValues([valores]);
+  PropertiesService.getScriptProperties().setProperty('VERSAO_DADOS', String(Date.now())); // outros aparelhos abertos baixam a mudança
   return true;
 }
 /** Outros fornecedores lidos só da cópia no controle (o painel nunca abre a planilha do formulário).
@@ -1766,7 +1800,7 @@ function lerTerceirosPainel_() {
   const ss = planilhaControle_();
   if (COPIAS_TERC.every(c => ss.getSheetByName(c.para))) return lerTerceiros_(ss, ABAS_TERC_COPIA);
   console.error('Cópia dos outros fornecedores não existe no controle: rode criarCopiaOutrosFornecedores no editor.');
-  return {terceiros: [], fornecedores: {}};
+  return {terceiros: [], fornecedores: {}, pendente: true}; // o painel avisa "ainda carregando" e não trata como zero
 }
 /** Rodar 1 vez pelo editor (ou quando quiser refazer): monta as 3 abas _IMPORT_ de outros fornecedores no controle,
  *  copiando TERCEIROS, TERCEIROS_PARCELAS e FORNECEDORES do formulário (um setValues por aba). Depois a sincronização mantém. */
@@ -1782,6 +1816,7 @@ function criarCopiaOutrosFornecedores() {
       digs['DIG_' + c.chave] = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, JSON.stringify(v), Utilities.Charset.UTF_8).map(b => ('0' + (b & 255).toString(16)).slice(-2)).join('');
       feito.push(c.para + ': ' + Math.max(v.length - 1, 0) + ' linhas (' + (Date.now() - t0) + ' ms)');
     });
+    digs.VERSAO_DADOS = String(Date.now()); // painéis abertos baixam os dados de novo
     SpreadsheetApp.flush(); props.setProperties(digs);
     const msg = 'Cópia dos outros fornecedores criada · ' + feito.join(' · ');
     console.log(msg); return msg;
